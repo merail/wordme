@@ -20,5 +20,7 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "wordme"
+
 include(":app")
- 
+
+include(":database")
