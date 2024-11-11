@@ -15,4 +15,5 @@ data class WordEntity(
     @ColumnInfo(name = "gender") val gender: String,
     @ColumnInfo(name = "case") val case: String?,
     @ColumnInfo(name = "animation") val animation: Boolean?,
+    @ColumnInfo(name = "wasUsed", defaultValue = "0") val wasUsed: Boolean,
 )

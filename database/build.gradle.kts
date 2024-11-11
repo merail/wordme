@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt.gradle)
+    alias(libs.plugins.room)
 }
 
 android {
@@ -25,6 +26,10 @@ android {
 
     hilt {
         enableAggregatingTask = false
+    }
+
+    room {
+        schemaDirectory("$projectDir/schemas")
     }
 }
 
