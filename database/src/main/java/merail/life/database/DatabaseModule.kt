@@ -22,7 +22,9 @@ interface DatabaseModule {
             context,
             WordsDatabase::class.java,
             WORDS_DATABASE_NAME,
-        ).createFromAsset("words_database.db").build().apply {
+        ).createFromAsset(
+            databaseFilePath = "words_database.db",
+        ).build().apply {
             openHelper.writableDatabase
         }
     }

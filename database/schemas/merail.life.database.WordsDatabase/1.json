@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "a8f2b5d8a4e3285a50e9bf4384461bda",
+    "identityHash": "7fc91966e53ee437a40b8222f04d90dd",
     "entities": [
       {
         "tableName": "word",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `word` TEXT NOT NULL, `code` INTEGER NOT NULL, `parentCode` INTEGER NOT NULL, `gender` TEXT NOT NULL, `case` TEXT, `animation` INTEGER, `wasUsed` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `word` TEXT NOT NULL, `code` INTEGER NOT NULL, `parentCode` INTEGER NOT NULL, `gender` TEXT NOT NULL, `case` TEXT, `animation` INTEGER)",
         "fields": [
           {
             "fieldPath": "id",
@@ -64,7 +64,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a8f2b5d8a4e3285a50e9bf4384461bda')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '7fc91966e53ee437a40b8222f04d90dd')"
     ]
   }
 }
