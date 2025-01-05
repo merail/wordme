@@ -21,4 +21,8 @@ dependencyResolutionManagement {
 
 rootProject.name = "WordMe"
 include(":app")
- 
+include(":core")
+include(":design")
+include(":navigation")
+include(":navigation:graph")
+include(":navigation:domain")

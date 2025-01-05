@@ -66,4 +66,10 @@ dependencies {
     implementation(platform(libs.google.firebase.bom))
     implementation(libs.firebase.crashlytics)
     implementation(libs.firebase.analytics)
+
+    implementation(libs.androidx.navigation.compose)
+
+    implementation(project(":core"))
+    implementation(project(":design"))
+    implementation(project(":navigation:graph"))
 }
