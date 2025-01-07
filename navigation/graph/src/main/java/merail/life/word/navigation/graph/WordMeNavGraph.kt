@@ -5,6 +5,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import merail.life.word.game.GameContainer
 import merail.life.word.navigation.domain.NavigationRoute
 
 @Composable
@@ -18,7 +19,7 @@ fun WordMeNavHost(
         modifier = modifier,
     ) {
         composable<NavigationRoute.Stub> {
-
+            GameContainer()
         }
     }
 }

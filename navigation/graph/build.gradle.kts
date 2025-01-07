@@ -34,4 +34,5 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
 
     implementation(project(":navigation:domain"))
+    implementation(project(":game"))
 }

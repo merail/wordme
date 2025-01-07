@@ -16,7 +16,7 @@ fun WordMeTheme(content: @Composable () -> Unit) {
     SystemBarsColor()
 
     val colors = remember {
-        Colors
+        Colors()
     }
 
     val typography = remember {
