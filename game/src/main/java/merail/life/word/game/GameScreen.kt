@@ -50,7 +50,10 @@ internal fun GameScreen(
                 .height(toolbarHeight),
         )
 
-        KeyFields(viewModel.keyFields)
+        KeyFields(
+            keyFields = viewModel.keyFields,
+            wordCheckState = viewModel.wordCheckState,
+        )
 
         Keyboard(
             onKeyClick = viewModel::handleKeyClick,

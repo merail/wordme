@@ -1,6 +1,9 @@
 package merail.life.word.game
 
+import androidx.compose.animation.Animatable as ColorAnimatable
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationVector1D
+import androidx.compose.animation.core.AnimationVector4D
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -16,12 +19,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
@@ -30,11 +36,25 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import merail.life.word.design.Colors
 import merail.life.word.design.WordMeTheme
+import merail.life.word.game.state.WordCheckState
+
+private const val BOUNCE_ANIMATION_TOP_VALUE = -10f
+private const val BOUNCE_ANIMATION_BOTTOM_VALUE = 0f
+private const val BOUNCE_ANIMATION_DURATION = 80
+
+private const val VIBRATE_ANIMATION_START_VALUE = -10f
+private const val VIBRATE_ANIMATION_END_VALUE = 10f
+private const val VIBRATE_ANIMATION_DURATION = 40
+
+private const val ERROR_COLOR_ANIMATION_DURATION = 10
+private const val ERROR_COLOR_ANIMATION_DELAY = 500
 
 @Composable
 internal fun KeyFields(
     keyFields: SnapshotStateList<SnapshotStateList<Key>>,
+    wordCheckState: MutableState<WordCheckState>,
 ) {
     val scope = rememberCoroutineScope()
 
@@ -58,6 +78,8 @@ internal fun KeyFields(
                 repeat(COLUMNS_COUNT) { column ->
                     KeyCell(
                         scope = scope,
+                        row = row,
+                        wordCheckState = wordCheckState.value,
                         value = keyFields[row][column].value,
                     )
                 }
@@ -69,6 +91,8 @@ internal fun KeyFields(
 @Composable
 private fun KeyCell(
     scope: CoroutineScope,
+    row: Int,
+    wordCheckState: WordCheckState,
     value: String,
 ) {
     val contentWidth = (LocalConfiguration.current.screenWidthDp.dp -
@@ -87,20 +111,42 @@ private fun KeyCell(
         Animatable(0f)
     }
 
+    val vibrateAnimation = remember {
+        Animatable(0f)
+    }
+
+    val initialColor = WordMeTheme.colors.textPrimary
+    val animatableColor = remember {
+        ColorAnimatable(
+            initialValue = initialColor,
+        )
+    }
+
     LaunchedEffect(value) {
         if (value.isNotEmpty()) {
-            scope.launch {
-                bounceAnimation.animateTo(
-                    targetValue = -10f,
-                    animationSpec = tween(
-                        durationMillis = 80,
-                    )
+            scope.launchBounceAnimation(
+                bounceAnimation = bounceAnimation,
+            )
+        }
+    }
+
+    LaunchedEffect(wordCheckState) {
+        if (wordCheckState is WordCheckState.NonExistentWord) {
+            if (wordCheckState.currentRow == row) {
+                scope.launchVibrateAnimation(
+                    vibrateAnimation =  vibrateAnimation,
                 )
-                bounceAnimation.animateTo(
-                    targetValue = 0f,
-                    animationSpec = tween(
-                        durationMillis = 80,
-                    )
+            }
+        }
+    }
+
+    LaunchedEffect(wordCheckState) {
+        if (wordCheckState is WordCheckState.NonExistentWord) {
+            if (wordCheckState.currentRow == row) {
+                scope.launchErrorColorAnimation(
+                    animatableColor = animatableColor,
+                    initialColor = initialColor,
+                    targetColor = Color.Red,
                 )
             }
         }
@@ -113,6 +159,12 @@ private fun KeyCell(
                 IntOffset(
                     x = 0,
                     y = bounceAnimation.value.toInt(),
+                )
+            }
+            .offset {
+                IntOffset(
+                    x = vibrateAnimation.value.toInt(),
+                    y = 0,
                 )
             }
             .size(contentSize)
@@ -128,9 +180,77 @@ private fun KeyCell(
     ) {
         Text(
             text = value,
-            color = WordMeTheme.colors.textPrimary,
+            color = animatableColor.value,
             textAlign = TextAlign.Center,
             style = WordMeTheme.typography.titleLarge,
+        )
+    }
+}
+
+private fun CoroutineScope.launchBounceAnimation(
+    bounceAnimation: Animatable<Float, AnimationVector1D>,
+) {
+    launch {
+        bounceAnimation.animateTo(
+            targetValue = BOUNCE_ANIMATION_TOP_VALUE,
+            animationSpec = tween(
+                durationMillis = BOUNCE_ANIMATION_DURATION,
+            )
+        )
+        bounceAnimation.animateTo(
+            targetValue = BOUNCE_ANIMATION_BOTTOM_VALUE,
+            animationSpec = tween(
+                durationMillis = BOUNCE_ANIMATION_DURATION,
+            )
+        )
+    }
+}
+
+private fun CoroutineScope.launchVibrateAnimation(
+    vibrateAnimation: Animatable<Float, AnimationVector1D>,
+) {
+    launch {
+        repeat(4) {
+            vibrateAnimation.animateTo(
+                targetValue = VIBRATE_ANIMATION_END_VALUE,
+                animationSpec = tween(
+                    durationMillis = VIBRATE_ANIMATION_DURATION,
+                )
+            )
+            vibrateAnimation.animateTo(
+                targetValue = VIBRATE_ANIMATION_START_VALUE,
+                animationSpec = tween(
+                    durationMillis = VIBRATE_ANIMATION_DURATION,
+                )
+            )
+        }
+        vibrateAnimation.animateTo(
+            targetValue = 0f,
+            animationSpec = tween(
+                durationMillis = VIBRATE_ANIMATION_DURATION,
+            )
+        )
+    }
+}
+
+private fun CoroutineScope.launchErrorColorAnimation(
+    animatableColor: Animatable<Color, AnimationVector4D>,
+    initialColor: Color,
+    targetColor: Color,
+) {
+    launch {
+        animatableColor.animateTo(
+            targetValue = targetColor,
+            animationSpec = tween(
+                durationMillis = ERROR_COLOR_ANIMATION_DURATION,
+            ),
+        )
+        animatableColor.animateTo(
+            targetValue = initialColor,
+            animationSpec = tween(
+                delayMillis = ERROR_COLOR_ANIMATION_DELAY,
+                durationMillis = ERROR_COLOR_ANIMATION_DURATION,
+            ),
         )
     }
 }
@@ -148,6 +268,9 @@ private fun KeyFieldsPreview() {
                 mutableStateListOf(Key.EMPTY, Key.EMPTY, Key.EMPTY, Key.EMPTY, Key.EMPTY),
                 mutableStateListOf(Key.EMPTY, Key.EMPTY, Key.EMPTY, Key.EMPTY, Key.EMPTY),
             )
+        },
+        wordCheckState = remember {
+            mutableStateOf(WordCheckState.None)
         },
     )
 }

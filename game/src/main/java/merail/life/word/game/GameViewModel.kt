@@ -1,12 +1,15 @@
 package merail.life.word.game
 
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import merail.life.word.database.api.IDatabaseRepository
 import merail.life.word.database.api.model.WordModel
+import merail.life.word.game.state.WordCheckState
 import javax.inject.Inject
 
 internal const val ROWS_COUNT = 6
@@ -24,13 +27,13 @@ internal class GameViewModel @Inject constructor(
 
     private var currentWord = WordModel("")
 
+    private var currentIndex = Pair(0, 0)
+
     init {
         viewModelScope.launch {
             currentWord = databaseRepository.getCurrentWord(213)
         }
     }
-
-    private var currentIndex = Pair(0, 0)
 
     var keyFields = mutableStateListOf(
         mutableStateListOf(Key.EMPTY, Key.EMPTY, Key.EMPTY, Key.EMPTY, Key.EMPTY),
@@ -40,6 +43,9 @@ internal class GameViewModel @Inject constructor(
         mutableStateListOf(Key.EMPTY, Key.EMPTY, Key.EMPTY, Key.EMPTY, Key.EMPTY),
         mutableStateListOf(Key.EMPTY, Key.EMPTY, Key.EMPTY, Key.EMPTY, Key.EMPTY),
     )
+        private set
+
+    var wordCheckState: MutableState<WordCheckState> = mutableStateOf(WordCheckState.None)
         private set
 
     fun handleKeyClick(key: Key) = when (key) {
@@ -67,13 +73,14 @@ internal class GameViewModel @Inject constructor(
             currentIndex = currentIndex.copy(
                 second = columnIndex - 1,
             )
+            wordCheckState.value = WordCheckState.None
         }
     }
 
     private fun checkWord() {
         val rowIndex = currentIndex.first
         val columnIndex = currentIndex.second
-        if (rowIndex < ROWS_COUNT && columnIndex < COLUMNS_COUNT) {
+        if (columnIndex == COLUMNS_COUNT) {
             var enteredWord = ""
 
             keyFields[rowIndex].forEach {
@@ -85,6 +92,14 @@ internal class GameViewModel @Inject constructor(
             } else {
                 viewModelScope.launch {
                     val isWordExist = databaseRepository.isWordExist(enteredWord)
+                    if (isWordExist) {
+                        currentIndex = currentIndex.copy(
+                            first = rowIndex + 1,
+                            second = 0,
+                        )
+                    } else {
+                        wordCheckState.value = WordCheckState.NonExistentWord(rowIndex)
+                    }
                 }
             }
         }
