@@ -77,4 +77,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":design"))
     implementation(project(":navigation:graph"))
+    implementation(project(":game"))
+    implementation(project(":database:api"))
+    implementation(project(":database:impl"))
 }
