@@ -39,5 +39,18 @@ internal enum class Key(val value: String) {
     ;
 }
 
+internal enum class KeyCellState {
+    DEFAULT,
+    ABSENT,
+    PRESENT,
+    CORRECT,
+    ;
+}
+
+internal data class KeyCell(
+    val key: Key,
+    val state: KeyCellState = KeyCellState.DEFAULT,
+)
+
 internal val Key.isControlKey: Boolean
     get() = this in listOf(Key.DEL, Key.OK)

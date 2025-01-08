@@ -53,9 +53,13 @@ private const val VIBRATE_ANIMATION_DURATION = 40
 private const val ERROR_COLOR_ANIMATION_DURATION = 10
 private const val ERROR_COLOR_ANIMATION_DELAY = 500
 
+private const val FLIP_ANIMATION_DELAY = 300L
+private const val FLIP_ANIMATION_TARGET_VALUE = 180f
+private const val FLIP_ANIMATION_DURATION = 600
+
 @Composable
 internal fun KeyFields(
-    keyFields: SnapshotStateList<SnapshotStateList<Key>>,
+    keyFields: SnapshotStateList<SnapshotStateList<KeyCell>>,
     wordCheckState: MutableState<WordCheckState>,
 ) {
     val scope = rememberCoroutineScope()
@@ -83,7 +87,7 @@ internal fun KeyFields(
                         row = row,
                         column = column,
                         wordCheckState = wordCheckState.value,
-                        value = keyFields[row][column].value,
+                        keyCell = keyFields[row][column],
                     )
                 }
             }
@@ -97,7 +101,7 @@ private fun KeyCell(
     row: Int,
     column: Int,
     wordCheckState: WordCheckState,
-    value: String,
+    keyCell: KeyCell,
 ) {
     val contentWidth = (LocalConfiguration.current.screenWidthDp.dp -
             (keyFieldHorizontalPadding * 2 + (keyFieldContentHorizontalPadding * 2
@@ -130,8 +134,8 @@ private fun KeyCell(
         }
     }
 
-    LaunchedEffect(value) {
-        if (value.isNotEmpty()) {
+    LaunchedEffect(keyCell.key.value) {
+        if (keyCell.key.value.isNotEmpty()) {
             scope.launchBounceAnimation(
                 bounceAnimation = bounceAnimation,
             )
@@ -139,7 +143,7 @@ private fun KeyCell(
     }
 
     LaunchedEffect(wordCheckState) {
-        if (wordCheckState is WordCheckState.NonExistentWord && wordCheckState.currentRow == row) {
+        if (wordCheckState.isError && wordCheckState.currentRow == row) {
             scope.launchVibrateAnimation(
                 vibrateAnimation =  vibrateAnimation,
             )
@@ -147,7 +151,7 @@ private fun KeyCell(
     }
 
     LaunchedEffect(wordCheckState) {
-        if (wordCheckState is WordCheckState.NonExistentWord && wordCheckState.currentRow == row) {
+        if (wordCheckState.isError && wordCheckState.currentRow == row) {
             scope.launchErrorColorAnimation(
                 animatableColor = animatableColor,
                 initialColor = initialColor,
@@ -157,7 +161,8 @@ private fun KeyCell(
     }
 
     LaunchedEffect(wordCheckState) {
-        if (wordCheckState is WordCheckState.ExistingWord && wordCheckState.currentRow == row) {
+
+        if (wordCheckState.isValid && wordCheckState.currentRow == row) {
             scope.launchFlipAnimation(
                 rotationYList = rotationYList,
             )
@@ -198,13 +203,16 @@ private fun KeyCell(
                 color = if (rotationYList[column].value <= 90f) {
                     WordMeTheme.colors.elementBackgroundPrimary
                 } else {
-                    WordMeTheme.colors.elementBackgroundSecondary
+                    when (keyCell.state) {
+                        KeyCellState.CORRECT -> WordMeTheme.colors.elementBackgroundPositive
+                        else -> WordMeTheme.colors.elementBackgroundSecondary
+                    }
                 },
                 shape = RoundedCornerShape(4.dp),
             ),
     ) {
         Text(
-            text = value,
+            text = keyCell.key.value,
             color = animatableColor.value,
             textAlign = TextAlign.Center,
             style = WordMeTheme.typography.titleLarge,
@@ -291,11 +299,11 @@ private fun CoroutineScope.launchFlipAnimation(
     launch {
         rotationYList.forEachIndexed { index, animatable ->
             launch {
-                delay(index * 300L)
+                delay(index * FLIP_ANIMATION_DELAY)
                 animatable.animateTo(
-                    targetValue = 180f,
+                    targetValue = FLIP_ANIMATION_TARGET_VALUE,
                     animationSpec = tween(
-                        durationMillis = 600,
+                        durationMillis = FLIP_ANIMATION_DURATION,
                     )
                 )
             }
@@ -309,12 +317,12 @@ private fun KeyFieldsPreview() {
     KeyFields(
         keyFields = remember {
             mutableStateListOf(
-                mutableStateListOf(Key.Б, Key.А, Key.Р, Key.А, Key.Н),
-                mutableStateListOf(Key.EMPTY, Key.EMPTY, Key.EMPTY, Key.EMPTY, Key.EMPTY),
-                mutableStateListOf(Key.EMPTY, Key.EMPTY, Key.EMPTY, Key.EMPTY, Key.EMPTY),
-                mutableStateListOf(Key.EMPTY, Key.EMPTY, Key.EMPTY, Key.EMPTY, Key.EMPTY),
-                mutableStateListOf(Key.EMPTY, Key.EMPTY, Key.EMPTY, Key.EMPTY, Key.EMPTY),
-                mutableStateListOf(Key.EMPTY, Key.EMPTY, Key.EMPTY, Key.EMPTY, Key.EMPTY),
+                mutableStateListOf(KeyCell(Key.Б), KeyCell(Key.А), KeyCell(Key.Р), KeyCell(Key.А), KeyCell(Key.Н)),
+                emptyKeyField,
+                emptyKeyField,
+                emptyKeyField,
+                emptyKeyField,
+                emptyKeyField,
             )
         },
         wordCheckState = remember {

@@ -27,6 +27,7 @@ data class Colors(
     val elementSecondary: Color = ColorConstants.gray,
     val elementBackgroundPrimary: Color = ColorConstants.black,
     val elementBackgroundSecondary: Color = ColorConstants.darkGrey,
+    val elementBackgroundPositive: Color = ColorConstants.cyan_500,
 
     val textPrimary: Color = ColorConstants.white,
 
@@ -38,4 +39,5 @@ internal object ColorConstants {
     val gray = Color(0xFF808080)
     val darkGrey = Color(0xFF2E2E2E)
     val black = Color(0xFF000000)
+    val cyan_500 = Color(0xFF00BCD4)
 }

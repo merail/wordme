@@ -3,6 +3,7 @@ package merail.life.word.game
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,6 +16,15 @@ import javax.inject.Inject
 internal const val ROWS_COUNT = 6
 internal const val COLUMNS_COUNT = 5
 internal const val KEYBOARD_COLUMNS_COUNT = 3
+
+internal val emptyKeyField: SnapshotStateList<KeyCell>
+    get() = mutableStateListOf(
+        KeyCell(Key.EMPTY),
+        KeyCell(Key.EMPTY),
+        KeyCell(Key.EMPTY),
+        KeyCell(Key.EMPTY),
+        KeyCell(Key.EMPTY),
+    )
 
 @HiltViewModel
 internal class GameViewModel @Inject constructor(
@@ -36,13 +46,14 @@ internal class GameViewModel @Inject constructor(
     }
 
     var keyFields = mutableStateListOf(
-        mutableStateListOf(Key.EMPTY, Key.EMPTY, Key.EMPTY, Key.EMPTY, Key.EMPTY),
-        mutableStateListOf(Key.EMPTY, Key.EMPTY, Key.EMPTY, Key.EMPTY, Key.EMPTY),
-        mutableStateListOf(Key.EMPTY, Key.EMPTY, Key.EMPTY, Key.EMPTY, Key.EMPTY),
-        mutableStateListOf(Key.EMPTY, Key.EMPTY, Key.EMPTY, Key.EMPTY, Key.EMPTY),
-        mutableStateListOf(Key.EMPTY, Key.EMPTY, Key.EMPTY, Key.EMPTY, Key.EMPTY),
-        mutableStateListOf(Key.EMPTY, Key.EMPTY, Key.EMPTY, Key.EMPTY, Key.EMPTY),
+        emptyKeyField,
+        emptyKeyField,
+        emptyKeyField,
+        emptyKeyField,
+        emptyKeyField,
+        emptyKeyField,
     )
+
         private set
 
     var wordCheckState: MutableState<WordCheckState> = mutableStateOf(WordCheckState.None)
@@ -58,7 +69,9 @@ internal class GameViewModel @Inject constructor(
         val rowIndex = currentIndex.first
         val columnIndex = currentIndex.second
         if (columnIndex < COLUMNS_COUNT) {
-            keyFields[rowIndex][columnIndex] = key
+            keyFields[rowIndex][columnIndex] = keyFields[rowIndex][columnIndex].copy(
+                key = key,
+            )
             currentIndex = currentIndex.copy(
                 second = columnIndex + 1,
             )
@@ -66,14 +79,18 @@ internal class GameViewModel @Inject constructor(
     }
 
     private fun removeKey() {
-        val rowIndex = currentIndex.first
-        val columnIndex = currentIndex.second
-        if (columnIndex > 0) {
-            keyFields[rowIndex][columnIndex - 1] = Key.EMPTY
-            currentIndex = currentIndex.copy(
-                second = columnIndex - 1,
-            )
-            wordCheckState.value = WordCheckState.None
+        if (wordCheckState.value.isWin.not()) {
+            val rowIndex = currentIndex.first
+            val columnIndex = currentIndex.second
+            if (columnIndex > 0) {
+                keyFields[rowIndex][columnIndex - 1] = keyFields[rowIndex][columnIndex - 1].copy(
+                    key = Key.EMPTY,
+                )
+                currentIndex = currentIndex.copy(
+                    second = columnIndex - 1,
+                )
+                wordCheckState.value = WordCheckState.None
+            }
         }
     }
 
@@ -84,11 +101,16 @@ internal class GameViewModel @Inject constructor(
             var enteredWord = ""
 
             keyFields[rowIndex].forEach {
-                enteredWord += it.value.lowercase()
+                enteredWord += it.key.value.lowercase()
             }
 
             if (enteredWord == currentWord.value) {
-
+                keyFields[rowIndex].forEachIndexed { index, _ ->
+                    keyFields[rowIndex][index] = keyFields[rowIndex][index].copy(
+                        state = KeyCellState.CORRECT,
+                    )
+                }
+                wordCheckState.value = WordCheckState.CorrectWord(rowIndex)
             } else {
                 viewModelScope.launch {
                     val isWordExist = databaseRepository.isWordExist(enteredWord)

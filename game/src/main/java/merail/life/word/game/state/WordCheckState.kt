@@ -1,13 +1,28 @@
 package merail.life.word.game.state
 
-internal sealed class WordCheckState {
-    data object None: WordCheckState()
+internal sealed class WordCheckState(
+    open val currentRow: Int?,
+) {
+    val isError: Boolean
+        get() = this is NonExistentWord
 
-    data class ExistingWord(
-        val currentRow: Int,
-    ): WordCheckState()
+    val isValid: Boolean
+        get() = this is ExistingWord || this is CorrectWord
+
+    val isWin: Boolean
+        get() = this is CorrectWord
+
+    data object None: WordCheckState(null)
 
     data class NonExistentWord(
-        val currentRow: Int,
-    ): WordCheckState()
+        override val currentRow: Int,
+    ): WordCheckState(currentRow)
+
+    data class ExistingWord(
+        override val currentRow: Int,
+    ): WordCheckState(currentRow)
+
+    data class CorrectWord(
+        override val currentRow: Int,
+    ): WordCheckState(currentRow)
 }
