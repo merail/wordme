@@ -87,7 +87,7 @@ internal fun RowScope.KeyButton(
             containerColor = if (key.isControlKey) {
                 WordMeTheme.colors.elementSecondary
             } else {
-                WordMeTheme.colors.elementBackground
+                WordMeTheme.colors.elementBackgroundPrimary
             },
         ),
         shape = RoundedCornerShape(4.dp),

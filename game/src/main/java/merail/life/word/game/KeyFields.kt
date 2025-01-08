@@ -1,10 +1,10 @@
 package merail.life.word.game
 
-import androidx.compose.animation.Animatable as ColorAnimatable
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.AnimationVector4D
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,6 +28,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
@@ -35,10 +36,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import merail.life.word.design.Colors
 import merail.life.word.design.WordMeTheme
 import merail.life.word.game.state.WordCheckState
+import androidx.compose.animation.Animatable as ColorAnimatable
 
 private const val BOUNCE_ANIMATION_TOP_VALUE = -10f
 private const val BOUNCE_ANIMATION_BOTTOM_VALUE = 0f
@@ -79,6 +81,7 @@ internal fun KeyFields(
                     KeyCell(
                         scope = scope,
                         row = row,
+                        column = column,
                         wordCheckState = wordCheckState.value,
                         value = keyFields[row][column].value,
                     )
@@ -92,6 +95,7 @@ internal fun KeyFields(
 private fun KeyCell(
     scope: CoroutineScope,
     row: Int,
+    column: Int,
     wordCheckState: WordCheckState,
     value: String,
 ) {
@@ -117,9 +121,13 @@ private fun KeyCell(
 
     val initialColor = WordMeTheme.colors.textPrimary
     val animatableColor = remember {
-        ColorAnimatable(
-            initialValue = initialColor,
-        )
+        ColorAnimatable(initialColor)
+    }
+
+    val rotationYList = remember {
+        (1..COLUMNS_COUNT).map {
+            Animatable(0f)
+        }
     }
 
     LaunchedEffect(value) {
@@ -131,26 +139,31 @@ private fun KeyCell(
     }
 
     LaunchedEffect(wordCheckState) {
-        if (wordCheckState is WordCheckState.NonExistentWord) {
-            if (wordCheckState.currentRow == row) {
-                scope.launchVibrateAnimation(
-                    vibrateAnimation =  vibrateAnimation,
-                )
-            }
+        if (wordCheckState is WordCheckState.NonExistentWord && wordCheckState.currentRow == row) {
+            scope.launchVibrateAnimation(
+                vibrateAnimation =  vibrateAnimation,
+            )
         }
     }
 
     LaunchedEffect(wordCheckState) {
-        if (wordCheckState is WordCheckState.NonExistentWord) {
-            if (wordCheckState.currentRow == row) {
-                scope.launchErrorColorAnimation(
-                    animatableColor = animatableColor,
-                    initialColor = initialColor,
-                    targetColor = Color.Red,
-                )
-            }
+        if (wordCheckState is WordCheckState.NonExistentWord && wordCheckState.currentRow == row) {
+            scope.launchErrorColorAnimation(
+                animatableColor = animatableColor,
+                initialColor = initialColor,
+                targetColor = Color.Red,
+            )
         }
     }
+
+    LaunchedEffect(wordCheckState) {
+        if (wordCheckState is WordCheckState.ExistingWord && wordCheckState.currentRow == row) {
+            scope.launchFlipAnimation(
+                rotationYList = rotationYList,
+            )
+        }
+    }
+
 
     Box(
         contentAlignment = Alignment.Center,
@@ -167,6 +180,10 @@ private fun KeyCell(
                     y = 0,
                 )
             }
+            .graphicsLayer {
+                this.rotationY = rotationYList[column].value
+                cameraDistance = 8 * density
+            }
             .size(contentSize)
             .padding(
                 horizontal = keyFieldContentHorizontalPadding,
@@ -176,13 +193,26 @@ private fun KeyCell(
                 color = WordMeTheme.colors.borderPrimary,
                 shape = RoundedCornerShape(4.dp),
             )
-            .aspectRatio(1f),
+            .aspectRatio(1f)
+            .background(
+                color = if (rotationYList[column].value <= 90f) {
+                    WordMeTheme.colors.elementBackgroundPrimary
+                } else {
+                    WordMeTheme.colors.elementBackgroundSecondary
+                },
+                shape = RoundedCornerShape(4.dp),
+            ),
     ) {
         Text(
             text = value,
             color = animatableColor.value,
             textAlign = TextAlign.Center,
             style = WordMeTheme.typography.titleLarge,
+            modifier = Modifier
+                .graphicsLayer {
+                    this.rotationY = rotationYList[column].value
+                    cameraDistance = 8 * density
+                },
         )
     }
 }
@@ -252,6 +282,24 @@ private fun CoroutineScope.launchErrorColorAnimation(
                 durationMillis = ERROR_COLOR_ANIMATION_DURATION,
             ),
         )
+    }
+}
+
+private fun CoroutineScope.launchFlipAnimation(
+    rotationYList: List<Animatable<Float, AnimationVector1D>>,
+) {
+    launch {
+        rotationYList.forEachIndexed { index, animatable ->
+            launch {
+                delay(index * 300L)
+                animatable.animateTo(
+                    targetValue = 180f,
+                    animationSpec = tween(
+                        durationMillis = 600,
+                    )
+                )
+            }
+        }
     }
 }
 

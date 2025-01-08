@@ -97,6 +97,7 @@ internal class GameViewModel @Inject constructor(
                             first = rowIndex + 1,
                             second = 0,
                         )
+                        wordCheckState.value = WordCheckState.ExistingWord(rowIndex)
                     } else {
                         wordCheckState.value = WordCheckState.NonExistentWord(rowIndex)
                     }
