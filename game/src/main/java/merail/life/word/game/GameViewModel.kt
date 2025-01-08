@@ -41,7 +41,7 @@ internal class GameViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            currentWord = databaseRepository.getCurrentWord(213)
+            currentWord = databaseRepository.getCurrentWord(1152884)
         }
     }
 
@@ -105,19 +105,18 @@ internal class GameViewModel @Inject constructor(
             }
 
             if (enteredWord == currentWord.value) {
-                keyFields[rowIndex].forEachIndexed { index, _ ->
-                    keyFields[rowIndex][index] = keyFields[rowIndex][index].copy(
-                        state = KeyCellState.CORRECT,
-                    )
-                }
+                setKeyCellsOnCorrectWord(
+                    rowIndex = rowIndex,
+                )
                 wordCheckState.value = WordCheckState.CorrectWord(rowIndex)
             } else {
                 viewModelScope.launch {
                     val isWordExist = databaseRepository.isWordExist(enteredWord)
+
                     if (isWordExist) {
-                        currentIndex = currentIndex.copy(
-                            first = rowIndex + 1,
-                            second = 0,
+                        setKeyCellsStateOnExistingWord(
+                            enteredWord = enteredWord,
+                            rowIndex = rowIndex,
                         )
                         wordCheckState.value = WordCheckState.ExistingWord(rowIndex)
                     } else {
@@ -126,6 +125,48 @@ internal class GameViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    private fun setKeyCellsOnCorrectWord(
+        rowIndex: Int,
+    ) {
+        keyFields[rowIndex].forEachIndexed { index, _ ->
+            keyFields[rowIndex][index] = keyFields[rowIndex][index].copy(
+                state = KeyCellState.CORRECT,
+            )
+        }
+    }
+
+    private fun setKeyCellsStateOnExistingWord(
+        enteredWord: String,
+        rowIndex: Int,
+    ) {
+        val restCharsList = currentWord.value.toMutableList()
+        keyFields[rowIndex].forEachIndexed { index, _ ->
+            keyFields[rowIndex][index] = keyFields[rowIndex][index].copy(
+                state = when {
+                    enteredWord[index] == currentWord.value[index] -> {
+                        restCharsList.remove(enteredWord[index])
+                        KeyCellState.CORRECT
+                    }
+
+                    enteredWord[index] != currentWord.value[index] -> if (enteredWord[index] in restCharsList) {
+                        restCharsList.remove(enteredWord[index])
+                        KeyCellState.PRESENT
+                    } else {
+                        restCharsList.remove(enteredWord[index])
+                        KeyCellState.ABSENT
+                    }
+
+                    else -> KeyCellState.DEFAULT
+                },
+            )
+        }
+
+        currentIndex = currentIndex.copy(
+            first = rowIndex + 1,
+            second = 0,
+        )
     }
 }
 

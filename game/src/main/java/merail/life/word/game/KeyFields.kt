@@ -205,6 +205,7 @@ private fun KeyCell(
                 } else {
                     when (keyCell.state) {
                         KeyCellState.CORRECT -> WordMeTheme.colors.elementBackgroundPositive
+                        KeyCellState.PRESENT -> WordMeTheme.colors.elementBackgroundInverseSecondary
                         else -> WordMeTheme.colors.elementBackgroundSecondary
                     }
                 },
