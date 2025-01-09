@@ -9,6 +9,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -58,37 +59,44 @@ private const val FLIP_ANIMATION_TARGET_VALUE = 180f
 private const val FLIP_ANIMATION_DURATION = 600
 
 @Composable
-internal fun KeyFields(
+internal fun ColumnScope.KeyFields(
     keyFields: SnapshotStateList<SnapshotStateList<KeyCell>>,
     wordCheckState: MutableState<WordCheckState>,
 ) {
     val scope = rememberCoroutineScope()
 
-    Column(
-        verticalArrangement = Arrangement.spacedBy(keyFieldContentVerticalPadding),
+    Box(
+        contentAlignment = Alignment.Center,
         modifier = Modifier
             .fillMaxWidth()
             .padding(
-                bottom = keyFieldsBottomPadding,
-            ),
+                vertical = keyFieldsVerticalPadding,
+            )
+            .weight(1f),
     ) {
-        repeat(ROWS_COUNT) { row ->
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        horizontal = keyFieldHorizontalPadding,
-                    ),
-            ) {
-                repeat(COLUMNS_COUNT) { column ->
-                    KeyCell(
-                        scope = scope,
-                        row = row,
-                        column = column,
-                        wordCheckState = wordCheckState.value,
-                        keyCell = keyFields[row][column],
-                    )
+        Column(
+            verticalArrangement = Arrangement.spacedBy(keyFieldContentVerticalPadding),
+            modifier = Modifier
+                .fillMaxWidth(),
+        ) {
+            repeat(ROWS_COUNT) { row ->
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            horizontal = keyFieldHorizontalPadding,
+                        ),
+                ) {
+                    repeat(COLUMNS_COUNT) { column ->
+                        KeyCell(
+                            scope = scope,
+                            row = row,
+                            column = column,
+                            wordCheckState = wordCheckState.value,
+                            keyCell = keyFields[row][column],
+                        )
+                    }
                 }
             }
         }
@@ -107,11 +115,10 @@ private fun KeyCell(
             (keyFieldHorizontalPadding * 2 + (keyFieldContentHorizontalPadding * 2
                     + keyFieldContentBorder) * COLUMNS_COUNT)) / COLUMNS_COUNT
 
-    val contentHeight = (LocalConfiguration.current.screenHeightDp.dp -
-            toolbarHeight - keyFieldContentVerticalPadding * (ROWS_COUNT - 1) -
+    val contentHeight = (LocalConfiguration.current.screenHeightDp.dp - topPadding - toolbarMinHeight -
+            keyFieldsVerticalPadding * 2 - keyFieldContentVerticalPadding * (ROWS_COUNT - 1) -
             keyboardContentHeight * KEYBOARD_COLUMNS_COUNT - keyboardContentVerticalPadding *
-            (KEYBOARD_COLUMNS_COUNT - 1) - keyFieldsBottomPadding -
-            LocalContext.current.bottomPadding) / ROWS_COUNT
+            (KEYBOARD_COLUMNS_COUNT - 1) - LocalContext.current.bottomPadding) / ROWS_COUNT
 
     val contentSize = contentWidth.coerceAtMost(contentHeight)
 
@@ -315,19 +322,21 @@ private fun CoroutineScope.launchFlipAnimation(
 @Preview
 @Composable
 private fun KeyFieldsPreview() {
-    KeyFields(
-        keyFields = remember {
-            mutableStateListOf(
-                mutableStateListOf(KeyCell(Key.Б), KeyCell(Key.А), KeyCell(Key.Р), KeyCell(Key.А), KeyCell(Key.Н)),
-                emptyKeyField,
-                emptyKeyField,
-                emptyKeyField,
-                emptyKeyField,
-                emptyKeyField,
-            )
-        },
-        wordCheckState = remember {
-            mutableStateOf(WordCheckState.None)
-        },
-    )
+    Column {
+        KeyFields(
+            keyFields = remember {
+                mutableStateListOf(
+                    mutableStateListOf(KeyCell(Key.Б), KeyCell(Key.А), KeyCell(Key.Р), KeyCell(Key.А), KeyCell(Key.Н)),
+                    emptyKeyField,
+                    emptyKeyField,
+                    emptyKeyField,
+                    emptyKeyField,
+                    emptyKeyField,
+                )
+            },
+            wordCheckState = remember {
+                mutableStateOf(WordCheckState.None)
+            },
+        )
+    }
 }
