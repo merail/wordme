@@ -74,6 +74,8 @@ dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 
+    implementation(libs.androidx.core.splashscreen)
+
     implementation(project(":core"))
     implementation(project(":design"))
     implementation(project(":navigation:graph"))
