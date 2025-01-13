@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+import "key_field.proto";
+
+option java_package = "merail.life.word.store.impl";
+option java_multiple_files = true;
+
+message KeyCells {
+  repeated KeyField key_cells = 1;
+}

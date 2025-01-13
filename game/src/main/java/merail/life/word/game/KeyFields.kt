@@ -167,9 +167,8 @@ private fun KeyCell(
         }
     }
 
-    LaunchedEffect(wordCheckState) {
-
-        if (wordCheckState.isValid && wordCheckState.currentRow == row) {
+    LaunchedEffect(keyCell.state) {
+        if (keyCell.state != KeyCellState.DEFAULT) {
             scope.launchFlipAnimation(
                 rotationYList = rotationYList,
             )

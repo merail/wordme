@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+option java_package = "merail.life.word.store.impl";
+option java_multiple_files = true;
+
+enum KeyCellState {
+  DEFAULT = 0;
+  ABSENT = 1;
+  PRESENT = 2;
+  CORRECT = 3;
+}

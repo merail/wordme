@@ -4,13 +4,18 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import merail.life.word.database.api.IDatabaseRepository
 import merail.life.word.database.api.model.WordModel
 import merail.life.word.game.state.WordCheckState
+import merail.life.word.store.api.IStoreRepository
+import merail.life.word.store.api.model.KeyCellModel
+import merail.life.word.store.api.model.KeyCellStateModel
 import javax.inject.Inject
 
 internal const val ROWS_COUNT = 6
@@ -29,6 +34,7 @@ internal val emptyKeyField: SnapshotStateList<KeyCell>
 @HiltViewModel
 internal class GameViewModel @Inject constructor(
     private val databaseRepository: IDatabaseRepository,
+    private val storeRepository: IStoreRepository,
 ) : ViewModel() {
 
     companion object {
@@ -39,12 +45,6 @@ internal class GameViewModel @Inject constructor(
 
     private var currentIndex = Pair(0, 0)
 
-    init {
-        viewModelScope.launch {
-            currentWord = databaseRepository.getCurrentWord(1152884)
-        }
-    }
-
     var keyFields = mutableStateListOf(
         emptyKeyField,
         emptyKeyField,
@@ -53,11 +53,38 @@ internal class GameViewModel @Inject constructor(
         emptyKeyField,
         emptyKeyField,
     )
-
         private set
 
     var wordCheckState: MutableState<WordCheckState> = mutableStateOf(WordCheckState.None)
         private set
+
+    init {
+        viewModelScope.launch {
+            currentWord = databaseRepository.getCurrentWord(1152884)
+            storeRepository.getCells().take(1).collect {
+                it.forEachIndexed { index, keyCellModel ->
+                    keyFields[index] = keyCellModel.map { entry ->
+                        KeyCell(
+                            key = Key.getKeyFromValue(entry.value),
+                            state = when (entry.state) {
+                                KeyCellStateModel.ABSENT -> KeyCellState.ABSENT
+                                KeyCellStateModel.PRESENT -> KeyCellState.PRESENT
+                                KeyCellStateModel.CORRECT -> KeyCellState.CORRECT
+                                KeyCellStateModel.DEFAULT -> KeyCellState.DEFAULT
+                            },
+                        )
+                    }.toMutableStateList()
+                }
+                currentIndex = currentIndex.copy(
+                    first = keyFields.indexOfFirst { keyField ->
+                        keyField.all { keyCell ->
+                            keyCell.key == Key.EMPTY
+                        }
+                    },
+                )
+            }
+        }
+    }
 
     fun handleKeyClick(key: Key) = when (key) {
         Key.DEL -> removeKey()
@@ -75,6 +102,7 @@ internal class GameViewModel @Inject constructor(
             currentIndex = currentIndex.copy(
                 second = columnIndex + 1,
             )
+            wordCheckState.value = WordCheckState.None
         }
     }
 
@@ -167,6 +195,24 @@ internal class GameViewModel @Inject constructor(
             first = rowIndex + 1,
             second = 0,
         )
+
+        viewModelScope.launch {
+            storeRepository.saveCells(
+                keyCellModels = keyFields.map {
+                    it.toList().map { keyCell ->
+                        KeyCellModel(
+                            value = keyCell.key.value,
+                            state = when (keyCell.state) {
+                                KeyCellState.ABSENT -> KeyCellStateModel.ABSENT
+                                KeyCellState.PRESENT -> KeyCellStateModel.PRESENT
+                                KeyCellState.CORRECT -> KeyCellStateModel.CORRECT
+                                KeyCellState.DEFAULT -> KeyCellStateModel.DEFAULT
+                            }
+                        )
+                    }
+                },
+            )
+        }
     }
 }
 

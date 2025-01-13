@@ -37,6 +37,14 @@ internal enum class Key(val value: String) {
     OK("OK"),
     EMPTY(""),
     ;
+
+    companion object {
+        fun getKeyFromValue(
+            value: String,
+        ) = entries.find {
+            it.value == value
+        } ?: Key.EMPTY
+    }
 }
 
 internal enum class KeyCellState {

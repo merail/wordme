@@ -82,4 +82,6 @@ dependencies {
     implementation(project(":game"))
     implementation(project(":database:api"))
     implementation(project(":database:impl"))
+    implementation(project(":store:api"))
+    implementation(project(":store:impl"))
 }
