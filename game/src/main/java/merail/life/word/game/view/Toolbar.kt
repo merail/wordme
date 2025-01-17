@@ -1,4 +1,4 @@
-package merail.life.word.game
+package merail.life.word.game.view
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
+import merail.life.word.game.R
 
 @Composable
 internal fun Toolbar() {

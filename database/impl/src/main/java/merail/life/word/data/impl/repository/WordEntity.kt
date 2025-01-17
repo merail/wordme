@@ -3,7 +3,7 @@ package merail.life.word.data.impl.repository
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import merail.life.word.database.api.model.WordModel
+import merail.life.word.domain.WordModel
 
 @Entity(
     tableName = "word",

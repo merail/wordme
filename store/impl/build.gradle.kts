@@ -36,11 +36,12 @@ dependencies {
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
 
-    implementation("androidx.datastore:datastore:1.1.1")
-    implementation("com.google.protobuf:protobuf-javalite:4.26.1")
-    implementation("com.google.protobuf:protobuf-kotlin-lite:4.26.1")
-    implementation("androidx.preference:preference-ktx:1.2.1")
+    implementation(libs.androidx.datastore)
+    implementation(libs.protobuf.javalite)
+    implementation(libs.protobuf.kotlin.lite)
+    implementation(libs.androidx.preference.ktx)
 
+    implementation(project(":domain"))
     implementation(project(":store:api"))
 }
 

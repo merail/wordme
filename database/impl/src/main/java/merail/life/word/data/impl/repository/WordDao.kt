@@ -7,7 +7,7 @@ import androidx.room.Query
 internal interface WordDao {
 
     @Query("SELECT * FROM word where id = :id")
-    suspend fun getCurrentWord(id: Int): WordEntity
+    suspend fun getWordOfTheDay(id: Int): WordEntity
 
     @Query("SELECT * FROM word where word = :word")
     suspend fun isWordExist(word: String): WordEntity?

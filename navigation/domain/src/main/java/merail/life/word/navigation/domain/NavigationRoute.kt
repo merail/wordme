@@ -5,5 +5,5 @@ import kotlinx.serialization.Serializable
 sealed class NavigationRoute {
 
     @Serializable
-    data object Stub : NavigationRoute()
+    data object Game : NavigationRoute()
 }

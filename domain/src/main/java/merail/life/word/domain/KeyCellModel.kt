@@ -1,4 +1,4 @@
-package merail.life.word.store.api.model
+package merail.life.word.domain
 
 data class KeyCellModel(
     val value: String,

@@ -1,4 +1,4 @@
-package merail.life.word.navigation
+package merail.life.word.navigation.graph
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -15,10 +15,10 @@ fun WordMeNavHost(
 ) {
     NavHost(
         navController = navController,
-        startDestination = NavigationRoute.Stub,
+        startDestination = NavigationRoute.Game,
         modifier = modifier,
     ) {
-        composable<NavigationRoute.Stub> {
+        composable<NavigationRoute.Game> {
             GameContainer()
         }
     }

@@ -1,4 +1,4 @@
-package merail.life.word.game
+package merail.life.word.game.view
 
 import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
@@ -8,6 +8,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import merail.life.word.core.extensions.isNavigationBarEnabled
+import merail.life.word.game.GameViewModel
 
 internal val toolbarMinHeight = 32.dp
 
@@ -30,9 +31,6 @@ internal val Context.bottomPadding: Dp
     } else {
         24.dp
     }
-
-@Composable
-fun GameContainer() = GameScreen()
 
 @Composable
 internal fun GameScreen(

@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "merail.life.word.store.api"
+    namespace = "merail.life.word.domain"
     compileSdk = 35
 
     defaultConfig {
@@ -23,8 +23,4 @@ android {
     }
 }
 
-dependencies {
-    implementation(libs.androidx.core.ktx)
-
-    implementation(project(":domain"))
-}
+dependencies {}

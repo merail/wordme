@@ -23,4 +23,6 @@ android {
     }
 }
 
-dependencies {}
+dependencies {
+    implementation(project(":domain"))
+}

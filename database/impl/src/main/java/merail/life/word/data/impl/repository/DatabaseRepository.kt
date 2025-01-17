@@ -11,10 +11,10 @@ internal class DatabaseRepository @Inject constructor(
 
     private val dao = database.wordsElementDao()
 
-    override suspend fun getCurrentWord(
+    override suspend fun getWordOfTheDay(
         id: Int,
     ) = withContext(Dispatchers.IO) {
-        dao.getCurrentWord(id).toModel()
+        dao.getWordOfTheDay(id).toModel()
     }
 
     override suspend fun isWordExist(

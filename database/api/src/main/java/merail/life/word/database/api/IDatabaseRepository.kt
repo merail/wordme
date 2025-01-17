@@ -1,10 +1,10 @@
 package merail.life.word.database.api
 
-import merail.life.word.database.api.model.WordModel
+import merail.life.word.domain.WordModel
 
 interface IDatabaseRepository {
 
-    suspend fun getCurrentWord(
+    suspend fun getWordOfTheDay(
         id: Int,
     ): WordModel
 

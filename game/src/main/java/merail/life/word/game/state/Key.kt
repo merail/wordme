@@ -1,4 +1,4 @@
-package merail.life.word.game
+package merail.life.word.game.state
 
 internal enum class Key(val value: String) {
     А("А"),
@@ -43,22 +43,9 @@ internal enum class Key(val value: String) {
             value: String,
         ) = entries.find {
             it.value == value
-        } ?: Key.EMPTY
+        } ?: EMPTY
     }
 }
-
-internal enum class KeyCellState {
-    DEFAULT,
-    ABSENT,
-    PRESENT,
-    CORRECT,
-    ;
-}
-
-internal data class KeyCell(
-    val key: Key,
-    val state: KeyCellState = KeyCellState.DEFAULT,
-)
 
 internal val Key.isControlKey: Boolean
     get() = this in listOf(Key.DEL, Key.OK)

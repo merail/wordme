@@ -1,4 +1,4 @@
-package merail.life.word.game
+package merail.life.word.game.view
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
@@ -20,12 +20,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -40,6 +37,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import merail.life.word.design.WordMeTheme
+import merail.life.word.game.COLUMNS_COUNT
+import merail.life.word.game.KEYBOARD_COLUMNS_COUNT
+import merail.life.word.game.ROWS_COUNT
+import merail.life.word.game.state.Key
+import merail.life.word.game.state.KeyCell
+import merail.life.word.game.state.KeyCellState
+import merail.life.word.game.state.KeyCellsList
 import merail.life.word.game.state.WordCheckState
 import androidx.compose.animation.Animatable as ColorAnimatable
 
@@ -60,8 +64,8 @@ private const val FLIP_ANIMATION_DURATION = 600
 
 @Composable
 internal fun ColumnScope.KeyFields(
-    keyFields: SnapshotStateList<SnapshotStateList<KeyCell>>,
-    wordCheckState: MutableState<WordCheckState>,
+    keyFields: KeyCellsList,
+    wordCheckState: WordCheckState,
 ) {
     val scope = rememberCoroutineScope()
 
@@ -93,7 +97,7 @@ internal fun ColumnScope.KeyFields(
                             scope = scope,
                             row = row,
                             column = column,
-                            wordCheckState = wordCheckState.value,
+                            wordCheckState = wordCheckState,
                             keyCell = keyFields[row][column],
                         )
                     }
@@ -326,16 +330,14 @@ private fun KeyFieldsPreview() {
             keyFields = remember {
                 mutableStateListOf(
                     mutableStateListOf(KeyCell(Key.Б), KeyCell(Key.А), KeyCell(Key.Р), KeyCell(Key.А), KeyCell(Key.Н)),
-                    emptyKeyField,
-                    emptyKeyField,
-                    emptyKeyField,
-                    emptyKeyField,
-                    emptyKeyField,
+                    mutableStateListOf(KeyCell(Key.EMPTY), KeyCell(Key.EMPTY), KeyCell(Key.EMPTY), KeyCell(Key.EMPTY), KeyCell(Key.EMPTY)),
+                    mutableStateListOf(KeyCell(Key.EMPTY), KeyCell(Key.EMPTY), KeyCell(Key.EMPTY), KeyCell(Key.EMPTY), KeyCell(Key.EMPTY)),
+                    mutableStateListOf(KeyCell(Key.EMPTY), KeyCell(Key.EMPTY), KeyCell(Key.EMPTY), KeyCell(Key.EMPTY), KeyCell(Key.EMPTY)),
+                    mutableStateListOf(KeyCell(Key.EMPTY), KeyCell(Key.EMPTY), KeyCell(Key.EMPTY), KeyCell(Key.EMPTY), KeyCell(Key.EMPTY)),
+                    mutableStateListOf(KeyCell(Key.EMPTY), KeyCell(Key.EMPTY), KeyCell(Key.EMPTY), KeyCell(Key.EMPTY), KeyCell(Key.EMPTY)),
                 )
             },
-            wordCheckState = remember {
-                mutableStateOf(WordCheckState.None)
-            },
+            wordCheckState = WordCheckState.None,
         )
     }
 }

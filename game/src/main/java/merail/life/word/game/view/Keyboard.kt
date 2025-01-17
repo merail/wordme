@@ -1,4 +1,4 @@
-package merail.life.word.game
+package merail.life.word.game.view
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
@@ -27,6 +27,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import merail.life.word.design.WordMeTheme
+import merail.life.word.game.R
+import merail.life.word.game.state.Key
+import merail.life.word.game.state.isControlKey
 
 
 @Composable

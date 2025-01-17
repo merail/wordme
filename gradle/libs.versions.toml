@@ -1,6 +1,7 @@
 [versions]
 agp = "8.7.3"
 coreSplashscreen = "1.0.1"
+datastore = "1.1.1"
 kotlin = "2.0.20"
 coreKtx = "1.15.0"
 junit = "4.13.2"
@@ -14,6 +15,8 @@ firebaseBom = "33.7.0"
 crashlytics = "3.0.2"
 navigation = "2.8.5"
 ksp = "2.0.20-1.0.25"
+preferenceKtx = "1.2.1"
+protobufLite = "4.26.1"
 serialization = "1.6.3"
 hilt = "2.51.1"
 hiltNavigationCompose = "1.2.0"
@@ -25,6 +28,8 @@ protobuf = "4.26.1"
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
+androidx-datastore = { module = "androidx.datastore:datastore", version.ref = "datastore" }
+androidx-preference-ktx = { module = "androidx.preference:preference-ktx", version.ref = "preferenceKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
@@ -50,6 +55,8 @@ androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
+protobuf-javalite = { module = "com.google.protobuf:protobuf-javalite", version.ref = "protobufLite" }
+protobuf-kotlin-lite = { module = "com.google.protobuf:protobuf-kotlin-lite", version.ref = "protobufLite" }
 protobuf-protoc = { group = "com.google.protobuf", name = "protoc", version.ref = "protobuf" }
 
 [plugins]
