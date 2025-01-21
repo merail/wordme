@@ -1,4 +1,4 @@
-package merail.life.word.victory.view
+package merail.life.word.result.view
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -26,16 +26,15 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
-import merail.life.word.core.extensions.getTimeUntilNextDay
 import merail.life.word.design.WordMeTheme
-import merail.life.word.victory.R
-import merail.life.word.victory.VictoryViewModel
+import merail.life.word.result.R
+import merail.life.word.result.ResultViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun VictoryScreen(
+internal fun ResultScreen(
     onDismiss: () -> Unit,
-    viewModel: VictoryViewModel = hiltViewModel<VictoryViewModel>(),
+    viewModel: ResultViewModel = hiltViewModel<ResultViewModel>(),
 ) {
     val coroutineScope = rememberCoroutineScope()
     val bottomSheetState = rememberModalBottomSheetState(
@@ -76,7 +75,13 @@ internal fun VictoryScreen(
             )
 
             Text(
-                text = stringResource(R.string.victory_title),
+                text = stringResource(
+                    id = if (viewModel.isVictory) {
+                        R.string.victory_title
+                    } else {
+                        R.string.defeat_title
+                    },
+                ),
                 style = WordMeTheme.typography.displaySmall,
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally),

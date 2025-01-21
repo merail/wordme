@@ -9,13 +9,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import merail.life.word.database.api.IDatabaseRepository
 import merail.life.word.domain.GameStore
-import merail.life.word.domain.KeyCellModel
-import merail.life.word.domain.KeyCellStateModel
 import merail.life.word.domain.orEmpty
+import merail.life.word.game.state.GameResultState
 import merail.life.word.game.state.Key
 import merail.life.word.game.state.KeyCellState
 import merail.life.word.game.state.WordCheckState
 import merail.life.word.game.state.orEmpty
+import merail.life.word.game.state.toModel
 import merail.life.word.game.state.toUiModel
 import merail.life.word.store.api.IStoreRepository
 import javax.inject.Inject
@@ -49,6 +49,9 @@ internal class GameViewModel @Inject constructor(
     )
 
     var wordCheckState: WordCheckState by mutableStateOf(WordCheckState.None)
+        private set
+
+    var gameState: GameResultState by mutableStateOf(GameResultState.Process)
         private set
 
     fun handleKeyClick(key: Key) = when (key) {
@@ -102,6 +105,7 @@ internal class GameViewModel @Inject constructor(
                     rowIndex = rowIndex,
                 )
                 wordCheckState = WordCheckState.CorrectWord(rowIndex)
+                gameState = GameResultState.Victory
             } else {
                 viewModelScope.launch {
                     val isWordExist = databaseRepository.isWordExist(enteredWord)
@@ -112,6 +116,9 @@ internal class GameViewModel @Inject constructor(
                             rowIndex = rowIndex,
                         )
                         wordCheckState = WordCheckState.ExistingWord(rowIndex)
+                        if (rowIndex == ROWS_COUNT) {
+                            gameState = GameResultState.Defeat
+                        }
                     } else {
                         wordCheckState = WordCheckState.NonExistentWord(rowIndex)
                     }
@@ -128,6 +135,8 @@ internal class GameViewModel @Inject constructor(
                 state = KeyCellState.CORRECT,
             )
         }
+
+        saveKeyCells()
     }
 
     private fun setKeyCellsStateOnExistingWord(
@@ -161,23 +170,11 @@ internal class GameViewModel @Inject constructor(
             second = 0,
         )
 
-        viewModelScope.launch {
-            storeRepository.saveKeyCells(
-                keyCellModels = keyFields.map {
-                    it.toList().map { keyCell ->
-                        KeyCellModel(
-                            value = keyCell.key.value,
-                            state = when (keyCell.state) {
-                                KeyCellState.ABSENT -> KeyCellStateModel.ABSENT
-                                KeyCellState.PRESENT -> KeyCellStateModel.PRESENT
-                                KeyCellState.CORRECT -> KeyCellStateModel.CORRECT
-                                KeyCellState.DEFAULT -> KeyCellStateModel.DEFAULT
-                            }
-                        )
-                    }
-                },
-            )
-        }
+        saveKeyCells()
+    }
+
+    private fun saveKeyCells() = viewModelScope.launch {
+        storeRepository.saveKeyCells(keyFields.toModel())
     }
 }
 

@@ -36,5 +36,5 @@ dependencies {
     implementation(project(":domain"))
     implementation(project(":navigation:domain"))
     implementation(project(":game"))
-    implementation(project(":victory"))
+    implementation(project(":result"))
 }

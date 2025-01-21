@@ -9,7 +9,7 @@ plugins {
 }
 
 android {
-    namespace = "merail.life.word.victory"
+    namespace = "merail.life.word.result"
     compileSdk = 35
 
     defaultConfig {
@@ -41,9 +41,12 @@ dependencies {
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
 
+    implementation(libs.androidx.navigation.compose)
+
     implementation(project(":design"))
     implementation(project(":core"))
     implementation(project(":domain"))
+    implementation(project(":navigation:domain"))
     implementation(project(":database:api"))
     implementation(project(":store:api"))
 }

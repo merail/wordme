@@ -8,5 +8,7 @@ sealed class NavigationRoute {
     data object Game : NavigationRoute()
 
     @Serializable
-    data object Victory : NavigationRoute()
+    data class Result(
+        val isVictory: Boolean,
+    ) : NavigationRoute()
 }

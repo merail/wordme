@@ -25,4 +25,13 @@ internal fun List<List<KeyCellModel>>.toUiModel() = KeyCellsList().apply {
     }
 }
 
+internal fun KeyCellsList.toModel() = map {
+    it.toList().map { keyCell ->
+        KeyCellModel(
+            value = keyCell.key.value,
+            state = keyCell.state.toModel(),
+        )
+    }
+}
+
 internal fun KeyCellsList?.orEmpty() = this ?: mutableStateListOf()

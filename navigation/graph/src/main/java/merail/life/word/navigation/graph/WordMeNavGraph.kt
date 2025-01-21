@@ -9,7 +9,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
 import merail.life.word.game.GameContainer
 import merail.life.word.navigation.domain.NavigationRoute
-import merail.life.word.victory.VictoryContainer
+import merail.life.word.result.ResultContainer
 
 @Composable
 fun WordMeNavHost(
@@ -23,18 +23,22 @@ fun WordMeNavHost(
     ) {
         composable<NavigationRoute.Game> {
             GameContainer(
-                onVictory = {
-                    navController.navigate(NavigationRoute.Victory)
+                onResult = { isVictory ->
+                    navController.navigate(
+                        route = NavigationRoute.Result(
+                            isVictory = isVictory,
+                        ),
+                    )
                 }
             )
         }
 
-        dialog<NavigationRoute.Victory>(
+        dialog<NavigationRoute.Result>(
             dialogProperties = DialogProperties(
                 dismissOnClickOutside = true,
             ),
         ) {
-            VictoryContainer(
+            ResultContainer(
                 onDismiss = {
                     navController.popBackStack()
                 },

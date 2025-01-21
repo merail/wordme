@@ -85,5 +85,5 @@ dependencies {
     implementation(project(":database:impl"))
     implementation(project(":store:api"))
     implementation(project(":store:impl"))
-    implementation(project(":victory"))
+    implementation(project(":result"))
 }

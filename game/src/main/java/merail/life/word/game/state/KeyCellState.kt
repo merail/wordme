@@ -16,3 +16,10 @@ internal fun KeyCellStateModel.toUiModel() = when (this) {
     KeyCellStateModel.CORRECT -> KeyCellState.CORRECT
     KeyCellStateModel.DEFAULT -> KeyCellState.DEFAULT
 }
+
+internal fun KeyCellState.toModel() = when (this) {
+    KeyCellState.ABSENT -> KeyCellStateModel.ABSENT
+    KeyCellState.PRESENT -> KeyCellStateModel.PRESENT
+    KeyCellState.CORRECT -> KeyCellStateModel.CORRECT
+    KeyCellState.DEFAULT -> KeyCellStateModel.DEFAULT
+}
