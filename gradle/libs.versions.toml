@@ -1,34 +1,32 @@
 [versions]
 agp = "8.7.3"
 coreSplashscreen = "1.0.1"
-datastore = "1.1.1"
 kotlin = "2.0.20"
 coreKtx = "1.15.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 lifecycleRuntimeKtx = "2.8.7"
-activityCompose = "1.9.3"
-composeBom = "2024.12.01"
+activityCompose = "1.10.0"
+composeBom = "2025.01.00"
 googleServices = "4.4.2"
-firebaseBom = "33.7.0"
+firebaseBom = "33.8.0"
 crashlytics = "3.0.2"
 navigation = "2.8.5"
 ksp = "2.0.20-1.0.25"
 preferenceKtx = "1.2.1"
 protobufLite = "4.26.1"
 serialization = "1.6.3"
-hilt = "2.51.1"
+hilt = "2.52"
 hiltNavigationCompose = "1.2.0"
 room = "2.6.1"
-datastorePreferences = "1.1.1"
+datastorePreferences = "1.1.2"
 protobufPlugin = "0.9.4"
 protobuf = "4.26.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
-androidx-datastore = { module = "androidx.datastore:datastore", version.ref = "datastore" }
 androidx-preference-ktx = { module = "androidx.preference:preference-ktx", version.ref = "preferenceKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }

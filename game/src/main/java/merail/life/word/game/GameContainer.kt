@@ -4,4 +4,8 @@ import androidx.compose.runtime.Composable
 import merail.life.word.game.view.GameScreen
 
 @Composable
-fun GameContainer() = GameScreen()
+fun GameContainer(
+    onVictory: () -> Unit,
+) = GameScreen(
+    onVictory = onVictory,
+)

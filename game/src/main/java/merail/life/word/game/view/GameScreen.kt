@@ -4,11 +4,13 @@ import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import merail.life.word.core.extensions.isNavigationBarEnabled
 import merail.life.word.game.GameViewModel
+import merail.life.word.game.state.WordCheckState
 
 internal val toolbarMinHeight = 32.dp
 
@@ -34,6 +36,7 @@ internal val Context.bottomPadding: Dp
 
 @Composable
 internal fun GameScreen(
+    onVictory: () -> Unit,
     viewModel: GameViewModel = hiltViewModel<GameViewModel>(),
 ) {
     Column(
@@ -44,6 +47,13 @@ internal fun GameScreen(
         KeyFields(
             keyFields = viewModel.keyFields,
             wordCheckState = viewModel.wordCheckState,
+            onFlipAnimationEnd = remember {
+                {
+                    if (viewModel.wordCheckState is WordCheckState.CorrectWord) {
+                        onVictory()
+                    }
+                }
+            },
         )
 
         Keyboard(

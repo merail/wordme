@@ -22,6 +22,7 @@ val Colors.materialThemeColors: ColorScheme
 data class Colors(
     val screenPrimary: Color = ColorConstants.white,
     val screenBackground: Color = ColorConstants.black,
+    val screenBackgroundSecondary: Color = ColorConstants.darkGrey,
 
     val elementPrimary: Color = ColorConstants.white,
     val elementSecondary: Color = ColorConstants.gray,
@@ -32,6 +33,7 @@ data class Colors(
     val elementBackgroundPositive: Color = ColorConstants.cyan_500,
 
     val textPrimary: Color = ColorConstants.white,
+    val textNegative: Color = ColorConstants.red,
 
     val borderPrimary: Color = ColorConstants.white,
 )
@@ -41,6 +43,8 @@ internal object ColorConstants {
     val white_50 = Color(0xFF1ABC9C)
     val gray = Color(0xFF808080)
     val darkGrey = Color(0xFF2E2E2E)
+    val liver = Color(0xFF4F4C4D)
     val black = Color(0xFF000000)
     val cyan_500 = Color(0xFF00BCD4)
+    val red = Color(0xFFFF0000)
 }

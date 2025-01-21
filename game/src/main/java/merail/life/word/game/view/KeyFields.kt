@@ -66,6 +66,7 @@ private const val FLIP_ANIMATION_DURATION = 600
 internal fun ColumnScope.KeyFields(
     keyFields: KeyCellsList,
     wordCheckState: WordCheckState,
+    onFlipAnimationEnd: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
 
@@ -99,6 +100,7 @@ internal fun ColumnScope.KeyFields(
                             column = column,
                             wordCheckState = wordCheckState,
                             keyCell = keyFields[row][column],
+                            onFlipAnimationEnd = onFlipAnimationEnd,
                         )
                     }
                 }
@@ -114,6 +116,7 @@ private fun KeyCell(
     column: Int,
     wordCheckState: WordCheckState,
     keyCell: KeyCell,
+    onFlipAnimationEnd: () -> Unit,
 ) {
     val contentWidth = (LocalConfiguration.current.screenWidthDp.dp -
             (keyFieldHorizontalPadding * 2 + (keyFieldContentHorizontalPadding * 2
@@ -135,6 +138,7 @@ private fun KeyCell(
     }
 
     val initialColor = WordMeTheme.colors.textPrimary
+    val targetColor = WordMeTheme.colors.textNegative
     val animatableColor = remember {
         ColorAnimatable(initialColor)
     }
@@ -166,7 +170,7 @@ private fun KeyCell(
             scope.launchErrorColorAnimation(
                 animatableColor = animatableColor,
                 initialColor = initialColor,
-                targetColor = Color.Red,
+                targetColor = targetColor,
             )
         }
     }
@@ -174,7 +178,9 @@ private fun KeyCell(
     LaunchedEffect(keyCell.state) {
         if (keyCell.state != KeyCellState.DEFAULT) {
             scope.launchFlipAnimation(
-                rotationYList = rotationYList,
+                column = column,
+                rotationAnimation = rotationYList[column],
+                onAnimationEnd = onFlipAnimationEnd,
             )
         }
     }
@@ -305,19 +311,20 @@ private fun CoroutineScope.launchErrorColorAnimation(
 }
 
 private fun CoroutineScope.launchFlipAnimation(
-    rotationYList: List<Animatable<Float, AnimationVector1D>>,
+    column: Int,
+    rotationAnimation: Animatable<Float, AnimationVector1D>,
+    onAnimationEnd: () -> Unit,
 ) {
     launch {
-        rotationYList.forEachIndexed { index, animatable ->
-            launch {
-                delay(index * FLIP_ANIMATION_DELAY)
-                animatable.animateTo(
-                    targetValue = FLIP_ANIMATION_TARGET_VALUE,
-                    animationSpec = tween(
-                        durationMillis = FLIP_ANIMATION_DURATION,
-                    )
-                )
-            }
+        delay(column * FLIP_ANIMATION_DELAY)
+        rotationAnimation.animateTo(
+            targetValue = FLIP_ANIMATION_TARGET_VALUE,
+            animationSpec = tween(
+                durationMillis = FLIP_ANIMATION_DURATION,
+            )
+        )
+        if (column == COLUMNS_COUNT - 1) {
+            onAnimationEnd()
         }
     }
 }
@@ -338,6 +345,7 @@ private fun KeyFieldsPreview() {
                 )
             },
             wordCheckState = WordCheckState.None,
+            onFlipAnimationEnd = {},
         )
     }
 }

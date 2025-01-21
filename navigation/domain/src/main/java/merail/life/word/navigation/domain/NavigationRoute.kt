@@ -6,4 +6,7 @@ sealed class NavigationRoute {
 
     @Serializable
     data object Game : NavigationRoute()
+
+    @Serializable
+    data object Victory : NavigationRoute()
 }

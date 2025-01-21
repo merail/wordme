@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="victory_title">Победа!</string>
+    <string name="victory_time_label">Новое слово появится через:</string>
+</resources>
