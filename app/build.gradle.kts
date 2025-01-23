@@ -86,4 +86,5 @@ dependencies {
     implementation(project(":store:api"))
     implementation(project(":store:impl"))
     implementation(project(":result"))
+    implementation(project(":stats"))
 }

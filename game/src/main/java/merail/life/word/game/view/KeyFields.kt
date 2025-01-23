@@ -45,6 +45,7 @@ import merail.life.word.game.state.KeyCell
 import merail.life.word.game.state.KeyCellState
 import merail.life.word.game.state.KeyCellsList
 import merail.life.word.game.state.WordCheckState
+import merail.life.word.game.state.emptyKeyField
 import androidx.compose.animation.Animatable as ColorAnimatable
 
 private const val BOUNCE_ANIMATION_TOP_VALUE = -10f
@@ -336,12 +337,11 @@ private fun KeyFieldsPreview() {
             keyFields = remember {
                 mutableStateListOf(
                     mutableStateListOf(KeyCell(Key.Б), KeyCell(Key.А), KeyCell(Key.Р), KeyCell(Key.А), KeyCell(Key.Н)),
-                    mutableStateListOf(KeyCell(Key.EMPTY), KeyCell(Key.EMPTY), KeyCell(Key.EMPTY), KeyCell(Key.EMPTY), KeyCell(Key.EMPTY)),
-                    mutableStateListOf(KeyCell(Key.EMPTY), KeyCell(Key.EMPTY), KeyCell(Key.EMPTY), KeyCell(Key.EMPTY), KeyCell(Key.EMPTY)),
-                    mutableStateListOf(KeyCell(Key.EMPTY), KeyCell(Key.EMPTY), KeyCell(Key.EMPTY), KeyCell(Key.EMPTY), KeyCell(Key.EMPTY)),
-                    mutableStateListOf(KeyCell(Key.EMPTY), KeyCell(Key.EMPTY), KeyCell(Key.EMPTY), KeyCell(Key.EMPTY), KeyCell(Key.EMPTY)),
-                    mutableStateListOf(KeyCell(Key.EMPTY), KeyCell(Key.EMPTY), KeyCell(Key.EMPTY), KeyCell(Key.EMPTY), KeyCell(Key.EMPTY)),
-                )
+                    emptyKeyField,
+                    emptyKeyField,
+                    emptyKeyField,
+                    emptyKeyField,
+                    emptyKeyField,                )
             },
             wordCheckState = WordCheckState.None,
             onFlipAnimationEnd = {},

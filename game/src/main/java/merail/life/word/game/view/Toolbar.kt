@@ -18,7 +18,9 @@ import androidx.compose.ui.res.vectorResource
 import merail.life.word.game.R
 
 @Composable
-internal fun Toolbar() {
+internal fun Toolbar(
+    onStats: () -> Unit,
+) {
     Row(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
@@ -41,7 +43,7 @@ internal fun Toolbar() {
                         bounded = false,
                     ),
                 ) {
-
+                    onStats()
                 },
         )
     }

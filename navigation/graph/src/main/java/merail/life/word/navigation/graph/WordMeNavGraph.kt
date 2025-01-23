@@ -10,6 +10,7 @@ import androidx.navigation.compose.dialog
 import merail.life.word.game.GameContainer
 import merail.life.word.navigation.domain.NavigationRoute
 import merail.life.word.result.ResultContainer
+import merail.life.word.stats.StatsContainer
 
 @Composable
 fun WordMeNavHost(
@@ -29,7 +30,10 @@ fun WordMeNavHost(
                             isVictory = isVictory,
                         ),
                     )
-                }
+                },
+                onStats = {
+                    navController.navigate(NavigationRoute.Stats)
+                },
             )
         }
 
@@ -39,6 +43,18 @@ fun WordMeNavHost(
             ),
         ) {
             ResultContainer(
+                onDismiss = {
+                    navController.popBackStack()
+                },
+            )
+        }
+
+        dialog<NavigationRoute.Stats>(
+            dialogProperties = DialogProperties(
+                dismissOnClickOutside = true,
+            ),
+        ) {
+            StatsContainer(
                 onDismiss = {
                     navController.popBackStack()
                 },

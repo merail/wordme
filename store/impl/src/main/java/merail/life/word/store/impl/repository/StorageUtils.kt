@@ -4,10 +4,22 @@ import android.content.Context
 import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.core.Serializer
 import androidx.datastore.dataStoreFile
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.preferencesDataStoreFile
 import merail.life.word.domain.KeyCellStateModel
 import merail.life.word.store.impl.KeyCellState
 
+internal const val STATS_STORE_NAME = "stats_store"
+
 internal const val KEY_CELLS_STORE_FILE = "key_cells.pb"
+
+internal fun Context.createPreferencesDataStore(
+    fileName: String,
+) = PreferenceDataStoreFactory.create(
+    produceFile = {
+        preferencesDataStoreFile(fileName)
+    },
+)
 
 internal fun <T> Context.createProtoDataStore(
     fileName: String,

@@ -105,6 +105,7 @@ internal class GameViewModel @Inject constructor(
                     rowIndex = rowIndex,
                 )
                 wordCheckState = WordCheckState.CorrectWord(rowIndex)
+                saveStats(true)
                 gameState = GameResultState.Victory
             } else {
                 viewModelScope.launch {
@@ -116,7 +117,8 @@ internal class GameViewModel @Inject constructor(
                             rowIndex = rowIndex,
                         )
                         wordCheckState = WordCheckState.ExistingWord(rowIndex)
-                        if (rowIndex == ROWS_COUNT) {
+                        if (rowIndex + 1 == ROWS_COUNT) {
+                            saveStats(false)
                             gameState = GameResultState.Defeat
                         }
                     } else {
@@ -175,6 +177,25 @@ internal class GameViewModel @Inject constructor(
 
     private fun saveKeyCells() = viewModelScope.launch {
         storeRepository.saveKeyCells(keyFields.toModel())
+    }
+
+    private fun saveStats(isVictory: Boolean) {
+        viewModelScope.launch {
+            if (isVictory) {
+                storeRepository.updateStatsOnVictory(
+                    attemptsCount = currentIndex.first + 1,
+                )
+            } else {
+                storeRepository.updateStatsOnOnDefeat()
+            }
+//            storeRepository.updateVictoriesRowCount(isVictory)
+//            if (isVictory) {
+//                storeRepository.updateAttemptsCount(
+//                    attempts = currentIndex.first + 1,
+//                )
+//                storeRepository.incrementVictoriesCount()
+//            }
+        }
     }
 }
 

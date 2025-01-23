@@ -7,6 +7,15 @@ import merail.life.word.domain.KeyCellModel
 
 internal typealias KeyCellsList = SnapshotStateList<SnapshotStateList<KeyCell>>
 
+internal val emptyKeyField: SnapshotStateList<KeyCell>
+    get() = mutableStateListOf(
+        KeyCell(Key.EMPTY),
+        KeyCell(Key.EMPTY),
+        KeyCell(Key.EMPTY),
+        KeyCell(Key.EMPTY),
+        KeyCell(Key.EMPTY)
+    )
+
 internal data class KeyCell(
     val key: Key,
     val state: KeyCellState = KeyCellState.DEFAULT,
@@ -34,4 +43,15 @@ internal fun KeyCellsList.toModel() = map {
     }
 }
 
-internal fun KeyCellsList?.orEmpty() = this ?: mutableStateListOf()
+internal fun KeyCellsList?.orEmpty() = if (isNullOrEmpty()) {
+    mutableStateListOf(
+        emptyKeyField,
+        emptyKeyField,
+        emptyKeyField,
+        emptyKeyField,
+        emptyKeyField,
+        emptyKeyField,
+    )
+} else {
+    this
+}

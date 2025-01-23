@@ -11,4 +11,7 @@ sealed class NavigationRoute {
     data class Result(
         val isVictory: Boolean,
     ) : NavigationRoute()
+
+    @Serializable
+    data object Stats : NavigationRoute()
 }
