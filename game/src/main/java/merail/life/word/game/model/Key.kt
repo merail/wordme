@@ -1,4 +1,4 @@
-package merail.life.word.game.state
+package merail.life.word.game.model
 
 internal enum class Key(val value: String) {
     А("А"),

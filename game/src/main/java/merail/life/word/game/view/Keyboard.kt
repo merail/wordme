@@ -10,15 +10,21 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -28,19 +34,24 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import merail.life.word.design.WordMeTheme
 import merail.life.word.game.R
-import merail.life.word.game.state.Key
-import merail.life.word.game.state.isControlKey
-
+import merail.life.word.game.model.Key
+import merail.life.word.game.model.isControlKey
+import merail.life.word.game.state.CheckWordKeyState
+import merail.life.word.game.state.DeleteKeyState
 
 @Composable
 internal fun Keyboard(
+    checkWordKeyState: MutableState<CheckWordKeyState>,
+    deleteKeyState: MutableState<DeleteKeyState>,
     onKeyClick: (Key) -> Unit,
 ) {
-    val keyboardLayout = listOf(
-        listOf(Key.А, Key.Б, Key.В, Key.Г, Key.Д, Key.Е, Key.Ж, Key.З, Key.И, Key.Й, Key.К, Key.Л),
-        listOf(Key.М, Key.Н, Key.О, Key.П, Key.Р, Key.С, Key.Т, Key.У, Key.Ф, Key.Х, Key.Ц),
-        listOf(Key.DEL, Key.Ч, Key.Ш, Key.Щ, Key.Ъ, Key.Ы, Key.Ь, Key.Э, Key.Ю, Key.Я, Key.OK),
-    )
+    val keyboardLayout = remember {
+        listOf(
+            listOf(Key.А, Key.Б, Key.В, Key.Г, Key.Д, Key.Е, Key.Ж, Key.З, Key.И, Key.Й, Key.К, Key.Л),
+            listOf(Key.М, Key.Н, Key.О, Key.П, Key.Р, Key.С, Key.Т, Key.У, Key.Ф, Key.Х, Key.Ц),
+            listOf(Key.DEL, Key.Ч, Key.Ш, Key.Щ, Key.Ъ, Key.Ы, Key.Ь, Key.Э, Key.Ю, Key.Я, Key.OK),
+        )
+    }
 
     Column(
         verticalArrangement = Arrangement.spacedBy(keyboardContentVerticalPadding),
@@ -62,6 +73,8 @@ internal fun Keyboard(
                 row.forEach { key ->
                     KeyButton(
                         key = key,
+                        checkWordKeyState = checkWordKeyState,
+                        deleteKeyState = deleteKeyState,
                         onKeyClick = onKeyClick,
                     )
                 }
@@ -73,12 +86,18 @@ internal fun Keyboard(
 @Composable
 internal fun RowScope.KeyButton(
     key: Key,
+    checkWordKeyState: MutableState<CheckWordKeyState>,
+    deleteKeyState: MutableState<DeleteKeyState>,
     onKeyClick: (Key) -> Unit,
 ) {
-    val contentWidth = (LocalConfiguration.current.screenWidthDp.dp -
-            (keyboardRowHorizontalPadding * 2 +
-                    (keyboardContentHorizontalPadding * 2 + keyboardContentBorder) * 12)) / 12
-    val controlKeyAdditionalWidth = 8.dp
+    val screenWidthDp = LocalConfiguration.current.screenWidthDp.dp
+    val contentWidth = remember {
+        (screenWidthDp - (keyboardRowHorizontalPadding * 2 +
+                (keyboardContentHorizontalPadding * 2 + keyboardContentBorder) * 12)) / 12
+    }
+    val controlKeyAdditionalWidth = remember {
+        8.dp
+    }
 
     Button(
         onClick = remember {
@@ -88,9 +107,22 @@ internal fun RowScope.KeyButton(
         },
         colors = ButtonDefaults.buttonColors(
             containerColor = if (key.isControlKey) {
-                WordMeTheme.colors.elementSecondary
+                if (key == Key.OK) {
+                    when (checkWordKeyState.value) {
+                        is CheckWordKeyState.Disabled -> WordMeTheme.colors.controlKeyBackgroundDisabled
+                        is CheckWordKeyState.Loading,
+                        is CheckWordKeyState.Enabled,
+                        -> WordMeTheme.colors.okControlKeyBackgroundEnabled
+                    }
+                } else {
+                    if (deleteKeyState.value is DeleteKeyState.Enabled) {
+                        WordMeTheme.colors.delControlKeyBackgroundEnabled
+                    } else {
+                        WordMeTheme.colors.controlKeyBackgroundDisabled
+                    }
+                }
             } else {
-                WordMeTheme.colors.elementBackgroundPrimary
+                WordMeTheme.colors.keyBackgroundDefault
             },
         ),
         shape = RoundedCornerShape(4.dp),
@@ -101,7 +133,11 @@ internal fun RowScope.KeyButton(
             )
             .border(
                 width = keyboardContentBorder,
-                color = WordMeTheme.colors.borderPrimary,
+                color = if (key.isControlKey) {
+                    Color.Unspecified
+                } else {
+                    WordMeTheme.colors.keyBorder
+                },
                 shape = RoundedCornerShape(4.dp),
             )
             .height(
@@ -125,12 +161,35 @@ internal fun RowScope.KeyButton(
         when (key) {
             Key.DEL -> Image(
                 imageVector = ImageVector.vectorResource(R.drawable.ic_delete_key),
+                colorFilter = ColorFilter.tint(
+                    color = if (deleteKeyState.value is DeleteKeyState.Enabled) {
+                        WordMeTheme.colors.controlKeyContentEnabled
+                    } else {
+                        WordMeTheme.colors.controlKeyContentDisabled
+                    }
+                ),
                 contentDescription = null,
             )
-            Key.OK -> Image(
-                imageVector = ImageVector.vectorResource(R.drawable.ic_check_word),
-                contentDescription = null,
-            )
+            Key.OK -> if (checkWordKeyState.value is CheckWordKeyState.Loading) {
+                CircularProgressIndicator(
+                    strokeWidth = 1.dp,
+                    color = WordMeTheme.colors.controlKeyContentEnabled,
+                    modifier = Modifier
+                        .size(16.dp),
+                )
+            } else {
+                Image(
+                    imageVector = ImageVector.vectorResource(R.drawable.ic_check_word),
+                    colorFilter = ColorFilter.tint(
+                        color = if (checkWordKeyState.value is CheckWordKeyState.Enabled) {
+                            WordMeTheme.colors.controlKeyContentEnabled
+                        } else {
+                            WordMeTheme.colors.controlKeyContentDisabled
+                        },
+                    ),
+                    contentDescription = null,
+                )
+            }
             else -> Text(
                 text = key.value,
                 color = WordMeTheme.colors.textPrimary,
@@ -145,6 +204,12 @@ internal fun RowScope.KeyButton(
 @Composable
 private fun KeyboardPreview() {
     Keyboard(
+        checkWordKeyState = remember {
+            mutableStateOf(CheckWordKeyState.Disabled)
+        },
+        deleteKeyState = remember {
+            mutableStateOf(DeleteKeyState.Disabled)
+        },
         onKeyClick = {},
     )
 }

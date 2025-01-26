@@ -1,7 +1,6 @@
 package merail.life.word.game.view
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
@@ -12,7 +11,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import merail.life.word.core.extensions.isNavigationBarEnabled
 import merail.life.word.game.GameViewModel
 import merail.life.word.game.state.GameResultState
-import merail.life.word.game.state.WordCheckState
 
 internal val toolbarMinHeight = 32.dp
 
@@ -38,15 +36,15 @@ internal val Context.bottomPadding: Dp
 
 @Composable
 internal fun GameScreen(
-    onResult: (isVictory: Boolean) -> Unit,
-    onStats: () -> Unit,
+    onGameEnd: (isVictory: Boolean) -> Unit,
+    onInfoClick: () -> Unit,
     viewModel: GameViewModel = hiltViewModel<GameViewModel>(),
 ) {
     Column(
         verticalArrangement = Arrangement.Bottom,
     ) {
         Toolbar(
-            onStats = onStats,
+            onInfoClick = onInfoClick,
         )
 
         KeyFields(
@@ -54,17 +52,23 @@ internal fun GameScreen(
             wordCheckState = viewModel.wordCheckState,
             onFlipAnimationEnd = remember {
                 {
-                    when (viewModel.gameState) {
-                        is GameResultState.Victory -> onResult(true)
-                        is GameResultState.Defeat -> onResult(false)
-                        else -> Unit
+                    when (viewModel.gameResultState.value) {
+                        is GameResultState.Process -> viewModel.disableControlKeys()
+                        is GameResultState.Victory -> onGameEnd(true)
+                        is GameResultState.Defeat -> onGameEnd(false)
                     }
                 }
             },
         )
 
         Keyboard(
-            onKeyClick = viewModel::handleKeyClick,
+            checkWordKeyState = viewModel.checkWordKeyState,
+            deleteKeyState = viewModel.deleteKeyState,
+            onKeyClick = remember {
+                {
+                    viewModel.handleKeyClick(it)
+                }
+            },
         )
     }
 }

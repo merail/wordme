@@ -19,7 +19,7 @@ import merail.life.word.game.R
 
 @Composable
 internal fun Toolbar(
-    onStats: () -> Unit,
+    onInfoClick: () -> Unit,
 ) {
     Row(
         horizontalArrangement = Arrangement.Center,
@@ -43,7 +43,7 @@ internal fun Toolbar(
                         bounded = false,
                     ),
                 ) {
-                    onStats()
+                    onInfoClick()
                 },
         )
     }

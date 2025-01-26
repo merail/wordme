@@ -1,9 +1,6 @@
 package merail.life.word.game.view
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.AnimationVector1D
-import androidx.compose.animation.core.AnimationVector4D
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -20,12 +17,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -34,39 +32,23 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import merail.life.word.design.WordMeTheme
 import merail.life.word.game.COLUMNS_COUNT
 import merail.life.word.game.KEYBOARD_COLUMNS_COUNT
 import merail.life.word.game.ROWS_COUNT
-import merail.life.word.game.state.Key
-import merail.life.word.game.state.KeyCell
-import merail.life.word.game.state.KeyCellState
-import merail.life.word.game.state.KeyCellsList
+import merail.life.word.game.model.Key
+import merail.life.word.game.model.KeyCell
+import merail.life.word.game.model.KeyCellState
+import merail.life.word.game.model.KeyCellsList
+import merail.life.word.game.model.emptyKeyField
+import merail.life.word.game.model.lastFilledRow
 import merail.life.word.game.state.WordCheckState
-import merail.life.word.game.state.emptyKeyField
 import androidx.compose.animation.Animatable as ColorAnimatable
-
-private const val BOUNCE_ANIMATION_TOP_VALUE = -10f
-private const val BOUNCE_ANIMATION_BOTTOM_VALUE = 0f
-private const val BOUNCE_ANIMATION_DURATION = 80
-
-private const val VIBRATE_ANIMATION_START_VALUE = -10f
-private const val VIBRATE_ANIMATION_END_VALUE = 10f
-private const val VIBRATE_ANIMATION_DURATION = 40
-
-private const val ERROR_COLOR_ANIMATION_DURATION = 10
-private const val ERROR_COLOR_ANIMATION_DELAY = 500
-
-private const val FLIP_ANIMATION_DELAY = 300L
-private const val FLIP_ANIMATION_TARGET_VALUE = 180f
-private const val FLIP_ANIMATION_DURATION = 600
 
 @Composable
 internal fun ColumnScope.KeyFields(
     keyFields: KeyCellsList,
-    wordCheckState: WordCheckState,
+    wordCheckState: MutableState<WordCheckState>,
     onFlipAnimationEnd: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
@@ -101,6 +83,7 @@ internal fun ColumnScope.KeyFields(
                             column = column,
                             wordCheckState = wordCheckState,
                             keyCell = keyFields[row][column],
+                            isLastFilledRow = row == keyFields.lastFilledRow,
                             onFlipAnimationEnd = onFlipAnimationEnd,
                         )
                     }
@@ -115,18 +98,26 @@ private fun KeyCell(
     scope: CoroutineScope,
     row: Int,
     column: Int,
-    wordCheckState: WordCheckState,
+    wordCheckState: MutableState<WordCheckState>,
     keyCell: KeyCell,
+    isLastFilledRow: Boolean,
     onFlipAnimationEnd: () -> Unit,
 ) {
-    val contentWidth = (LocalConfiguration.current.screenWidthDp.dp -
-            (keyFieldHorizontalPadding * 2 + (keyFieldContentHorizontalPadding * 2
-                    + keyFieldContentBorder) * COLUMNS_COUNT)) / COLUMNS_COUNT
+    val screenWidthDp = LocalConfiguration.current.screenWidthDp.dp
+    val screenHeightDp = LocalConfiguration.current.screenHeightDp.dp
+    val bottomPadding = LocalContext.current.bottomPadding
 
-    val contentHeight = (LocalConfiguration.current.screenHeightDp.dp - topPadding - toolbarMinHeight -
-            keyFieldsVerticalPadding * 2 - keyFieldContentVerticalPadding * (ROWS_COUNT - 1) -
-            keyboardContentHeight * KEYBOARD_COLUMNS_COUNT - keyboardContentVerticalPadding *
-            (KEYBOARD_COLUMNS_COUNT - 1) - LocalContext.current.bottomPadding) / ROWS_COUNT
+    val contentWidth = remember {
+        (screenWidthDp - (keyFieldHorizontalPadding * 2 + (keyFieldContentHorizontalPadding * 2
+                + keyFieldContentBorder) * COLUMNS_COUNT)) / COLUMNS_COUNT
+    }
+
+    val contentHeight = remember {
+        (screenHeightDp - topPadding - toolbarMinHeight - keyFieldsVerticalPadding * 2 -
+                keyFieldContentVerticalPadding * (ROWS_COUNT - 1) -
+                keyboardContentHeight * KEYBOARD_COLUMNS_COUNT - keyboardContentVerticalPadding *
+                (KEYBOARD_COLUMNS_COUNT - 1) - bottomPadding) / ROWS_COUNT
+    }
 
     val contentSize = contentWidth.coerceAtMost(contentHeight)
 
@@ -159,7 +150,7 @@ private fun KeyCell(
     }
 
     LaunchedEffect(wordCheckState) {
-        if (wordCheckState.isError && wordCheckState.currentRow == row) {
+        if (wordCheckState.value.isError && wordCheckState.value.currentRow == row) {
             scope.launchVibrateAnimation(
                 vibrateAnimation =  vibrateAnimation,
             )
@@ -167,7 +158,7 @@ private fun KeyCell(
     }
 
     LaunchedEffect(wordCheckState) {
-        if (wordCheckState.isError && wordCheckState.currentRow == row) {
+        if (wordCheckState.value.isError && wordCheckState.value.currentRow == row) {
             scope.launchErrorColorAnimation(
                 animatableColor = animatableColor,
                 initialColor = initialColor,
@@ -181,6 +172,7 @@ private fun KeyCell(
             scope.launchFlipAnimation(
                 column = column,
                 rotationAnimation = rotationYList[column],
+                isLastFilledRow = isLastFilledRow,
                 onAnimationEnd = onFlipAnimationEnd,
             )
         }
@@ -202,7 +194,7 @@ private fun KeyCell(
                 )
             }
             .graphicsLayer {
-                this.rotationY = rotationYList[column].value
+                rotationY = rotationYList[column].value
                 cameraDistance = 8 * density
             }
             .size(contentSize)
@@ -211,18 +203,18 @@ private fun KeyCell(
             )
             .border(
                 width = keyFieldContentBorder,
-                color = WordMeTheme.colors.borderPrimary,
+                color = WordMeTheme.colors.keyCellBorder,
                 shape = RoundedCornerShape(4.dp),
             )
             .aspectRatio(1f)
             .background(
                 color = if (rotationYList[column].value <= 90f) {
-                    WordMeTheme.colors.elementBackgroundPrimary
+                    WordMeTheme.colors.keyCellBackgroundDefault
                 } else {
                     when (keyCell.state) {
-                        KeyCellState.CORRECT -> WordMeTheme.colors.elementBackgroundPositive
-                        KeyCellState.PRESENT -> WordMeTheme.colors.elementBackgroundInverseSecondary
-                        else -> WordMeTheme.colors.elementBackgroundSecondary
+                        KeyCellState.CORRECT -> WordMeTheme.colors.keyCellBackgroundCorrect
+                        KeyCellState.PRESENT -> WordMeTheme.colors.keyCellBackgroundPresent
+                        else -> WordMeTheme.colors.keyCellBackgroundAbsent
                     }
                 },
                 shape = RoundedCornerShape(4.dp),
@@ -235,97 +227,10 @@ private fun KeyCell(
             style = WordMeTheme.typography.titleLarge,
             modifier = Modifier
                 .graphicsLayer {
-                    this.rotationY = rotationYList[column].value
+                    rotationY = rotationYList[column].value
                     cameraDistance = 8 * density
                 },
         )
-    }
-}
-
-private fun CoroutineScope.launchBounceAnimation(
-    bounceAnimation: Animatable<Float, AnimationVector1D>,
-) {
-    launch {
-        bounceAnimation.animateTo(
-            targetValue = BOUNCE_ANIMATION_TOP_VALUE,
-            animationSpec = tween(
-                durationMillis = BOUNCE_ANIMATION_DURATION,
-            )
-        )
-        bounceAnimation.animateTo(
-            targetValue = BOUNCE_ANIMATION_BOTTOM_VALUE,
-            animationSpec = tween(
-                durationMillis = BOUNCE_ANIMATION_DURATION,
-            )
-        )
-    }
-}
-
-private fun CoroutineScope.launchVibrateAnimation(
-    vibrateAnimation: Animatable<Float, AnimationVector1D>,
-) {
-    launch {
-        repeat(4) {
-            vibrateAnimation.animateTo(
-                targetValue = VIBRATE_ANIMATION_END_VALUE,
-                animationSpec = tween(
-                    durationMillis = VIBRATE_ANIMATION_DURATION,
-                )
-            )
-            vibrateAnimation.animateTo(
-                targetValue = VIBRATE_ANIMATION_START_VALUE,
-                animationSpec = tween(
-                    durationMillis = VIBRATE_ANIMATION_DURATION,
-                )
-            )
-        }
-        vibrateAnimation.animateTo(
-            targetValue = 0f,
-            animationSpec = tween(
-                durationMillis = VIBRATE_ANIMATION_DURATION,
-            )
-        )
-    }
-}
-
-private fun CoroutineScope.launchErrorColorAnimation(
-    animatableColor: Animatable<Color, AnimationVector4D>,
-    initialColor: Color,
-    targetColor: Color,
-) {
-    launch {
-        animatableColor.animateTo(
-            targetValue = targetColor,
-            animationSpec = tween(
-                durationMillis = ERROR_COLOR_ANIMATION_DURATION,
-            ),
-        )
-        animatableColor.animateTo(
-            targetValue = initialColor,
-            animationSpec = tween(
-                delayMillis = ERROR_COLOR_ANIMATION_DELAY,
-                durationMillis = ERROR_COLOR_ANIMATION_DURATION,
-            ),
-        )
-    }
-}
-
-private fun CoroutineScope.launchFlipAnimation(
-    column: Int,
-    rotationAnimation: Animatable<Float, AnimationVector1D>,
-    onAnimationEnd: () -> Unit,
-) {
-    launch {
-        delay(column * FLIP_ANIMATION_DELAY)
-        rotationAnimation.animateTo(
-            targetValue = FLIP_ANIMATION_TARGET_VALUE,
-            animationSpec = tween(
-                durationMillis = FLIP_ANIMATION_DURATION,
-            )
-        )
-        if (column == COLUMNS_COUNT - 1) {
-            onAnimationEnd()
-        }
     }
 }
 
@@ -341,9 +246,12 @@ private fun KeyFieldsPreview() {
                     emptyKeyField,
                     emptyKeyField,
                     emptyKeyField,
-                    emptyKeyField,                )
+                    emptyKeyField,
+                )
             },
-            wordCheckState = WordCheckState.None,
+            wordCheckState = remember {
+                mutableStateOf(WordCheckState.None)
+            },
             onFlipAnimationEnd = {},
         )
     }

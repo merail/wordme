@@ -1,8 +1,6 @@
 package merail.life.word.game
 
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -10,13 +8,19 @@ import kotlinx.coroutines.launch
 import merail.life.word.database.api.IDatabaseRepository
 import merail.life.word.domain.GameStore
 import merail.life.word.domain.orEmpty
+import merail.life.word.game.model.Key
+import merail.life.word.game.model.KeyCellState
+import merail.life.word.game.model.isDefeat
+import merail.life.word.game.model.isWin
+import merail.life.word.game.model.firstEmptyRow
+import merail.life.word.game.model.orEmpty
+import merail.life.word.game.model.toLogicModel
+import merail.life.word.game.model.toUiModel
+import merail.life.word.game.model.toStringWord
+import merail.life.word.game.state.CheckWordKeyState
+import merail.life.word.game.state.DeleteKeyState
 import merail.life.word.game.state.GameResultState
-import merail.life.word.game.state.Key
-import merail.life.word.game.state.KeyCellState
 import merail.life.word.game.state.WordCheckState
-import merail.life.word.game.state.orEmpty
-import merail.life.word.game.state.toModel
-import merail.life.word.game.state.toUiModel
 import merail.life.word.store.api.IStoreRepository
 import javax.inject.Inject
 
@@ -40,19 +44,33 @@ internal class GameViewModel @Inject constructor(
         private set
 
     private var currentIndex = Pair(
-        first = keyFields.indexOfFirst { keyField ->
-            keyField.all { keyCell ->
-                keyCell.key == Key.EMPTY
-            }
-        },
+        first = keyFields.firstEmptyRow,
         second = 0,
     )
 
-    var wordCheckState: WordCheckState by mutableStateOf(WordCheckState.None)
+    var checkWordKeyState = mutableStateOf<CheckWordKeyState>(CheckWordKeyState.Disabled)
         private set
 
-    var gameState: GameResultState by mutableStateOf(GameResultState.Process)
+    var deleteKeyState = mutableStateOf<DeleteKeyState>(DeleteKeyState.Disabled)
         private set
+
+    var wordCheckState = mutableStateOf<WordCheckState>(WordCheckState.None)
+        private set
+
+    var gameResultState = mutableStateOf<GameResultState>(GameResultState.Process)
+        private set
+
+    init {
+        when {
+            keyFields.isDefeat -> gameResultState.value = GameResultState.Defeat
+            keyFields.isWin -> gameResultState.value = GameResultState.Victory
+        }
+    }
+
+    fun disableControlKeys() {
+        deleteKeyState.value = DeleteKeyState.Disabled
+        checkWordKeyState.value = CheckWordKeyState.Disabled
+    }
 
     fun handleKeyClick(key: Key) = when (key) {
         Key.DEL -> removeKey()
@@ -61,21 +79,29 @@ internal class GameViewModel @Inject constructor(
     }
 
     private fun addKey(key: Key) {
-        val rowIndex = currentIndex.first
-        val columnIndex = currentIndex.second
-        if (columnIndex < COLUMNS_COUNT) {
-            keyFields[rowIndex][columnIndex] = keyFields[rowIndex][columnIndex].copy(
-                key = key,
-            )
-            currentIndex = currentIndex.copy(
-                second = columnIndex + 1,
-            )
-            wordCheckState = WordCheckState.None
+        if (gameResultState.value.isEnd.not()) {
+            val rowIndex = currentIndex.first
+            val columnIndex = currentIndex.second
+            if (columnIndex < COLUMNS_COUNT) {
+                keyFields[rowIndex][columnIndex] = keyFields[rowIndex][columnIndex].copy(
+                    key = key,
+                )
+                currentIndex = currentIndex.copy(
+                    second = columnIndex + 1,
+                )
+                if (columnIndex == COLUMNS_COUNT - 1) {
+                    checkWordKeyState.value = CheckWordKeyState.Enabled
+                } else {
+                    checkWordKeyState.value = CheckWordKeyState.Disabled
+                }
+                deleteKeyState.value = DeleteKeyState.Enabled
+                wordCheckState.value = WordCheckState.None
+            }
         }
     }
 
     private fun removeKey() {
-        if (wordCheckState.isWin.not()) {
+        if (gameResultState.value.isEnd.not()) {
             val rowIndex = currentIndex.first
             val columnIndex = currentIndex.second
             if (columnIndex > 0) {
@@ -85,7 +111,13 @@ internal class GameViewModel @Inject constructor(
                 currentIndex = currentIndex.copy(
                     second = columnIndex - 1,
                 )
-                wordCheckState = WordCheckState.None
+                if (columnIndex - 1 == 0) {
+                    deleteKeyState.value = DeleteKeyState.Disabled
+                } else {
+                    deleteKeyState.value = DeleteKeyState.Enabled
+                }
+                checkWordKeyState.value = CheckWordKeyState.Disabled
+                wordCheckState.value = WordCheckState.None
             }
         }
     }
@@ -94,39 +126,64 @@ internal class GameViewModel @Inject constructor(
         val rowIndex = currentIndex.first
         val columnIndex = currentIndex.second
         if (columnIndex == COLUMNS_COUNT) {
-            var enteredWord = ""
+            checkWordKeyState.value = CheckWordKeyState.Loading
 
-            keyFields[rowIndex].forEach {
-                enteredWord += it.key.value.lowercase()
-            }
+            val enteredWord = keyFields[rowIndex].toStringWord()
 
             if (enteredWord == wordOfTheDay.value) {
-                setKeyCellsOnCorrectWord(
-                    rowIndex = rowIndex,
-                )
-                wordCheckState = WordCheckState.CorrectWord(rowIndex)
-                saveStats(true)
-                gameState = GameResultState.Victory
+                onVictory(rowIndex)
             } else {
                 viewModelScope.launch {
                     val isWordExist = databaseRepository.isWordExist(enteredWord)
 
                     if (isWordExist) {
-                        setKeyCellsStateOnExistingWord(
+                        onCorrectWord(
                             enteredWord = enteredWord,
                             rowIndex = rowIndex,
                         )
-                        wordCheckState = WordCheckState.ExistingWord(rowIndex)
-                        if (rowIndex + 1 == ROWS_COUNT) {
-                            saveStats(false)
-                            gameState = GameResultState.Defeat
-                        }
                     } else {
-                        wordCheckState = WordCheckState.NonExistentWord(rowIndex)
+                        onWrongWord(rowIndex)
                     }
                 }
             }
         }
+    }
+
+    private fun onVictory(
+        rowIndex: Int,
+    ) {
+        setKeyCellsOnCorrectWord(rowIndex)
+        wordCheckState.value = WordCheckState.CorrectWord(rowIndex)
+        disableControlKeys()
+        gameResultState.value = GameResultState.Victory
+        saveStats(true)
+    }
+
+    private fun onCorrectWord(
+        enteredWord: String,
+        rowIndex: Int,
+    ) {
+        setKeyCellsStateOnExistingWord(
+            enteredWord = enteredWord,
+            rowIndex = rowIndex,
+        )
+        wordCheckState.value = WordCheckState.ExistingWord(rowIndex)
+        disableControlKeys()
+        if (rowIndex + 1 == ROWS_COUNT) {
+            onDefeat()
+        }
+    }
+
+    private fun onWrongWord(
+        rowIndex: Int,
+    ) {
+        wordCheckState.value = WordCheckState.NonExistentWord(rowIndex)
+        checkWordKeyState.value = CheckWordKeyState.Disabled
+    }
+
+    private fun onDefeat() {
+        gameResultState.value = GameResultState.Defeat
+        saveStats(false)
     }
 
     private fun setKeyCellsOnCorrectWord(
@@ -176,7 +233,7 @@ internal class GameViewModel @Inject constructor(
     }
 
     private fun saveKeyCells() = viewModelScope.launch {
-        storeRepository.saveKeyCells(keyFields.toModel())
+        storeRepository.saveKeyCells(keyFields.toLogicModel())
     }
 
     private fun saveStats(isVictory: Boolean) {
@@ -188,13 +245,6 @@ internal class GameViewModel @Inject constructor(
             } else {
                 storeRepository.updateStatsOnOnDefeat()
             }
-//            storeRepository.updateVictoriesRowCount(isVictory)
-//            if (isVictory) {
-//                storeRepository.updateAttemptsCount(
-//                    attempts = currentIndex.first + 1,
-//                )
-//                storeRepository.incrementVictoriesCount()
-//            }
         }
     }
 }

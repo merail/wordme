@@ -8,6 +8,6 @@ fun GameContainer(
     onResult: (isVictory: Boolean) -> Unit,
     onStats: () -> Unit,
 ) = GameScreen(
-    onResult = onResult,
-    onStats = onStats,
+    onGameEnd = onResult,
+    onInfoClick = onStats,
 )

@@ -1,4 +1,4 @@
-package merail.life.word.game.state
+package merail.life.word.game.model
 
 import merail.life.word.domain.KeyCellStateModel
 
@@ -17,7 +17,7 @@ internal fun KeyCellStateModel.toUiModel() = when (this) {
     KeyCellStateModel.DEFAULT -> KeyCellState.DEFAULT
 }
 
-internal fun KeyCellState.toModel() = when (this) {
+internal fun KeyCellState.toLogicModel() = when (this) {
     KeyCellState.ABSENT -> KeyCellStateModel.ABSENT
     KeyCellState.PRESENT -> KeyCellStateModel.PRESENT
     KeyCellState.CORRECT -> KeyCellStateModel.CORRECT

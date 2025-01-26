@@ -1,5 +1,8 @@
 package merail.life.word.game.state
 
+import androidx.compose.runtime.Stable
+
+@Stable
 internal sealed class WordCheckState(
     open val currentRow: Int?,
 ) {
