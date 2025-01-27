@@ -69,8 +69,6 @@ internal class GameViewModel @Inject constructor(
             keyForms.isDefeat -> gameResultState.value = GameResultState.Defeat
             keyForms.isWin -> gameResultState.value = GameResultState.Victory
         }
-
-        setKeyButtonsStateAfterWordCheck()
     }
 
     fun disableControlKeys() {
@@ -82,6 +80,22 @@ internal class GameViewModel @Inject constructor(
         Key.DEL -> removeKey()
         Key.OK -> checkWord()
         else -> addKey(key)
+    }
+
+    fun setKeyButtonsStateAfterWordCheck() {
+        val uniqueKeyForms = keyForms.flatten().distinct()
+        uniqueKeyForms.forEach { uniqueKeyForm ->
+            keyButtons.forEachIndexed { rowIndex, keyButtonsRow ->
+                val columnIndex = keyButtonsRow.indexOfFirst {
+                    it.key == uniqueKeyForm.key
+                }
+                if (columnIndex != -1) {
+                    keyButtons[rowIndex][columnIndex] = keyButtons[rowIndex][columnIndex].copy(
+                        state = uniqueKeyForm.state,
+                    )
+                }
+            }
+        }
     }
 
     private fun addKey(key: Key) {
@@ -138,7 +152,6 @@ internal class GameViewModel @Inject constructor(
 
             if (enteredWord == wordOfTheDay.value) {
                 onVictory(rowIndex)
-                setKeyButtonsStateAfterWordCheck()
             } else {
                 viewModelScope.launch {
                     val isWordExist = databaseRepository.isWordExist(enteredWord)
@@ -148,7 +161,6 @@ internal class GameViewModel @Inject constructor(
                             enteredWord = enteredWord,
                             rowIndex = rowIndex,
                         )
-                        setKeyButtonsStateAfterWordCheck()
                     } else {
                         onWrongWord(rowIndex)
                     }
@@ -238,22 +250,6 @@ internal class GameViewModel @Inject constructor(
         )
 
         saveKeyForms()
-    }
-
-    private fun setKeyButtonsStateAfterWordCheck() {
-        val uniqueKeyForms = keyForms.flatten().distinct()
-        uniqueKeyForms.forEach { uniqueKeyForm ->
-            keyButtons.forEachIndexed { rowIndex, keyButtonsRow ->
-                val columnIndex = keyButtonsRow.indexOfFirst {
-                    it.key == uniqueKeyForm.key
-                }
-                if (columnIndex != -1) {
-                    keyButtons[rowIndex][columnIndex] = keyButtons[rowIndex][columnIndex].copy(
-                        state = uniqueKeyForm.state,
-                    )
-                }
-            }
-        }
     }
 
     private fun saveKeyForms() = viewModelScope.launch {

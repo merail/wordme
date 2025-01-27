@@ -52,6 +52,7 @@ internal fun GameScreen(
             wordCheckState = viewModel.wordCheckState,
             onFlipAnimationEnd = remember {
                 {
+                    viewModel.setKeyButtonsStateAfterWordCheck()
                     when (viewModel.gameResultState.value) {
                         is GameResultState.Process -> viewModel.disableControlKeys()
                         is GameResultState.Victory -> onGameEnd(true)
