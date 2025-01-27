@@ -42,6 +42,7 @@ import merail.life.word.game.state.DeleteKeyState
 import merail.life.word.game.utils.KeyCellsList
 import merail.life.word.game.utils.defaultKeyButtons
 import merail.life.word.game.utils.isControlKey
+import merail.life.word.game.utils.isValid
 
 @Composable
 internal fun Keyboard(
@@ -102,21 +103,21 @@ internal fun RowScope.KeyButton(
         colors = ButtonDefaults.buttonColors(
             containerColor = when(keyButton.key) {
                 Key.OK -> when (checkWordKeyState.value) {
-                    is CheckWordKeyState.Disabled -> WordMeTheme.colors.controlKeyBackgroundDisabled
+                    is CheckWordKeyState.Disabled -> WordMeTheme.colors.elementDisabled
                     is CheckWordKeyState.Loading,
                     is CheckWordKeyState.Enabled,
-                        -> WordMeTheme.colors.okControlKeyBackgroundEnabled
+                        -> WordMeTheme.colors.elementPositive
                 }
                 Key.DEL -> if (deleteKeyState.value is DeleteKeyState.Enabled) {
-                    WordMeTheme.colors.delControlKeyBackgroundEnabled
+                    WordMeTheme.colors.elementInversePrimary
                 } else {
-                    WordMeTheme.colors.controlKeyBackgroundDisabled
+                    WordMeTheme.colors.elementDisabled
                 }
                 else -> when (keyButton.state) {
-                    KeyState.DEFAULT -> WordMeTheme.colors.keyBackgroundDefault
-                    KeyState.ABSENT -> WordMeTheme.colors.keyBackgroundAbsent
-                    KeyState.PRESENT -> WordMeTheme.colors.keyCellBackgroundPresent
-                    KeyState.CORRECT -> WordMeTheme.colors.keyCellBackgroundCorrect
+                    KeyState.DEFAULT -> WordMeTheme.colors.elementPrimary
+                    KeyState.ABSENT -> WordMeTheme.colors.elementSecondary
+                    KeyState.PRESENT -> WordMeTheme.colors.elementPositiveSecondary
+                    KeyState.CORRECT -> WordMeTheme.colors.elementPositive
                 }
             },
         ),
@@ -130,7 +131,7 @@ internal fun RowScope.KeyButton(
                 width = keyboardContentBorder,
                 color = when {
                     keyButton.isControlKey.not() && keyButton.state == KeyState.DEFAULT
-                        -> WordMeTheme.colors.keyBorder
+                        -> WordMeTheme.colors.elementSecondary
                     else -> Color.Unspecified
                 },
                 shape = RoundedCornerShape(4.dp),
@@ -150,9 +151,9 @@ internal fun RowScope.KeyButton(
                 imageVector = ImageVector.vectorResource(R.drawable.ic_delete_key),
                 colorFilter = ColorFilter.tint(
                     color = if (deleteKeyState.value is DeleteKeyState.Enabled) {
-                        WordMeTheme.colors.controlKeyContentEnabled
+                        WordMeTheme.colors.elementPrimary
                     } else {
-                        WordMeTheme.colors.controlKeyContentDisabled
+                        WordMeTheme.colors.elementInversePrimary
                     }
                 ),
                 contentDescription = null,
@@ -160,7 +161,7 @@ internal fun RowScope.KeyButton(
             Key.OK -> if (checkWordKeyState.value is CheckWordKeyState.Loading) {
                 CircularProgressIndicator(
                     strokeWidth = 1.dp,
-                    color = WordMeTheme.colors.controlKeyContentEnabled,
+                    color = WordMeTheme.colors.elementPrimary,
                     modifier = Modifier
                         .size(16.dp),
                 )
@@ -169,9 +170,9 @@ internal fun RowScope.KeyButton(
                     imageVector = ImageVector.vectorResource(R.drawable.ic_check_word),
                     colorFilter = ColorFilter.tint(
                         color = if (checkWordKeyState.value is CheckWordKeyState.Enabled) {
-                            WordMeTheme.colors.controlKeyContentEnabled
+                            WordMeTheme.colors.elementPrimary
                         } else {
-                            WordMeTheme.colors.controlKeyContentDisabled
+                            WordMeTheme.colors.elementInversePrimary
                         },
                     ),
                     contentDescription = null,
@@ -179,7 +180,11 @@ internal fun RowScope.KeyButton(
             }
             else -> Text(
                 text = keyButton.key.value,
-                color = WordMeTheme.colors.textPrimary,
+                color = if (keyButton.isValid) {
+                    WordMeTheme.colors.textPrimary
+                } else {
+                    WordMeTheme.colors.textInversePrimary
+                },
                 textAlign = TextAlign.Center,
                 style = WordMeTheme.typography.labelLarge,
             )

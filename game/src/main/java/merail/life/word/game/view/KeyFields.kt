@@ -136,7 +136,7 @@ private fun KeyForm(
         Animatable(0f)
     }
 
-    val initialColor = WordMeTheme.colors.textPrimary
+    val initialColor = WordMeTheme.colors.textInversePrimary
     val targetColor = WordMeTheme.colors.textNegative
     val animatableColor = remember {
         ColorAnimatable(initialColor)
@@ -211,7 +211,7 @@ private fun KeyForm(
             .border(
                 width = keyFieldContentBorder,
                 color = if (rotationYList[column].value <= 90f) {
-                    WordMeTheme.colors.keyCellBorder
+                    WordMeTheme.colors.elementPositive
                 } else {
                     Color.Unspecified
                 },
@@ -220,12 +220,12 @@ private fun KeyForm(
             .aspectRatio(1f)
             .background(
                 color = if (rotationYList[column].value <= 90f) {
-                    WordMeTheme.colors.keyCellBackgroundDefault
+                    WordMeTheme.colors.elementPrimary
                 } else {
                     when (keyForm.state) {
-                        KeyState.CORRECT -> WordMeTheme.colors.keyCellBackgroundCorrect
-                        KeyState.PRESENT -> WordMeTheme.colors.keyCellBackgroundPresent
-                        else -> WordMeTheme.colors.keyCellBackgroundAbsent
+                        KeyState.CORRECT -> WordMeTheme.colors.elementPositive
+                        KeyState.PRESENT -> WordMeTheme.colors.elementPositiveSecondary
+                        else -> WordMeTheme.colors.elementSecondary
                     }
                 },
                 shape = RoundedCornerShape(4.dp),
@@ -239,8 +239,8 @@ private fun KeyForm(
                 when (keyForm.state) {
                     KeyState.CORRECT,
                     KeyState.PRESENT,
-                    -> WordMeTheme.colors.textInversePrimary
-                    else -> WordMeTheme.colors.textPrimary
+                    -> WordMeTheme.colors.textPrimary
+                    else -> WordMeTheme.colors.textInversePrimary
                 }
             },
             textAlign = TextAlign.Center,

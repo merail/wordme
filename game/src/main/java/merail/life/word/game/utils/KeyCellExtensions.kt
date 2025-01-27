@@ -124,3 +124,6 @@ internal val KeyCellsList.isDefeat: Boolean
 
 internal val KeyCell.isControlKey: Boolean
     get() = key in listOf(Key.DEL, Key.OK)
+
+internal val KeyCell.isValid: Boolean
+    get() = state in listOf(KeyState.PRESENT, KeyState.CORRECT)
