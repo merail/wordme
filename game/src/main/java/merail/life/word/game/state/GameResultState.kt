@@ -4,7 +4,7 @@ import androidx.compose.runtime.Stable
 
 @Stable
 internal sealed class GameResultState {
-    val isEnd: Boolean
+    val isGameEnd: Boolean
         get() = this is Defeat || this is Victory
 
     data object Process: GameResultState()

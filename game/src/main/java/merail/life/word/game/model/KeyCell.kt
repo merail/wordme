@@ -5,5 +5,5 @@ import androidx.compose.runtime.Immutable
 @Immutable
 internal data class KeyCell(
     val key: Key,
-    val state: KeyCellState = KeyCellState.DEFAULT,
+    val state: KeyState = KeyState.DEFAULT,
 )

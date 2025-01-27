@@ -11,7 +11,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import merail.life.word.store.api.IStoreRepository
 import merail.life.word.store.impl.KeyCells
-import merail.life.word.store.impl.repository.KEY_CELLS_STORE_FILE
+import merail.life.word.store.impl.repository.KEY_FORMS_STORE_FILE
 import merail.life.word.store.impl.repository.KeyCellsSerializer
 import merail.life.word.store.impl.repository.STATS_STORE_NAME
 import merail.life.word.store.impl.repository.StoreRepository
@@ -39,11 +39,11 @@ internal interface StoreModule {
 
         @Provides
         @Singleton
-        fun provideKeyCellsDataStore(
+        fun provideKeyFormsDataStore(
             @ApplicationContext context: Context,
             keyCellsSerializer: KeyCellsSerializer,
         ): DataStore<KeyCells> = context.createProtoDataStore(
-            fileName = KEY_CELLS_STORE_FILE,
+            fileName = KEY_FORMS_STORE_FILE,
             serializer = keyCellsSerializer,
         )
     }

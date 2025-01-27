@@ -1,4 +1,4 @@
-package merail.life.word.game.view
+package merail.life.word.game.utils
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
@@ -97,7 +97,7 @@ internal fun CoroutineScope.launchFlipAnimation(
     column: Int,
     rotationAnimation: Animatable<Float, AnimationVector1D>,
     isLastFilledRow: Boolean,
-    onAnimationEnd: () -> Unit,
+    onFlipAnimationEnd: () -> Unit,
 ) {
     launch {
         delay(column * FLIP_ANIMATION_DELAY)
@@ -108,7 +108,7 @@ internal fun CoroutineScope.launchFlipAnimation(
             )
         )
         if (isLastFilledRow && column == COLUMNS_COUNT - 1) {
-            onAnimationEnd()
+            onFlipAnimationEnd()
         }
     }
 }

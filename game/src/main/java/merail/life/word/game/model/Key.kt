@@ -46,6 +46,3 @@ internal enum class Key(val value: String) {
         } ?: EMPTY
     }
 }
-
-internal val Key.isControlKey: Boolean
-    get() = this in listOf(Key.DEL, Key.OK)

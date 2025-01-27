@@ -1,11 +1,11 @@
 syntax = "proto3";
 
-import "key_cell_state.proto";
+import "key_state.proto";
 
 option java_package = "merail.life.word.store.impl";
 option java_multiple_files = true;
 
 message KeyCell {
   string value = 1;
-  KeyCellState state = 2;
+  KeyState state = 2;
 }

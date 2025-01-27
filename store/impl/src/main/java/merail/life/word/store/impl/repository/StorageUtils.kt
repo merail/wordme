@@ -6,12 +6,12 @@ import androidx.datastore.core.Serializer
 import androidx.datastore.dataStoreFile
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.preferencesDataStoreFile
-import merail.life.word.domain.KeyCellStateModel
-import merail.life.word.store.impl.KeyCellState
+import merail.life.word.domain.KeyStateModel
+import merail.life.word.store.impl.KeyState
 
 internal const val STATS_STORE_NAME = "stats_store"
 
-internal const val KEY_CELLS_STORE_FILE = "key_cells.pb"
+internal const val KEY_FORMS_STORE_FILE = "key_forms.pb"
 
 internal fun Context.createPreferencesDataStore(
     fileName: String,
@@ -30,16 +30,16 @@ internal fun <T> Context.createProtoDataStore(
     dataStoreFile(fileName)
 }
 
-internal fun KeyCellStateModel.toDto() = when (this) {
-    KeyCellStateModel.ABSENT -> KeyCellState.ABSENT
-    KeyCellStateModel.PRESENT -> KeyCellState.PRESENT
-    KeyCellStateModel.CORRECT -> KeyCellState.CORRECT
-    KeyCellStateModel.DEFAULT -> KeyCellState.DEFAULT
+internal fun KeyStateModel.toDto() = when (this) {
+    KeyStateModel.ABSENT -> KeyState.ABSENT
+    KeyStateModel.PRESENT -> KeyState.PRESENT
+    KeyStateModel.CORRECT -> KeyState.CORRECT
+    KeyStateModel.DEFAULT -> KeyState.DEFAULT
 }
 
-internal fun KeyCellState.toModel() = when (this) {
-    KeyCellState.ABSENT -> KeyCellStateModel.ABSENT
-    KeyCellState.PRESENT -> KeyCellStateModel.PRESENT
-    KeyCellState.CORRECT -> KeyCellStateModel.CORRECT
-    else -> KeyCellStateModel.DEFAULT
+internal fun KeyState.toModel() = when (this) {
+    KeyState.ABSENT -> KeyStateModel.ABSENT
+    KeyState.PRESENT -> KeyStateModel.PRESENT
+    KeyState.CORRECT -> KeyStateModel.CORRECT
+    else -> KeyStateModel.DEFAULT
 }

@@ -48,7 +48,7 @@ internal fun GameScreen(
         )
 
         KeyFields(
-            keyFields = viewModel.keyFields,
+            keyForms = viewModel.keyForms,
             wordCheckState = viewModel.wordCheckState,
             onFlipAnimationEnd = remember {
                 {
@@ -62,9 +62,10 @@ internal fun GameScreen(
         )
 
         Keyboard(
+            keyButtons = viewModel.keyButtons,
             checkWordKeyState = viewModel.checkWordKeyState,
             deleteKeyState = viewModel.deleteKeyState,
-            onKeyClick = remember {
+            onKeyButtonClick = remember {
                 {
                     viewModel.handleKeyClick(it)
                 }

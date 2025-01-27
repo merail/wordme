@@ -9,18 +9,19 @@ import merail.life.word.database.api.IDatabaseRepository
 import merail.life.word.domain.GameStore
 import merail.life.word.domain.orEmpty
 import merail.life.word.game.model.Key
-import merail.life.word.game.model.KeyCellState
-import merail.life.word.game.model.isDefeat
-import merail.life.word.game.model.isWin
-import merail.life.word.game.model.firstEmptyRow
-import merail.life.word.game.model.orEmpty
-import merail.life.word.game.model.toLogicModel
-import merail.life.word.game.model.toUiModel
-import merail.life.word.game.model.toStringWord
+import merail.life.word.game.model.KeyState
 import merail.life.word.game.state.CheckWordKeyState
 import merail.life.word.game.state.DeleteKeyState
 import merail.life.word.game.state.GameResultState
 import merail.life.word.game.state.WordCheckState
+import merail.life.word.game.utils.defaultKeyButtons
+import merail.life.word.game.utils.firstEmptyRow
+import merail.life.word.game.utils.isDefeat
+import merail.life.word.game.utils.isWin
+import merail.life.word.game.utils.orEmpty
+import merail.life.word.game.utils.toLogicModel
+import merail.life.word.game.utils.toStringWord
+import merail.life.word.game.utils.toUiModel
 import merail.life.word.store.api.IStoreRepository
 import javax.inject.Inject
 
@@ -40,13 +41,16 @@ internal class GameViewModel @Inject constructor(
 
     private var wordOfTheDay = GameStore.wordOfTheDay.orEmpty()
 
-    var keyFields = GameStore.keyCells?.toUiModel().orEmpty()
+    var keyForms = GameStore.keyForms?.toUiModel().orEmpty()
         private set
 
     private var currentIndex = Pair(
-        first = keyFields.firstEmptyRow,
+        first = keyForms.firstEmptyRow,
         second = 0,
     )
+
+    var keyButtons = defaultKeyButtons
+        private set
 
     var checkWordKeyState = mutableStateOf<CheckWordKeyState>(CheckWordKeyState.Disabled)
         private set
@@ -62,9 +66,11 @@ internal class GameViewModel @Inject constructor(
 
     init {
         when {
-            keyFields.isDefeat -> gameResultState.value = GameResultState.Defeat
-            keyFields.isWin -> gameResultState.value = GameResultState.Victory
+            keyForms.isDefeat -> gameResultState.value = GameResultState.Defeat
+            keyForms.isWin -> gameResultState.value = GameResultState.Victory
         }
+
+        setKeyButtonsStateAfterWordCheck()
     }
 
     fun disableControlKeys() {
@@ -79,11 +85,11 @@ internal class GameViewModel @Inject constructor(
     }
 
     private fun addKey(key: Key) {
-        if (gameResultState.value.isEnd.not()) {
+        if (gameResultState.value.isGameEnd.not()) {
             val rowIndex = currentIndex.first
             val columnIndex = currentIndex.second
             if (columnIndex < COLUMNS_COUNT) {
-                keyFields[rowIndex][columnIndex] = keyFields[rowIndex][columnIndex].copy(
+                keyForms[rowIndex][columnIndex] = keyForms[rowIndex][columnIndex].copy(
                     key = key,
                 )
                 currentIndex = currentIndex.copy(
@@ -101,11 +107,11 @@ internal class GameViewModel @Inject constructor(
     }
 
     private fun removeKey() {
-        if (gameResultState.value.isEnd.not()) {
+        if (gameResultState.value.isGameEnd.not()) {
             val rowIndex = currentIndex.first
             val columnIndex = currentIndex.second
             if (columnIndex > 0) {
-                keyFields[rowIndex][columnIndex - 1] = keyFields[rowIndex][columnIndex - 1].copy(
+                keyForms[rowIndex][columnIndex - 1] = keyForms[rowIndex][columnIndex - 1].copy(
                     key = Key.EMPTY,
                 )
                 currentIndex = currentIndex.copy(
@@ -125,13 +131,14 @@ internal class GameViewModel @Inject constructor(
     private fun checkWord() {
         val rowIndex = currentIndex.first
         val columnIndex = currentIndex.second
-        if (columnIndex == COLUMNS_COUNT) {
+        if (columnIndex == COLUMNS_COUNT && wordCheckState.value is WordCheckState.None) {
             checkWordKeyState.value = CheckWordKeyState.Loading
 
-            val enteredWord = keyFields[rowIndex].toStringWord()
+            val enteredWord = keyForms[rowIndex].toStringWord()
 
             if (enteredWord == wordOfTheDay.value) {
                 onVictory(rowIndex)
+                setKeyButtonsStateAfterWordCheck()
             } else {
                 viewModelScope.launch {
                     val isWordExist = databaseRepository.isWordExist(enteredWord)
@@ -141,6 +148,7 @@ internal class GameViewModel @Inject constructor(
                             enteredWord = enteredWord,
                             rowIndex = rowIndex,
                         )
+                        setKeyButtonsStateAfterWordCheck()
                     } else {
                         onWrongWord(rowIndex)
                     }
@@ -152,7 +160,7 @@ internal class GameViewModel @Inject constructor(
     private fun onVictory(
         rowIndex: Int,
     ) {
-        setKeyCellsOnCorrectWord(rowIndex)
+        setKeyFormsOnCorrectWord(rowIndex)
         wordCheckState.value = WordCheckState.CorrectWord(rowIndex)
         disableControlKeys()
         gameResultState.value = GameResultState.Victory
@@ -163,7 +171,7 @@ internal class GameViewModel @Inject constructor(
         enteredWord: String,
         rowIndex: Int,
     ) {
-        setKeyCellsStateOnExistingWord(
+        setKeyFormsStateOnExistingWord(
             enteredWord = enteredWord,
             rowIndex = rowIndex,
         )
@@ -186,40 +194,40 @@ internal class GameViewModel @Inject constructor(
         saveStats(false)
     }
 
-    private fun setKeyCellsOnCorrectWord(
+    private fun setKeyFormsOnCorrectWord(
         rowIndex: Int,
     ) {
-        keyFields[rowIndex].forEachIndexed { index, _ ->
-            keyFields[rowIndex][index] = keyFields[rowIndex][index].copy(
-                state = KeyCellState.CORRECT,
+        keyForms[rowIndex].forEachIndexed { index, _ ->
+            keyForms[rowIndex][index] = keyForms[rowIndex][index].copy(
+                state = KeyState.CORRECT,
             )
         }
 
-        saveKeyCells()
+        saveKeyForms()
     }
 
-    private fun setKeyCellsStateOnExistingWord(
+    private fun setKeyFormsStateOnExistingWord(
         enteredWord: String,
         rowIndex: Int,
     ) {
         val restCharsList = wordOfTheDay.value.toMutableList()
-        keyFields[rowIndex].forEachIndexed { index, _ ->
-            keyFields[rowIndex][index] = keyFields[rowIndex][index].copy(
+        keyForms[rowIndex].forEachIndexed { index, _ ->
+            keyForms[rowIndex][index] = keyForms[rowIndex][index].copy(
                 state = when {
                     enteredWord[index] == wordOfTheDay.value[index] -> {
                         restCharsList.remove(enteredWord[index])
-                        KeyCellState.CORRECT
+                        KeyState.CORRECT
                     }
 
                     enteredWord[index] != wordOfTheDay.value[index] -> if (enteredWord[index] in restCharsList) {
                         restCharsList.remove(enteredWord[index])
-                        KeyCellState.PRESENT
+                        KeyState.PRESENT
                     } else {
                         restCharsList.remove(enteredWord[index])
-                        KeyCellState.ABSENT
+                        KeyState.ABSENT
                     }
 
-                    else -> KeyCellState.DEFAULT
+                    else -> KeyState.DEFAULT
                 },
             )
         }
@@ -229,11 +237,27 @@ internal class GameViewModel @Inject constructor(
             second = 0,
         )
 
-        saveKeyCells()
+        saveKeyForms()
     }
 
-    private fun saveKeyCells() = viewModelScope.launch {
-        storeRepository.saveKeyCells(keyFields.toLogicModel())
+    private fun setKeyButtonsStateAfterWordCheck() {
+        val uniqueKeyForms = keyForms.flatten().distinct()
+        uniqueKeyForms.forEach { uniqueKeyForm ->
+            keyButtons.forEachIndexed { rowIndex, keyButtonsRow ->
+                val columnIndex = keyButtonsRow.indexOfFirst {
+                    it.key == uniqueKeyForm.key
+                }
+                if (columnIndex != -1) {
+                    keyButtons[rowIndex][columnIndex] = keyButtons[rowIndex][columnIndex].copy(
+                        state = uniqueKeyForm.state,
+                    )
+                }
+            }
+        }
+    }
+
+    private fun saveKeyForms() = viewModelScope.launch {
+        storeRepository.saveKeyForms(keyForms.toLogicModel())
     }
 
     private fun saveStats(isVictory: Boolean) {

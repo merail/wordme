@@ -26,7 +26,7 @@ internal class MainViewModel @Inject constructor(
         viewModelScope.launch {
             GameStore.wordOfTheDay = databaseRepository.getWordOfTheDay(1152884)
 
-            GameStore.keyCells = storeRepository.loadKeyCells().first()
+            GameStore.keyForms = storeRepository.loadKeyForms().first()
 
             isLoading = false
         }

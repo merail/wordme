@@ -17,7 +17,7 @@ import javax.inject.Inject
 
 internal class StoreRepository @Inject constructor(
     private val statsDataStore: DataStore<Preferences>,
-    private val keyCellsDataStore: DataStore<KeyCells>,
+    private val keyFormsDataStore: DataStore<KeyCells>,
 ) : IStoreRepository {
 
     companion object {
@@ -68,8 +68,8 @@ internal class StoreRepository @Inject constructor(
         )
     }
 
-    override suspend fun saveKeyCells(keyCellModels: List<List<KeyCellModel>>) {
-        keyCellsDataStore.updateData { keyCellsDto ->
+    override suspend fun saveKeyForms(keyCellModels: List<List<KeyCellModel>>) {
+        keyFormsDataStore.updateData { keyCellsDto ->
             keyCellsDto.copy {
                 keyCells.clear()
                 keyCellModels.forEach { keyCellModelsList ->
@@ -87,7 +87,7 @@ internal class StoreRepository @Inject constructor(
         }
     }
 
-    override fun loadKeyCells() = keyCellsDataStore.data.map {
+    override fun loadKeyForms() = keyFormsDataStore.data.map {
         buildList {
             it.keyCellsList.forEach { keyField ->
                 add(

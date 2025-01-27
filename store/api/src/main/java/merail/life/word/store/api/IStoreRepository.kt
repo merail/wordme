@@ -11,7 +11,7 @@ interface IStoreRepository {
 
     fun getStats(): Flow<StatsModel>
 
-    suspend fun saveKeyCells(keyCellModels: List<List<KeyCellModel>>)
+    suspend fun saveKeyForms(keyCellModels: List<List<KeyCellModel>>)
 
-    fun loadKeyCells(): Flow<List<List<KeyCellModel>>>
+    fun loadKeyForms(): Flow<List<List<KeyCellModel>>>
 }

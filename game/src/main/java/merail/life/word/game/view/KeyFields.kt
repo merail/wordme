@@ -24,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -38,16 +39,20 @@ import merail.life.word.game.KEYBOARD_COLUMNS_COUNT
 import merail.life.word.game.ROWS_COUNT
 import merail.life.word.game.model.Key
 import merail.life.word.game.model.KeyCell
-import merail.life.word.game.model.KeyCellState
-import merail.life.word.game.model.KeyCellsList
-import merail.life.word.game.model.emptyKeyField
-import merail.life.word.game.model.lastFilledRow
+import merail.life.word.game.model.KeyState
 import merail.life.word.game.state.WordCheckState
+import merail.life.word.game.utils.KeyCellsList
+import merail.life.word.game.utils.emptyKeyField
+import merail.life.word.game.utils.lastFilledRow
+import merail.life.word.game.utils.launchBounceAnimation
+import merail.life.word.game.utils.launchErrorColorAnimation
+import merail.life.word.game.utils.launchFlipAnimation
+import merail.life.word.game.utils.launchVibrateAnimation
 import androidx.compose.animation.Animatable as ColorAnimatable
 
 @Composable
 internal fun ColumnScope.KeyFields(
-    keyFields: KeyCellsList,
+    keyForms: KeyCellsList,
     wordCheckState: MutableState<WordCheckState>,
     onFlipAnimationEnd: () -> Unit,
 ) {
@@ -77,13 +82,13 @@ internal fun ColumnScope.KeyFields(
                         ),
                 ) {
                     repeat(COLUMNS_COUNT) { column ->
-                        KeyCell(
+                        KeyForm(
                             scope = scope,
                             row = row,
                             column = column,
+                            keyForm = keyForms[row][column],
                             wordCheckState = wordCheckState,
-                            keyCell = keyFields[row][column],
-                            isLastFilledRow = row == keyFields.lastFilledRow,
+                            isLastFilledRow = row == keyForms.lastFilledRow,
                             onFlipAnimationEnd = onFlipAnimationEnd,
                         )
                     }
@@ -94,12 +99,12 @@ internal fun ColumnScope.KeyFields(
 }
 
 @Composable
-private fun KeyCell(
+private fun KeyForm(
     scope: CoroutineScope,
     row: Int,
     column: Int,
+    keyForm: KeyCell,
     wordCheckState: MutableState<WordCheckState>,
-    keyCell: KeyCell,
     isLastFilledRow: Boolean,
     onFlipAnimationEnd: () -> Unit,
 ) {
@@ -119,7 +124,9 @@ private fun KeyCell(
                 (KEYBOARD_COLUMNS_COUNT - 1) - bottomPadding) / ROWS_COUNT
     }
 
-    val contentSize = contentWidth.coerceAtMost(contentHeight)
+    val contentSize = remember {
+        contentWidth.coerceAtMost(contentHeight)
+    }
 
     val bounceAnimation = remember {
         Animatable(0f)
@@ -141,15 +148,15 @@ private fun KeyCell(
         }
     }
 
-    LaunchedEffect(keyCell.key.value) {
-        if (keyCell.key.value.isNotEmpty()) {
+    LaunchedEffect(keyForm.key.value) {
+        if (keyForm.key.value.isNotEmpty()) {
             scope.launchBounceAnimation(
                 bounceAnimation = bounceAnimation,
             )
         }
     }
 
-    LaunchedEffect(wordCheckState) {
+    LaunchedEffect(wordCheckState.value) {
         if (wordCheckState.value.isError && wordCheckState.value.currentRow == row) {
             scope.launchVibrateAnimation(
                 vibrateAnimation =  vibrateAnimation,
@@ -157,7 +164,7 @@ private fun KeyCell(
         }
     }
 
-    LaunchedEffect(wordCheckState) {
+    LaunchedEffect(wordCheckState.value) {
         if (wordCheckState.value.isError && wordCheckState.value.currentRow == row) {
             scope.launchErrorColorAnimation(
                 animatableColor = animatableColor,
@@ -167,13 +174,13 @@ private fun KeyCell(
         }
     }
 
-    LaunchedEffect(keyCell.state) {
-        if (keyCell.state != KeyCellState.DEFAULT) {
+    LaunchedEffect(keyForm.state) {
+        if (keyForm.state != KeyState.DEFAULT) {
             scope.launchFlipAnimation(
                 column = column,
                 rotationAnimation = rotationYList[column],
                 isLastFilledRow = isLastFilledRow,
-                onAnimationEnd = onFlipAnimationEnd,
+                onFlipAnimationEnd = onFlipAnimationEnd,
             )
         }
     }
@@ -203,7 +210,11 @@ private fun KeyCell(
             )
             .border(
                 width = keyFieldContentBorder,
-                color = WordMeTheme.colors.keyCellBorder,
+                color = if (rotationYList[column].value <= 90f) {
+                    WordMeTheme.colors.keyCellBorder
+                } else {
+                    Color.Unspecified
+                },
                 shape = RoundedCornerShape(4.dp),
             )
             .aspectRatio(1f)
@@ -211,9 +222,9 @@ private fun KeyCell(
                 color = if (rotationYList[column].value <= 90f) {
                     WordMeTheme.colors.keyCellBackgroundDefault
                 } else {
-                    when (keyCell.state) {
-                        KeyCellState.CORRECT -> WordMeTheme.colors.keyCellBackgroundCorrect
-                        KeyCellState.PRESENT -> WordMeTheme.colors.keyCellBackgroundPresent
+                    when (keyForm.state) {
+                        KeyState.CORRECT -> WordMeTheme.colors.keyCellBackgroundCorrect
+                        KeyState.PRESENT -> WordMeTheme.colors.keyCellBackgroundPresent
                         else -> WordMeTheme.colors.keyCellBackgroundAbsent
                     }
                 },
@@ -221,8 +232,17 @@ private fun KeyCell(
             ),
     ) {
         Text(
-            text = keyCell.key.value,
-            color = animatableColor.value,
+            text = keyForm.key.value,
+            color = if (rotationYList[column].value <= 90f) {
+                animatableColor.value
+            } else {
+                when (keyForm.state) {
+                    KeyState.CORRECT,
+                    KeyState.PRESENT,
+                    -> WordMeTheme.colors.textInversePrimary
+                    else -> WordMeTheme.colors.textPrimary
+                }
+            },
             textAlign = TextAlign.Center,
             style = WordMeTheme.typography.titleLarge,
             modifier = Modifier
@@ -239,7 +259,7 @@ private fun KeyCell(
 private fun KeyFieldsPreview() {
     Column {
         KeyFields(
-            keyFields = remember {
+            keyForms = remember {
                 mutableStateListOf(
                     mutableStateListOf(KeyCell(Key.Б), KeyCell(Key.А), KeyCell(Key.Р), KeyCell(Key.А), KeyCell(Key.Н)),
                     emptyKeyField,

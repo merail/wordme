@@ -9,12 +9,6 @@ internal sealed class WordCheckState(
     val isError: Boolean
         get() = this is NonExistentWord
 
-    val isValid: Boolean
-        get() = this is ExistingWord || this is CorrectWord
-
-    val isWin: Boolean
-        get() = this is CorrectWord
-
     data object None: WordCheckState(null)
 
     data class NonExistentWord(

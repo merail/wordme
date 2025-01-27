@@ -33,6 +33,7 @@ data class Colors(
     val elementBackgroundPositive: Color = ColorConstants.cyan_500,
 
     val textPrimary: Color = ColorConstants.white,
+    val textInversePrimary: Color = ColorConstants.black,
     val textNegative: Color = ColorConstants.red,
 
     val borderPrimary: Color = ColorConstants.white,
