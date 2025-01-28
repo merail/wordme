@@ -32,8 +32,10 @@ data class Colors(
     val elementPositive: Color = ColorConstants.cyan_500,
 
     val textPrimary: Color = ColorConstants.black,
+    val textSecondary: Color = ColorConstants.darkGrayishRed,
     val textInversePrimary: Color = ColorConstants.white,
     val textNegative: Color = ColorConstants.red,
+    val textPositive: Color = ColorConstants.cyan_500,
 )
 
 internal object ColorConstants {
@@ -41,6 +43,7 @@ internal object ColorConstants {
     val lightSeaGreen = Color(0xFF1ABC9C)
     val darkGrey = Color(0xFF2E2E2E)
     val liver = Color(0xFF4F4C4D)
+    val darkGrayishRed = Color(0xFF817E7E)
     val black = Color(0xFF000000)
     val cyan_500 = Color(0xFF00BCD4)
     val red = Color(0xFFFF0000)

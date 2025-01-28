@@ -39,7 +39,7 @@ fun WordMeNavHost(
 
         dialog<NavigationRoute.Result>(
             dialogProperties = DialogProperties(
-                dismissOnClickOutside = true,
+                dismissOnClickOutside = false,
             ),
         ) {
             ResultContainer(
@@ -51,7 +51,7 @@ fun WordMeNavHost(
 
         dialog<NavigationRoute.Stats>(
             dialogProperties = DialogProperties(
-                dismissOnClickOutside = true,
+                dismissOnClickOutside = false,
             ),
         ) {
             StatsContainer(

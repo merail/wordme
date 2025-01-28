@@ -2,10 +2,13 @@ package merail.life.word.result.view
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -21,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
@@ -46,6 +50,12 @@ internal fun ResultScreen(
         sheetState = bottomSheetState,
         containerColor = WordMeTheme.colors.screenBackgroundSecondary,
         dragHandle = null,
+        modifier = Modifier
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onTap = null,
+                )
+            },
     ) {
         Column(
             modifier = Modifier
@@ -85,6 +95,12 @@ internal fun ResultScreen(
                 style = WordMeTheme.typography.displaySmall,
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally),
+            )
+
+            Spacer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(32.dp),
             )
 
             Column(

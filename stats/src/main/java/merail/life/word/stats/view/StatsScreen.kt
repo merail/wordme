@@ -2,17 +2,21 @@ package merail.life.word.stats.view
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.ripple
@@ -23,11 +27,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
 import merail.life.word.design.WordMeTheme
+import merail.life.word.stats.R
 import merail.life.word.stats.StatsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,6 +53,12 @@ internal fun StatsScreen(
         sheetState = bottomSheetState,
         containerColor = WordMeTheme.colors.screenBackgroundSecondary,
         dragHandle = null,
+        modifier = Modifier
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onTap = null,
+                )
+            },
     ) {
         Column(
             modifier = Modifier
@@ -75,10 +88,16 @@ internal fun StatsScreen(
             )
 
             Text(
-                text = "Информация об игре",
+                text = stringResource(R.string.stats_tile),
                 style = WordMeTheme.typography.displaySmall,
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally),
+            )
+
+            Spacer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(32.dp),
             )
 
             Column(
@@ -92,7 +111,7 @@ internal fun StatsScreen(
                         color = WordMeTheme.colors.elementSecondary,
                         shape = RoundedCornerShape(24.dp),
                     )
-                    .padding(16.dp),
+                    .padding(20.dp),
             ) {
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -100,13 +119,14 @@ internal fun StatsScreen(
                         .fillMaxWidth(),
                 ) {
                     Text(
-                        text = "Успешных попыток",
+                        text = stringResource(R.string.stats_successful_games_percent_label),
                         style = WordMeTheme.typography.bodyLarge,
                     )
 
                     Text(
                         text = viewModel.victoriesPercent.orEmpty(),
                         style = WordMeTheme.typography.bodyLarge,
+                        color = WordMeTheme.colors.textPositive,
                     )
                 }
 
@@ -115,17 +135,18 @@ internal fun StatsScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(
-                            top = 4.dp,
+                            top = 24.dp,
                         ),
                 ) {
                     Text(
-                        text = "В среднем попыток",
+                        text = stringResource(R.string.stats_average_attempts_count_label),
                         style = WordMeTheme.typography.bodyLarge,
                     )
 
                     Text(
                         text = viewModel.attemptsRatio.orEmpty(),
                         style = WordMeTheme.typography.bodyLarge,
+                        color = WordMeTheme.colors.textPositive,
                     )
                 }
 
@@ -134,17 +155,18 @@ internal fun StatsScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(
-                            top = 4.dp,
+                            top = 24.dp,
                         ),
                 ) {
                     Text(
-                        text = "Всего отгадано слов",
+                        text = stringResource(R.string.stats_victories_count_label),
                         style = WordMeTheme.typography.bodyLarge,
                     )
 
                     Text(
                         text = viewModel.victoriesCount.orEmpty(),
                         style = WordMeTheme.typography.bodyLarge,
+                        color = WordMeTheme.colors.textPositive,
                     )
                 }
 
@@ -153,17 +175,39 @@ internal fun StatsScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(
-                            top = 4.dp,
+                            top = 24.dp,
                         ),
                 ) {
                     Text(
-                        text = "Слов отгадано подряд",
+                        text = stringResource(R.string.stats_victories_row_count_label),
                         style = WordMeTheme.typography.bodyLarge,
                     )
 
                     Text(
                         text = viewModel.victoriesRowCount.orEmpty(),
                         style = WordMeTheme.typography.bodyLarge,
+                        color = WordMeTheme.colors.textPositive,
+                    )
+                }
+
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            top = 8.dp,
+                        ),
+                ) {
+                    Text(
+                        text = stringResource(R.string.stats_victories_row_max_count_label),
+                        style = WordMeTheme.typography.bodyLarge,
+                        color = WordMeTheme.colors.textSecondary,
+                    )
+
+                    Text(
+                        text = viewModel.victoriesRowMaxCount.orEmpty(),
+                        style = WordMeTheme.typography.bodyLarge,
+                        color = WordMeTheme.colors.textSecondary,
                     )
                 }
             }

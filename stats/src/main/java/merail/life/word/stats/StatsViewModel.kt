@@ -29,6 +29,8 @@ internal class StatsViewModel @Inject constructor(
 
     var victoriesRowCount by mutableStateOf<String?>(null)
 
+    var victoriesRowMaxCount by mutableStateOf<String?>(null)
+
     init {
         viewModelScope.launch {
             storeRepository.getStats().collect {
@@ -36,6 +38,7 @@ internal class StatsViewModel @Inject constructor(
                 attemptsRatio = it.attemptsCount partOf it.victoriesCount
                 victoriesCount = it.victoriesCount.toString()
                 victoriesRowCount = it.victoriesRowCount.toString()
+                victoriesRowMaxCount = it.victoriesRowMaxCount.toString()
             }
         }
     }

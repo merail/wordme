@@ -1,2 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="stats_tile">Информация об\u00A0игре</string>
+    <string name="stats_successful_games_percent_label">Успешных попыток</string>
+    <string name="stats_average_attempts_count_label">В\u00A0среднем попыток</string>
+    <string name="stats_victories_count_label">Всего отгадано слов</string>
+    <string name="stats_victories_row_count_label">Слов отгадано подряд</string>
+    <string name="stats_victories_row_max_count_label">Лучший результат</string>
+</resources>
