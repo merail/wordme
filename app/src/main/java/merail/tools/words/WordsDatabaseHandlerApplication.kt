@@ -1,7 +1,7 @@
-package merail.life.wordme
+package merail.tools.words
 
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp
-internal class WordMeApplication : Application()
+internal class WordsDatabaseHandlerApplication : Application()

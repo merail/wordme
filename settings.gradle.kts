@@ -19,7 +19,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "wordme"
+rootProject.name = "words-database-handler"
 
 include(":app")
 

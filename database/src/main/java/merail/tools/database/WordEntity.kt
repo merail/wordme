@@ -1,4 +1,4 @@
-package merail.life.database
+package merail.tools.database
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
@@ -13,7 +13,7 @@ data class WordEntity(
     @ColumnInfo(name = "code") val code: Int,
     @ColumnInfo(name = "parentCode") val parentCode: Int,
     @ColumnInfo(name = "gender") val gender: String,
-    @ColumnInfo(name = "case") val case: String?,
     @ColumnInfo(name = "animation") val animation: Boolean?,
-    @ColumnInfo(name = "usageCount", defaultValue = "0") val usageCount: Int,
+    @ColumnInfo(name = "usageCount") val usageCount: Int,
+    @ColumnInfo(name = "isUndesirable") val isUndesirable: Boolean,
 )

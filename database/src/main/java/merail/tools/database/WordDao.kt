@@ -1,4 +1,4 @@
-package merail.life.database
+package merail.tools.database
 
 import androidx.room.Dao
 import androidx.room.Insert

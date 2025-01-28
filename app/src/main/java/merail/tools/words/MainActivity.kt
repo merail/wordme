@@ -1,4 +1,4 @@
-package merail.life.wordme
+package merail.tools.words
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -12,8 +12,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import dagger.hilt.android.AndroidEntryPoint
-import merail.life.database.WordsDatabase
-import merail.life.wordme.ui.theme.WordmeTheme
+import merail.tools.database.WordsDatabase
+import merail.tools.words.ui.theme.WordsDatabaseHandlerTheme
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -28,7 +28,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            WordmeTheme {
+            WordsDatabaseHandlerTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Greeting(
                         name = "Android",
@@ -51,7 +51,7 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
-    WordmeTheme {
+    WordsDatabaseHandlerTheme {
         Greeting("Android")
     }
 }

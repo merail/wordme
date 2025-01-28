@@ -1,4 +1,4 @@
-package merail.life.wordme
+package merail.tools.words
 
 import org.junit.Test
 

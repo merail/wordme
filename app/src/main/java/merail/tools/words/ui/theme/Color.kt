@@ -1,4 +1,4 @@
-package merail.life.wordme.ui.theme
+package merail.tools.words.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

@@ -7,12 +7,12 @@ plugins {
 }
 
 android {
-    namespace = "merail.life.wordme"
+    namespace = "merail.tools.words"
 
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "merail.life.wordme"
+        applicationId = "merail.tools.words"
         minSdk = 30
         targetSdk = 35
         versionCode = 1

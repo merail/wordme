@@ -1,7 +1,8 @@
-package merail.life.database
+package merail.tools.database
 
 import android.content.Context
 import androidx.room.Room
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -24,7 +25,8 @@ interface DatabaseModule {
             WORDS_DATABASE_NAME,
         ).createFromAsset(
             databaseFilePath = "words_database.db",
-        ).build().apply {
+        )
+            /*.fallbackToDestructiveMigration()*/.build().apply {
             openHelper.writableDatabase
         }
     }
