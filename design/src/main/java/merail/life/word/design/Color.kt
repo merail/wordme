@@ -20,27 +20,25 @@ val Colors.materialThemeColors: ColorScheme
 
 @Immutable
 data class Colors(
-    val screenPrimary: Color = ColorConstants.white,
+    val screenPrimary: Color = ColorConstants.smokeWhite,
     val screenBackground: Color = ColorConstants.black,
     val screenBackgroundSecondary: Color = ColorConstants.darkGrey,
 
     val elementPrimary: Color = ColorConstants.black,
     val elementSecondary: Color = ColorConstants.liver,
     val elementDisabled: Color = ColorConstants.darkGrey,
-    val elementInversePrimary: Color = ColorConstants.white,
-    val elementPositiveSecondary: Color = ColorConstants.lightSeaGreen,
+    val elementInversePrimary: Color = ColorConstants.smokeWhite,
     val elementPositive: Color = ColorConstants.cyan_500,
 
     val textPrimary: Color = ColorConstants.black,
     val textSecondary: Color = ColorConstants.darkGrayishRed,
-    val textInversePrimary: Color = ColorConstants.white,
+    val textInversePrimary: Color = ColorConstants.smokeWhite,
     val textNegative: Color = ColorConstants.red,
     val textPositive: Color = ColorConstants.cyan_500,
 )
 
 internal object ColorConstants {
-    val white = Color(0xFFFFFFFF)
-    val lightSeaGreen = Color(0xFF1ABC9C)
+    val smokeWhite = Color(0xFFF1EFEF)
     val darkGrey = Color(0xFF2E2E2E)
     val liver = Color(0xFF4F4C4D)
     val darkGrayishRed = Color(0xFF817E7E)

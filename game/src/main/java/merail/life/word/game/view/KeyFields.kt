@@ -224,7 +224,7 @@ private fun KeyForm(
                 } else {
                     when (keyForm.state) {
                         KeyState.CORRECT -> WordMeTheme.colors.elementPositive
-                        KeyState.PRESENT -> WordMeTheme.colors.elementPositiveSecondary
+                        KeyState.PRESENT -> WordMeTheme.colors.elementInversePrimary
                         else -> WordMeTheme.colors.elementSecondary
                     }
                 },
@@ -244,7 +244,11 @@ private fun KeyForm(
                 }
             },
             textAlign = TextAlign.Center,
-            style = WordMeTheme.typography.titleLarge,
+            style = if (contentWidth < 50.dp) {
+                WordMeTheme.typography.titleLarge
+            } else {
+                WordMeTheme.typography.displaySmall
+            },
             modifier = Modifier
                 .graphicsLayer {
                     rotationY = rotationYList[column].value

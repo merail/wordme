@@ -116,7 +116,7 @@ internal fun RowScope.KeyButton(
                 else -> when (keyButton.state) {
                     KeyState.DEFAULT -> WordMeTheme.colors.elementPrimary
                     KeyState.ABSENT -> WordMeTheme.colors.elementSecondary
-                    KeyState.PRESENT -> WordMeTheme.colors.elementPositiveSecondary
+                    KeyState.PRESENT -> WordMeTheme.colors.elementInversePrimary
                     KeyState.CORRECT -> WordMeTheme.colors.elementPositive
                 }
             },
@@ -186,7 +186,7 @@ internal fun RowScope.KeyButton(
                     WordMeTheme.colors.textInversePrimary
                 },
                 textAlign = TextAlign.Center,
-                style = WordMeTheme.typography.labelLarge,
+                style = WordMeTheme.typography.titleLarge,
             )
         }
     }

@@ -49,7 +49,8 @@ val Typography = Typography(
     titleLarge = TextStyle(
         fontFamily = defaultFontFamily,
         fontWeight = FontWeight.Normal,
-        fontSize = 22.sp,
+        // Doesn't match with default
+        fontSize = 18.sp,
         lineHeight = 28.sp,
         letterSpacing = 0.sp,
     ),
