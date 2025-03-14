@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
@@ -93,8 +94,13 @@ internal fun ResultScreen(
                     },
                 ),
                 style = WordMeTheme.typography.displaySmall,
+                color = WordMeTheme.colors.textPositive,
+                fontWeight = FontWeight.Bold,
                 modifier = Modifier
-                    .align(Alignment.CenterHorizontally),
+                    .align(Alignment.CenterHorizontally)
+                    .padding(
+                        top = 20.dp,
+                    ),
             )
 
             Spacer(

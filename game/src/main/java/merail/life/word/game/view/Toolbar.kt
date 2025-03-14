@@ -32,7 +32,7 @@ internal fun Toolbar(
             .defaultMinSize(toolbarMinHeight),
     ) {
         Icon(
-            imageVector = ImageVector.vectorResource(R.drawable.ic_info),
+            imageVector = ImageVector.vectorResource(merail.life.word.design.R.drawable.ic_info),
             contentDescription = null,
             modifier = Modifier
                 .clickable(
