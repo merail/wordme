@@ -50,6 +50,8 @@ import merail.life.word.game.utils.launchFlipAnimation
 import merail.life.word.game.utils.launchVibrateAnimation
 import androidx.compose.animation.Animatable as ColorAnimatable
 
+private const val KEY_SIZE_THRESHOLD = 60
+
 @Composable
 internal fun ColumnScope.KeyFields(
     keyForms: KeyCellsList,
@@ -244,7 +246,7 @@ private fun KeyForm(
                 }
             },
             textAlign = TextAlign.Center,
-            style = if (contentWidth < 50.dp) {
+            style = if (contentWidth < KEY_SIZE_THRESHOLD.dp) {
                 WordMeTheme.typography.titleLarge
             } else {
                 WordMeTheme.typography.displaySmall

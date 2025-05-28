@@ -99,20 +99,40 @@ internal fun ResultScreen(
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .padding(
-                        top = 20.dp,
+                        top = 12.dp,
                     ),
             )
 
             Spacer(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(32.dp),
+                    .height(20.dp),
+            )
+
+            Text(
+                text = stringResource(
+                    id = if (viewModel.isVictory) {
+                        R.string.victory_subtitle
+                    } else {
+                        R.string.defeat_subtitle
+                    },
+                ),
+                style = WordMeTheme.typography.bodyLarge,
+                modifier = Modifier
+                    .padding(
+                        horizontal = 8.dp,
+                    ),
+            )
+
+            Spacer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(8.dp),
             )
 
             Column(
                 modifier = Modifier
                     .padding(
-                        horizontal = 12.dp,
                         vertical = 8.dp,
                     )
                     .fillMaxWidth()
@@ -123,7 +143,7 @@ internal fun ResultScreen(
                     .padding(16.dp),
             ) {
                 Text(
-                    text = stringResource(R.string.victory_time_label),
+                    text = stringResource(R.string.new_word_time_label),
                     style = WordMeTheme.typography.bodyLarge,
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally),
@@ -131,6 +151,36 @@ internal fun ResultScreen(
 
                 Text(
                     text = viewModel.timeUntilNextDay,
+                    style = WordMeTheme.typography.displaySmall,
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(
+                            top = 4.dp,
+                        ),
+                )
+            }
+
+            Column(
+                modifier = Modifier
+                    .padding(
+                        vertical = 8.dp,
+                    )
+                    .fillMaxWidth()
+                    .background(
+                        color = WordMeTheme.colors.elementSecondary,
+                        shape = RoundedCornerShape(24.dp),
+                    )
+                    .padding(16.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.attempts_count_label),
+                    style = WordMeTheme.typography.bodyLarge,
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally),
+                )
+
+                Text(
+                    text = "3/6",
                     style = WordMeTheme.typography.displaySmall,
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)

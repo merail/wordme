@@ -100,14 +100,14 @@ internal fun StatsScreen(
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .padding(
-                        top = 20.dp,
+                        top = 12.dp,
                     ),
             )
 
             Spacer(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(32.dp),
+                    .height(20.dp),
             )
 
             Row {
@@ -187,8 +187,9 @@ private fun RowScope.InfoBlock(
         Column(
             modifier = Modifier
                 .padding(
-                    horizontal = 16.dp,
-                    vertical = 24.dp,
+                    start = 16.dp,
+                    top = 24.dp,
+                    bottom = 24.dp,
                 ),
         ) {
             Text(

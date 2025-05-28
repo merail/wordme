@@ -19,6 +19,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -26,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
@@ -49,6 +51,7 @@ internal fun Keyboard(
     keyButtons: KeyCellsList,
     checkWordKeyState: MutableState<CheckWordKeyState>,
     deleteKeyState: MutableState<DeleteKeyState>,
+    keyboardHeight: MutableState<Int>,
     onKeyButtonClick: (Key) -> Unit,
 ) {
     Column(
@@ -57,7 +60,10 @@ internal fun Keyboard(
             .fillMaxWidth()
             .padding(
                 bottom = LocalContext.current.bottomPadding,
-            ),
+            )
+            .onGloballyPositioned {
+                keyboardHeight.value = it.size.height
+            },
     ) {
         keyButtons.forEach { row ->
             Row(
@@ -202,6 +208,9 @@ private fun KeyboardPreview() {
         },
         deleteKeyState = remember {
             mutableStateOf(DeleteKeyState.Disabled)
+        },
+        keyboardHeight = remember {
+            mutableIntStateOf(0)
         },
         onKeyButtonClick = {},
     )

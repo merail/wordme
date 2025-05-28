@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="stats_tile">Информация об\u00A0игре</string>
+    <string name="stats_tile">Данные об\u00A0игре</string>
     <string name="stats_successful_games_percent_label">% побед</string>
     <string name="stats_average_attempts_count_label">В\u00A0среднем попыток</string>
     <string name="stats_victories_count_label">Слов отгадано</string>

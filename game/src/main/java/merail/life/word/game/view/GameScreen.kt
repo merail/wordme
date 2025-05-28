@@ -4,10 +4,13 @@ import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import merail.life.word.core.extensions.isNavigationBarEnabled
 import merail.life.word.game.GameViewModel
 import merail.life.word.game.state.GameResultState
@@ -43,6 +46,10 @@ internal fun GameScreen(
     Column(
         verticalArrangement = Arrangement.Bottom,
     ) {
+        var isResultBoardVisible = remember {
+            mutableStateOf(false)
+        }
+
         Toolbar(
             onInfoClick = onInfoClick,
         )
@@ -55,22 +62,45 @@ internal fun GameScreen(
                     viewModel.setKeyButtonsStateAfterWordCheck()
                     when (viewModel.gameResultState.value) {
                         is GameResultState.Process -> viewModel.disableControlKeys()
-                        is GameResultState.Victory -> onGameEnd(true)
-                        is GameResultState.Defeat -> onGameEnd(false)
+                        is GameResultState.Victory -> {
+                            onGameEnd(true)
+                            isResultBoardVisible.value = true
+                        }
+                        is GameResultState.Defeat -> {
+                            onGameEnd(false)
+                            isResultBoardVisible.value = true
+                        }
                     }
                 }
             },
         )
 
-        Keyboard(
-            keyButtons = viewModel.keyButtons,
-            checkWordKeyState = viewModel.checkWordKeyState,
-            deleteKeyState = viewModel.deleteKeyState,
-            onKeyButtonClick = remember {
-                {
-                    viewModel.handleKeyClick(it)
-                }
-            },
-        )
+        var keyboardHeight = remember {
+            mutableIntStateOf(0)
+        }
+
+        if (isResultBoardVisible.value) {
+            ResultBoard(
+                viewModel = viewModel,
+                keyboardHeight = keyboardHeight,
+                onResultClick = remember {
+                    {
+                        onGameEnd(viewModel.gameResultState.value.isWin)
+                    }
+                },
+            )
+        } else {
+            Keyboard(
+                keyButtons = viewModel.keyButtons,
+                checkWordKeyState = viewModel.checkWordKeyState,
+                deleteKeyState = viewModel.deleteKeyState,
+                keyboardHeight = keyboardHeight,
+                onKeyButtonClick = remember {
+                    {
+                        viewModel.handleKeyClick(it)
+                    }
+                },
+            )
+        }
     }
 }

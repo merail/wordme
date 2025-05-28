@@ -2,5 +2,8 @@
 <resources>
     <string name="victory_title">Победа!</string>
     <string name="defeat_title">Поражение!</string>
-    <string name="victory_time_label">Новое слово появится через:</string>
+    <string name="victory_subtitle">Отличная игра! Завтра появится новое слово\u00A0— не\u00A0упусти шанс разгадать его</string>
+    <string name="defeat_subtitle">Сегодня слово не\u00A0удалось разгадать, но\u00A0не\u00A0переживайте. Завтра появится шанс попробовать снова!</string>
+    <string name="new_word_time_label">До\u00A0появления нового слова:</string>
+    <string name="attempts_count_label">Число попыток:</string>
 </resources>
