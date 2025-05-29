@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -42,9 +43,19 @@ internal fun ResultScreen(
     viewModel: ResultViewModel = hiltViewModel<ResultViewModel>(),
 ) {
     val coroutineScope = rememberCoroutineScope()
+
     val bottomSheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true,
     )
+
+    LaunchedEffect(viewModel.isNextDay) {
+        if (viewModel.isNextDay) {
+            coroutineScope.launch {
+                bottomSheetState.hide()
+                onDismiss()
+            }
+        }
+    }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,

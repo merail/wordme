@@ -56,6 +56,7 @@ private const val KEY_SIZE_THRESHOLD = 60
 internal fun ColumnScope.KeyFields(
     keyForms: KeyCellsList,
     wordCheckState: MutableState<WordCheckState>,
+    isNextDay: Boolean,
     onFlipAnimationEnd: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
@@ -91,6 +92,7 @@ internal fun ColumnScope.KeyFields(
                             keyForm = keyForms[row][column],
                             wordCheckState = wordCheckState,
                             isLastFilledRow = row == keyForms.lastFilledRow,
+                            isNextDay = isNextDay,
                             onFlipAnimationEnd = onFlipAnimationEnd,
                         )
                     }
@@ -108,6 +110,7 @@ private fun KeyForm(
     keyForm: KeyCell,
     wordCheckState: MutableState<WordCheckState>,
     isLastFilledRow: Boolean,
+    isNextDay: Boolean,
     onFlipAnimationEnd: () -> Unit,
 ) {
     val screenWidthDp = LocalConfiguration.current.screenWidthDp.dp
@@ -144,7 +147,7 @@ private fun KeyForm(
         ColorAnimatable(initialColor)
     }
 
-    val rotationYList = remember {
+    val rotationYList = remember(isNextDay) {
         (1..COLUMNS_COUNT).map {
             Animatable(0f)
         }
@@ -278,6 +281,7 @@ private fun KeyFieldsPreview() {
             wordCheckState = remember {
                 mutableStateOf(WordCheckState.None)
             },
+            isNextDay = false,
             onFlipAnimationEnd = {},
         )
     }

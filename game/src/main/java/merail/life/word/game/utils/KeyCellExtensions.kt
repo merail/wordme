@@ -21,15 +21,26 @@ internal val emptyKeyField: SnapshotStateList<KeyCell>
         KeyCell(Key.EMPTY)
     )
 
-internal val defaultKeyButtons = mutableStateListOf(
-    mutableStateListOf(KeyCell(Key.А), KeyCell(Key.Б), KeyCell(Key.В), KeyCell(Key.Г), KeyCell(Key.Д),
-        KeyCell(Key.Е), KeyCell(Key.Ж), KeyCell(Key.З), KeyCell(Key.И), KeyCell(Key.Й), KeyCell(Key.К),
-        KeyCell(Key.Л)),
-    mutableStateListOf(KeyCell(Key.М), KeyCell(Key.Н), KeyCell(Key.О), KeyCell(Key.П), KeyCell(Key.Р),
-        KeyCell(Key.С), KeyCell(Key.Т), KeyCell(Key.У), KeyCell(Key.Ф), KeyCell(Key.Х), KeyCell(Key.Ц)),
-    mutableStateListOf(KeyCell(Key.DEL), KeyCell(Key.Ч), KeyCell(Key.Ш), KeyCell(Key.Щ), KeyCell(Key.Ъ),
-        KeyCell(Key.Ы), KeyCell(Key.Ь), KeyCell(Key.Э), KeyCell(Key.Ю), KeyCell( Key.Я), KeyCell(Key.OK)),
-)
+internal val emptyKeyFields: KeyCellsList
+    get() = mutableStateListOf(
+        emptyKeyField,
+        emptyKeyField,
+        emptyKeyField,
+        emptyKeyField,
+        emptyKeyField,
+        emptyKeyField,
+    )
+
+internal val defaultKeyButtons: KeyCellsList
+    get() = mutableStateListOf(
+        mutableStateListOf(KeyCell(Key.А), KeyCell(Key.Б), KeyCell(Key.В), KeyCell(Key.Г), KeyCell(Key.Д),
+            KeyCell(Key.Е), KeyCell(Key.Ж), KeyCell(Key.З), KeyCell(Key.И), KeyCell(Key.Й), KeyCell(Key.К),
+            KeyCell(Key.Л)),
+        mutableStateListOf(KeyCell(Key.М), KeyCell(Key.Н), KeyCell(Key.О), KeyCell(Key.П), KeyCell(Key.Р),
+            KeyCell(Key.С), KeyCell(Key.Т), KeyCell(Key.У), KeyCell(Key.Ф), KeyCell(Key.Х), KeyCell(Key.Ц)),
+        mutableStateListOf(KeyCell(Key.DEL), KeyCell(Key.Ч), KeyCell(Key.Ш), KeyCell(Key.Щ), KeyCell(Key.Ъ),
+            KeyCell(Key.Ы), KeyCell(Key.Ь), KeyCell(Key.Э), KeyCell(Key.Ю), KeyCell( Key.Я), KeyCell(Key.OK)),
+    )
 
 internal fun List<List<KeyCellModel>>.toUiModel() = KeyCellsList().apply {
     this@toUiModel.forEach { keyCellModel ->
@@ -68,14 +79,7 @@ internal fun KeyState.toLogicModel() = when (this) {
 }
 
 internal fun KeyCellsList?.orEmpty() = if (isNullOrEmpty()) {
-    mutableStateListOf(
-        emptyKeyField,
-        emptyKeyField,
-        emptyKeyField,
-        emptyKeyField,
-        emptyKeyField,
-        emptyKeyField,
-    )
+    emptyKeyFields
 } else {
     this
 }

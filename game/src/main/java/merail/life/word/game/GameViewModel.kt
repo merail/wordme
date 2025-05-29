@@ -8,7 +8,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import merail.life.word.core.extensions.getTimeUntilNextDay
+import merail.life.word.core.extensions.TimeCounter
 import merail.life.word.database.api.IDatabaseRepository
 import merail.life.word.domain.GameStore
 import merail.life.word.domain.orEmpty
@@ -19,6 +19,7 @@ import merail.life.word.game.state.DeleteKeyState
 import merail.life.word.game.state.GameResultState
 import merail.life.word.game.state.WordCheckState
 import merail.life.word.game.utils.defaultKeyButtons
+import merail.life.word.game.utils.emptyKeyFields
 import merail.life.word.game.utils.firstEmptyRow
 import merail.life.word.game.utils.isDefeat
 import merail.life.word.game.utils.isWin
@@ -68,7 +69,13 @@ internal class GameViewModel @Inject constructor(
     var gameResultState = mutableStateOf<GameResultState>(GameResultState.Process)
         private set
 
-    var timeUntilNextDay by mutableStateOf(getTimeUntilNextDay())
+    var timeUntilNextDay by mutableStateOf(TimeCounter.getTimeUntilNextDay().first)
+        private set
+
+    var isResultBoardVisible by mutableStateOf(false)
+        private set
+
+    var isNextDay by mutableStateOf(false)
         private set
 
     init {
@@ -77,12 +84,7 @@ internal class GameViewModel @Inject constructor(
             keyForms.isWin -> gameResultState.value = GameResultState.Victory
         }
 
-        viewModelScope.launch {
-            while (true) {
-                timeUntilNextDay = getTimeUntilNextDay()
-                delay(1000L)
-            }
-        }
+        startNextDayTimer()
     }
 
     fun disableControlKeys() {
@@ -96,18 +98,19 @@ internal class GameViewModel @Inject constructor(
         else -> addKey(key)
     }
 
-    fun setKeyButtonsStateAfterWordCheck() {
-        val uniqueKeyForms = keyForms.flatten().distinct()
-        uniqueKeyForms.forEach { uniqueKeyForm ->
-            keyButtons.forEachIndexed { rowIndex, keyButtonsRow ->
-                val columnIndex = keyButtonsRow.indexOfFirst {
-                    it.key == uniqueKeyForm.key
-                }
-                if (columnIndex != -1) {
-                    keyButtons[rowIndex][columnIndex] = keyButtons[rowIndex][columnIndex].copy(
-                        state = uniqueKeyForm.state,
-                    )
-                }
+    fun onFlipAnimationEnd(
+        onGameEnd: (Boolean) -> Unit,
+    ) {
+        setKeyButtonsStateAfterWordCheck()
+        when (gameResultState.value) {
+            is GameResultState.Process -> disableControlKeys()
+            is GameResultState.Victory -> {
+                onGameEnd(true)
+                isResultBoardVisible = true
+            }
+            is GameResultState.Defeat -> {
+                onGameEnd(false)
+                isResultBoardVisible = true
             }
         }
     }
@@ -178,6 +181,22 @@ internal class GameViewModel @Inject constructor(
                     } else {
                         onWrongWord(rowIndex)
                     }
+                }
+            }
+        }
+    }
+
+    private fun setKeyButtonsStateAfterWordCheck() {
+        val uniqueKeyForms = keyForms.flatten().distinct()
+        uniqueKeyForms.forEach { uniqueKeyForm ->
+            keyButtons.forEachIndexed { rowIndex, keyButtonsRow ->
+                val columnIndex = keyButtonsRow.indexOfFirst {
+                    it.key == uniqueKeyForm.key
+                }
+                if (columnIndex != -1) {
+                    keyButtons[rowIndex][columnIndex] = keyButtons[rowIndex][columnIndex].copy(
+                        state = uniqueKeyForm.state,
+                    )
                 }
             }
         }
@@ -270,15 +289,32 @@ internal class GameViewModel @Inject constructor(
         storeRepository.saveKeyForms(keyForms.toLogicModel())
     }
 
-    private fun saveStats(isVictory: Boolean) {
-        viewModelScope.launch {
-            if (isVictory) {
-                storeRepository.updateStatsOnVictory(
-                    attemptsCount = currentIndex.first + 1,
-                )
-            } else {
-                storeRepository.updateStatsOnOnDefeat()
+    private fun saveStats(isVictory: Boolean) = viewModelScope.launch {
+        if (isVictory) {
+            storeRepository.updateStatsOnVictory(
+                attemptsCount = currentIndex.first + 1,
+            )
+        } else {
+            storeRepository.updateStatsOnOnDefeat()
+        }
+    }
+
+    private fun startNextDayTimer() = viewModelScope.launch {
+        while (isNextDay.not()) {
+            val (time, isNextDay) = TimeCounter.getTimeUntilNextDay()
+            timeUntilNextDay = time
+            if (isNextDay) {
+                wordOfTheDay = databaseRepository.getWordOfTheDay(213)
+                keyForms = emptyKeyFields
+                keyButtons = defaultKeyButtons
+                checkWordKeyState.value = CheckWordKeyState.Disabled
+                wordCheckState.value = WordCheckState.None
+                gameResultState.value = GameResultState.Process
+                currentIndex = Pair(0, 0)
+                isResultBoardVisible = false
+                this@GameViewModel.isNextDay = true
             }
+            delay(1000L)
         }
     }
 }
