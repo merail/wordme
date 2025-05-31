@@ -9,13 +9,8 @@ import merail.life.word.domain.WordModel
     tableName = "word",
 )
 internal data class WordEntity(
-    @PrimaryKey val id: Int,
+    @PrimaryKey(autoGenerate = true) val id: Int,
     @ColumnInfo(name = "word") val word: String,
-    @ColumnInfo(name = "code") val code: Int,
-    @ColumnInfo(name = "parentCode") val parentCode: Int,
-    @ColumnInfo(name = "gender") val gender: String,
-    @ColumnInfo(name = "animation") val animation: Boolean?,
-    @ColumnInfo(name = "usageCount") val usageCount: Int,
     @ColumnInfo(name = "isUndesirable") val isUndesirable: Boolean,
 )
 
