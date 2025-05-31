@@ -2,24 +2,37 @@ package merail.life.word.data.impl.repository
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import merail.life.word.data.impl.repository.guessedWordId.GuessedWordsIdsDatabase
+import merail.life.word.data.impl.repository.guessedWordId.toModel
+import merail.life.word.data.impl.repository.word.WordsDatabase
+import merail.life.word.data.impl.repository.word.toModel
 import merail.life.word.database.api.IDatabaseRepository
 import javax.inject.Inject
 
 internal class DatabaseRepository @Inject constructor(
-    database: WordsDatabase,
+    wordsDatabase: WordsDatabase,
+    guessedWordsIdsDatabase: GuessedWordsIdsDatabase,
 ) : IDatabaseRepository {
 
-    private val dao = database.wordsElementDao()
+    private val wordDao = wordsDatabase.wordDao()
+
+    private val guessedWordsIdsDatabase = guessedWordsIdsDatabase.guessedWordsIdDao()
+
+    override suspend fun getDayWordId(
+        id: Int,
+    ) = withContext(Dispatchers.IO) {
+        guessedWordsIdsDatabase.getDayWordId(id).toModel()
+    }
 
     override suspend fun getWordOfTheDay(
         id: Int,
     ) = withContext(Dispatchers.IO) {
-        dao.getWordOfTheDay(id).toModel()
+        wordDao.getDayWord(id).toModel()
     }
 
     override suspend fun isWordExist(
         word: String,
     ) = withContext(Dispatchers.IO) {
-        dao.isWordExist(word) != null
+        wordDao.isWordExist(word) != null
     }
 }

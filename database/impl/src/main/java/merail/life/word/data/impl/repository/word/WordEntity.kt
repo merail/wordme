@@ -1,4 +1,4 @@
-package merail.life.word.data.impl.repository
+package merail.life.word.data.impl.repository.word
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity

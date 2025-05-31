@@ -9,12 +9,14 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import merail.life.word.data.impl.repository.DatabaseRepository
-import merail.life.word.data.impl.repository.WORDS_DATABASE_FILE
-import merail.life.word.data.impl.repository.WORDS_DATABASE_NAME
-import merail.life.word.data.impl.repository.WordsDatabase
+import merail.life.word.data.impl.repository.guessedWordId.GUESSED_WORDS_IDS_DATABASE_FILE
+import merail.life.word.data.impl.repository.guessedWordId.GUESSED_WORDS_IDS_DATABASE_NAME
+import merail.life.word.data.impl.repository.guessedWordId.GuessedWordsIdsDatabase
+import merail.life.word.data.impl.repository.word.WORDS_DATABASE_FILE
+import merail.life.word.data.impl.repository.word.WORDS_DATABASE_NAME
+import merail.life.word.data.impl.repository.word.WordsDatabase
 import merail.life.word.database.api.IDatabaseRepository
 import javax.inject.Singleton
-
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -37,6 +39,20 @@ internal interface DatabaseModule {
             WORDS_DATABASE_NAME,
         ).createFromAsset(
             databaseFilePath = WORDS_DATABASE_FILE,
+        ).build().apply {
+            openHelper.writableDatabase
+        }
+
+        @Provides
+        @Singleton
+        fun provideGuessedWordsIdsDatabase(
+            @ApplicationContext context: Context,
+        ): GuessedWordsIdsDatabase = Room.databaseBuilder(
+            context,
+            GuessedWordsIdsDatabase::class.java,
+            GUESSED_WORDS_IDS_DATABASE_NAME,
+        ).createFromAsset(
+            databaseFilePath = GUESSED_WORDS_IDS_DATABASE_FILE,
         ).build().apply {
             openHelper.writableDatabase
         }

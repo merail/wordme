@@ -8,7 +8,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import merail.life.word.core.extensions.TimeCounter
+import merail.life.word.core.extensions.getTimeUntilNextDay
 import merail.life.word.database.api.IDatabaseRepository
 import merail.life.word.domain.GameStore
 import merail.life.word.domain.orEmpty
@@ -44,7 +44,7 @@ internal class GameViewModel @Inject constructor(
         private const val TAG = "GameViewModel"
     }
 
-    private var wordOfTheDay = GameStore.wordOfTheDay.orEmpty()
+    private var wordOfTheDay = GameStore.dayWord.orEmpty()
 
     var keyForms = GameStore.keyForms?.toUiModel().orEmpty()
         private set
@@ -69,7 +69,7 @@ internal class GameViewModel @Inject constructor(
     var gameResultState = mutableStateOf<GameResultState>(GameResultState.Process)
         private set
 
-    var timeUntilNextDay by mutableStateOf(TimeCounter.getTimeUntilNextDay().first)
+    var timeUntilNextDay by mutableStateOf(getTimeUntilNextDay().first)
         private set
 
     var isResultBoardVisible by mutableStateOf(false)
@@ -301,7 +301,7 @@ internal class GameViewModel @Inject constructor(
 
     private fun startNextDayTimer() = viewModelScope.launch {
         while (isNextDay.not()) {
-            val (time, isNextDay) = TimeCounter.getTimeUntilNextDay()
+            val (time, isNextDay) = getTimeUntilNextDay()
             timeUntilNextDay = time
             if (isNextDay) {
                 wordOfTheDay = databaseRepository.getWordOfTheDay(213)

@@ -1,4 +1,4 @@
-package merail.life.word.data.impl.repository
+package merail.life.word.data.impl.repository.word
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
@@ -13,5 +13,5 @@ internal const val WORDS_DATABASE_FILE = "words_database.db"
     exportSchema = false,
 )
 internal abstract class WordsDatabase : RoomDatabase() {
-    abstract fun wordsElementDao(): WordDao
+    abstract fun wordDao(): WordDao
 }
