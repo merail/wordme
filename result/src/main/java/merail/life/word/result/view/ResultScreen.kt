@@ -191,7 +191,10 @@ internal fun ResultScreen(
                 )
 
                 Text(
-                    text = "3/6",
+                    text = stringResource(
+                        id = R.string.attempts_count,
+                        viewModel.attemptsCount,
+                    ),
                     style = WordMeTheme.typography.displaySmall,
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)

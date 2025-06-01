@@ -25,6 +25,8 @@ internal class ResultViewModel @Inject constructor(
 
     val isVictory = savedStateHandle.toRoute<NavigationRoute.Result>().isVictory
 
+    val attemptsCount = savedStateHandle.toRoute<NavigationRoute.Result>().attemptsCount
+
     var timeUntilNextDay by mutableStateOf(getTimeUntilNextDay().first)
         private set
 

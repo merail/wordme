@@ -209,21 +209,21 @@ private fun RowScope.InfoBlock(
             )
         }
 
-        Icon(
-            imageVector = ImageVector.vectorResource(merail.life.word.design.R.drawable.ic_info),
-            contentDescription = null,
-            modifier = Modifier
-                .padding(8.dp)
-                .size(20.dp)
-                .clickable(
-                    interactionSource = remember {
-                        MutableInteractionSource()
-                    },
-                    indication = ripple(
-                        bounded = false,
-                    ),
-                    onClick = {},
-                ),
-        )
+//        Icon(
+//            imageVector = ImageVector.vectorResource(merail.life.word.design.R.drawable.ic_info),
+//            contentDescription = null,
+//            modifier = Modifier
+//                .padding(8.dp)
+//                .size(20.dp)
+//                .clickable(
+//                    interactionSource = remember {
+//                        MutableInteractionSource()
+//                    },
+//                    indication = ripple(
+//                        bounded = false,
+//                    ),
+//                    onClick = {},
+//                ),
+//        )
     }
 }

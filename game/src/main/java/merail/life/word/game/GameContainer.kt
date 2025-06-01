@@ -5,7 +5,7 @@ import merail.life.word.game.view.GameScreen
 
 @Composable
 fun GameContainer(
-    onResult: (isVictory: Boolean) -> Unit,
+    onResult: (isVictory: Boolean, attemptsCount: Int) -> Unit,
     onStats: () -> Unit,
 ) = GameScreen(
     onGameEnd = onResult,

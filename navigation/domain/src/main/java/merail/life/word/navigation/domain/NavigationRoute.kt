@@ -10,6 +10,7 @@ sealed class NavigationRoute {
     @Serializable
     data class Result(
         val isVictory: Boolean,
+        val attemptsCount: Int,
     ) : NavigationRoute()
 
     @Serializable

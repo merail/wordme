@@ -91,7 +91,7 @@ internal val KeyCellsList.firstEmptyRow: Int
         }
     }.let {
         if (it == -1) {
-            ROWS_COUNT - 1
+            ROWS_COUNT
         } else {
             it
         }

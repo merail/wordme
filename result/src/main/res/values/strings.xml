@@ -6,4 +6,5 @@
     <string name="defeat_subtitle">Сегодня слово не\u00A0удалось разгадать, но\u00A0не\u00A0переживайте. Завтра появится шанс попробовать снова!</string>
     <string name="new_word_time_label">До\u00A0появления нового слова:</string>
     <string name="attempts_count_label">Число попыток:</string>
+    <string name="attempts_count">%d/6</string>
 </resources>

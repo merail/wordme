@@ -49,10 +49,11 @@ internal class GameViewModel @Inject constructor(
     var keyForms = GameStore.keyForms?.toUiModel().orEmpty()
         private set
 
-    private var currentIndex = Pair(
+    var currentIndex = Pair(
         first = keyForms.firstEmptyRow,
         second = 0,
     )
+        private set
 
     var keyButtons = defaultKeyButtons
         private set
@@ -99,17 +100,23 @@ internal class GameViewModel @Inject constructor(
     }
 
     fun onFlipAnimationEnd(
-        onGameEnd: (Boolean) -> Unit,
+        onGameEnd: (Boolean, Int) -> Unit,
     ) {
         setKeyButtonsStateAfterWordCheck()
         when (gameResultState.value) {
             is GameResultState.Process -> disableControlKeys()
             is GameResultState.Victory -> {
-                onGameEnd(true)
+                onGameEnd(
+                    true,
+                    currentIndex.first,
+                )
                 isResultBoardVisible = true
             }
             is GameResultState.Defeat -> {
-                onGameEnd(false)
+                onGameEnd(
+                    false,
+                    currentIndex.first,
+                )
                 isResultBoardVisible = true
             }
         }
@@ -247,6 +254,11 @@ internal class GameViewModel @Inject constructor(
                 state = KeyState.CORRECT,
             )
         }
+
+        currentIndex = currentIndex.copy(
+            first = rowIndex + 1,
+            second = 0,
+        )
 
         saveKeyForms()
     }

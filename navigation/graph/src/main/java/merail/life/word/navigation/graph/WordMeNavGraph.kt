@@ -24,10 +24,11 @@ fun WordMeNavHost(
     ) {
         composable<NavigationRoute.Game> {
             GameContainer(
-                onResult = { isVictory ->
+                onResult = { isVictory, attemptsCount ->
                     navController.navigate(
                         route = NavigationRoute.Result(
                             isVictory = isVictory,
+                            attemptsCount = attemptsCount,
                         ),
                     )
                 },

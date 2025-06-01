@@ -36,7 +36,7 @@ internal val Context.bottomPadding: Dp
 
 @Composable
 internal fun GameScreen(
-    onGameEnd: (isVictory: Boolean) -> Unit,
+    onGameEnd: (isVictory: Boolean, attemptsCount: Int) -> Unit,
     onInfoClick: () -> Unit,
     viewModel: GameViewModel = hiltViewModel<GameViewModel>(),
 ) {
@@ -68,7 +68,10 @@ internal fun GameScreen(
                 keyboardHeight = keyboardHeight,
                 onResultClick = remember {
                     {
-                        onGameEnd(viewModel.gameResultState.value.isWin)
+                        onGameEnd(
+                            viewModel.gameResultState.value.isWin,
+                            viewModel.currentIndex.first,
+                        )
                     }
                 },
             )
