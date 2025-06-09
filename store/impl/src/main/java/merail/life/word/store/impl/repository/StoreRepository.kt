@@ -1,6 +1,7 @@
 package merail.life.word.store.impl.repository
 
 import androidx.datastore.core.DataStore
+import androidx.datastore.dataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
@@ -99,6 +100,16 @@ internal class StoreRepository @Inject constructor(
                     }
                 )
             }
+        }
+    }
+
+
+    override suspend fun removeKeyForms() {
+        keyFormsDataStore.updateData { currentPreferences ->
+            currentPreferences
+                .toBuilder()
+                .clearKeyCells()
+                .build()
         }
     }
 

@@ -316,6 +316,7 @@ internal class GameViewModel @Inject constructor(
             val (time, isNextDay) = getTimeUntilNextDay()
             timeUntilNextDay = time
             if (isNextDay) {
+                storeRepository.removeKeyForms()
                 wordOfTheDay = databaseRepository.getWordOfTheDay(213)
                 keyForms = emptyKeyFields
                 keyButtons = defaultKeyButtons

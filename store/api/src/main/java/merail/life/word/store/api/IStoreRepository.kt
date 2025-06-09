@@ -14,4 +14,6 @@ interface IStoreRepository {
     suspend fun saveKeyForms(keyCellModels: List<List<KeyCellModel>>)
 
     fun loadKeyForms(): Flow<List<List<KeyCellModel>>>
+
+    suspend fun removeKeyForms()
 }
