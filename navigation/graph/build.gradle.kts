@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "merail.life.word.navigation.graph"
+    namespace = "merail.life.navigation.graph"
     compileSdk = 35
 
     defaultConfig {

@@ -8,7 +8,7 @@ plugins {
 }
 
 android {
-    namespace = "merail.life.word.navigation.domain"
+    namespace = "merail.life.navigation.domain"
     compileSdk = 35
 
     defaultConfig {

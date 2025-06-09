@@ -9,7 +9,7 @@ plugins {
 }
 
 android {
-    namespace = "merail.life.word.game"
+    namespace = "merail.life.game"
     compileSdk = 35
 
     defaultConfig {

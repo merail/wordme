@@ -10,7 +10,7 @@ plugins {
 }
 
 android {
-    namespace = "merail.life.word.store.impl"
+    namespace = "merail.life.store.impl"
     compileSdk = 35
 
     defaultConfig {

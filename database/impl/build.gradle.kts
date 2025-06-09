@@ -9,7 +9,7 @@ plugins {
 }
 
 android {
-    namespace = "merail.life.word.database.impl"
+    namespace = "merail.life.database.impl"
     compileSdk = 35
 
     defaultConfig {
