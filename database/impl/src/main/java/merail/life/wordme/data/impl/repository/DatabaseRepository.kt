@@ -24,7 +24,7 @@ internal class DatabaseRepository @Inject constructor(
         guessedWordsIdsDatabase.getDayWordId(id).toModel()
     }
 
-    override suspend fun getWordOfTheDay(
+    override suspend fun getDayWord(
         id: Int,
     ) = withContext(Dispatchers.IO) {
         wordDao.getDayWord(id).toModel()

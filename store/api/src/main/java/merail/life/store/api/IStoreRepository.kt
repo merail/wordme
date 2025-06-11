@@ -5,6 +5,10 @@ import merail.life.domain.KeyCellModel
 import merail.life.store.api.model.StatsModel
 
 interface IStoreRepository {
+    suspend fun saveDaysSinceStartCount(count: Int)
+
+    fun getDaysSinceStartCount(): Flow<Int>
+
     suspend fun updateStatsOnVictory(attemptsCount: Int)
 
     suspend fun updateStatsOnOnDefeat()

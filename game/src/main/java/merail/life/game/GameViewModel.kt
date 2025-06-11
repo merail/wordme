@@ -8,11 +8,16 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import merail.life.core.BuildConfig
+import merail.life.core.extensions.countdownStartRealTime
+import merail.life.core.extensions.debugDaysSinceStartCount
+import merail.life.core.extensions.getDaysSinceStartCount
 import merail.life.core.extensions.getTimeUntilNextDay
 import merail.life.database.api.IDatabaseRepository
 import merail.life.domain.GameStore
 import merail.life.domain.orEmpty
 import merail.life.game.model.Key
+import merail.life.game.model.KeyCell
 import merail.life.game.model.KeyState
 import merail.life.game.state.CheckWordKeyState
 import merail.life.game.state.DeleteKeyState
@@ -44,7 +49,7 @@ internal class GameViewModel @Inject constructor(
         private const val TAG = "GameViewModel"
     }
 
-    private var wordOfTheDay = GameStore.dayWord.orEmpty()
+    private var dayWord = GameStore.dayWord.orEmpty()
 
     var keyForms = GameStore.keyForms?.toUiModel().orEmpty()
         private set
@@ -85,7 +90,9 @@ internal class GameViewModel @Inject constructor(
             keyForms.isWin -> gameResultState.value = GameResultState.Victory
         }
 
-        startNextDayTimer()
+        viewModelScope.launch {
+            startNextDayTimer()
+        }
     }
 
     fun disableControlKeys() {
@@ -174,7 +181,7 @@ internal class GameViewModel @Inject constructor(
 
             val enteredWord = keyForms[rowIndex].toStringWord()
 
-            if (enteredWord == wordOfTheDay.value) {
+            if (enteredWord == dayWord.value) {
                 onVictory(rowIndex)
             } else {
                 viewModelScope.launch {
@@ -194,7 +201,18 @@ internal class GameViewModel @Inject constructor(
     }
 
     private fun setKeyButtonsStateAfterWordCheck() {
-        val uniqueKeyForms = keyForms.flatten().distinct()
+        val uniqueKeyForms = keyForms
+            .flatten()
+            .distinct()
+            .groupBy(KeyCell::key)
+            .map { (_, group) ->
+                group.find {
+                    it.state == KeyState.CORRECT
+                } ?: group.find {
+                    it.state == KeyState.PRESENT
+                } ?: group.first()
+            }
+
         uniqueKeyForms.forEach { uniqueKeyForm ->
             keyButtons.forEachIndexed { rowIndex, keyButtonsRow ->
                 val columnIndex = keyButtonsRow.indexOfFirst {
@@ -267,16 +285,16 @@ internal class GameViewModel @Inject constructor(
         enteredWord: String,
         rowIndex: Int,
     ) {
-        val restCharsList = wordOfTheDay.value.toMutableList()
+        val restCharsList = dayWord.value.toMutableList()
         keyForms[rowIndex].forEachIndexed { index, _ ->
             keyForms[rowIndex][index] = keyForms[rowIndex][index].copy(
                 state = when {
-                    enteredWord[index] == wordOfTheDay.value[index] -> {
+                    enteredWord[index] == dayWord.value[index] -> {
                         restCharsList.remove(enteredWord[index])
                         KeyState.CORRECT
                     }
 
-                    enteredWord[index] != wordOfTheDay.value[index] -> if (enteredWord[index] in restCharsList) {
+                    enteredWord[index] != dayWord.value[index] -> if (enteredWord[index] in restCharsList) {
                         restCharsList.remove(enteredWord[index])
                         KeyState.PRESENT
                     } else {
@@ -311,13 +329,14 @@ internal class GameViewModel @Inject constructor(
         }
     }
 
-    private fun startNextDayTimer() = viewModelScope.launch {
+    private suspend fun startNextDayTimer() {
         while (isNextDay.not()) {
             val (time, isNextDay) = getTimeUntilNextDay()
             timeUntilNextDay = time
             if (isNextDay) {
                 storeRepository.removeKeyForms()
-                wordOfTheDay = databaseRepository.getWordOfTheDay(213)
+                val dayWordId = databaseRepository.getDayWordId(getDaysSinceStartCount() + 1)
+                dayWord = databaseRepository.getDayWord(dayWordId.value)
                 keyForms = emptyKeyFields
                 keyButtons = defaultKeyButtons
                 checkWordKeyState.value = CheckWordKeyState.Disabled
@@ -329,6 +348,13 @@ internal class GameViewModel @Inject constructor(
             }
             delay(1000L)
         }
+
+        isNextDay = false
+        if (BuildConfig.REDUCE_TIME_UNTIL_NEXT_DAY) {
+            countdownStartRealTime = System.currentTimeMillis()
+            debugDaysSinceStartCount++
+        }
+        startNextDayTimer()
     }
 }
 

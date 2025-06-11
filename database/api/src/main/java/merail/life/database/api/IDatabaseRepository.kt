@@ -9,7 +9,7 @@ interface IDatabaseRepository {
         id: Int,
     ): WordIdModel
 
-    suspend fun getWordOfTheDay(
+    suspend fun getDayWord(
         id: Int,
     ): WordModel
 

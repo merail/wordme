@@ -1,19 +1,29 @@
 package merail.life.core.extensions
 
 import merail.life.core.BuildConfig
-import java.util.Calendar
+import java.time.Duration
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.temporal.ChronoUnit
 import java.util.Locale
 
+fun getDaysSinceStartCount(): Int {
+    val startDay = LocalDate.of(2025, 6, 11 - debugDaysSinceStartCount)
+    val today = LocalDate.now()
+    return ChronoUnit.DAYS.between(startDay, today).toInt()
+}
+
 fun getTimeUntilNextDay(): Pair<String, Boolean> {
-    val millisUntilNextDay = if (BuildConfig.DEBUG) {
+    val durationUntilNextDay = if (BuildConfig.REDUCE_TIME_UNTIL_NEXT_DAY) {
         getDebugTimeUntilNextDay()
     } else {
         getReleaseTimeUntilNextDay()
     }
 
-    val hours = millisUntilNextDay / (1000 * 60 * 60)
-    val minutes = (millisUntilNextDay / (1000 * 60)) % 60
-    val seconds = (millisUntilNextDay / 1000) % 60
+    val hours = durationUntilNextDay.toHours()
+    val minutes = durationUntilNextDay.toMinutes() % 60
+    val seconds = durationUntilNextDay.seconds % 60
 
     val isNextDay = hours == 0L && minutes == 0L && seconds == 0L
 
@@ -26,27 +36,20 @@ fun getTimeUntilNextDay(): Pair<String, Boolean> {
     ) to isNextDay
 }
 
-private fun getReleaseTimeUntilNextDay(): Long {
-    val calendar = Calendar.getInstance()
-
-    val currentTimeMillis = calendar.timeInMillis
-
-    calendar.add(Calendar.DAY_OF_YEAR, 1)
-    calendar.set(Calendar.HOUR_OF_DAY, 0)
-    calendar.set(Calendar.MINUTE, 0)
-    calendar.set(Calendar.SECOND, 0)
-    calendar.set(Calendar.MILLISECOND, 0)
-
-    return calendar.timeInMillis - currentTimeMillis
+private fun getReleaseTimeUntilNextDay(): Duration {
+    val now = LocalDateTime.now()
+    val midnight = now.toLocalDate().plusDays(1).atStartOfDay()
+    return Duration.between(now, midnight).coerceAtLeast(Duration.ZERO)
 }
 
-private val debugTimeUntilNextDay = Calendar.getInstance().apply {
-    add(Calendar.SECOND, 20)
-}.timeInMillis
+var countdownStartRealTime = System.currentTimeMillis()
+var debugDaysSinceStartCount = 0
+private val fakeStartTime = LocalDateTime.now().with(LocalTime.of(23, 59, 40))
 
-@JvmName("functionOfKotlin")
-private fun getDebugTimeUntilNextDay(): Long {
-    val calendar = Calendar.getInstance()
+private fun getDebugTimeUntilNextDay(): Duration {
+    val millisPassed = System.currentTimeMillis() - countdownStartRealTime
+    val nowFake = fakeStartTime.plusNanos(millisPassed * 1_000_000)
+    val midnight = fakeStartTime.toLocalDate().plusDays(1).atStartOfDay()
 
-    return debugTimeUntilNextDay - calendar.timeInMillis
+    return Duration.between(nowFake, midnight).coerceAtLeast(Duration.ZERO)
 }

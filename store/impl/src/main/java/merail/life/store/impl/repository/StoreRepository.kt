@@ -21,11 +21,22 @@ internal class StoreRepository @Inject constructor(
 ) : IStoreRepository {
 
     companion object {
+        private val DAYS_SINCE_START_COUNT_KEY = intPreferencesKey("days_since_start_count")
         private val GAMES_COUNT_KEY = intPreferencesKey("games_count")
         private val VICTORIES_COUNT_KEY = intPreferencesKey("victories_count")
         private val ATTEMPTS_COUNT_KEY = intPreferencesKey("attempts_count_key")
         private val VICTORIES_ROW_COUNT_KEY = intPreferencesKey("victories_row_count")
         private val VICTORIES_ROW_MAX_COUNT_KEY = intPreferencesKey("victories_row_max_count")
+    }
+
+    override suspend fun saveDaysSinceStartCount(count: Int) {
+        statsDataStore.edit { preferences ->
+            preferences[DAYS_SINCE_START_COUNT_KEY] = count
+        }
+    }
+
+    override fun getDaysSinceStartCount() = statsDataStore.data.map { preferences ->
+        preferences[DAYS_SINCE_START_COUNT_KEY] ?: 0
     }
 
     override suspend fun updateStatsOnVictory(attemptsCount: Int) {
@@ -104,8 +115,8 @@ internal class StoreRepository @Inject constructor(
 
 
     override suspend fun removeKeyForms() {
-        keyFormsDataStore.updateData { currentPreferences ->
-            currentPreferences
+        keyFormsDataStore.updateData { preferences ->
+            preferences
                 .toBuilder()
                 .clearKeyCells()
                 .build()
