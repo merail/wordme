@@ -234,6 +234,7 @@ internal class GameViewModel @Inject constructor(
         wordCheckState.value = WordCheckState.CorrectWord(rowIndex)
         disableControlKeys()
         gameResultState.value = GameResultState.Victory
+        saveLastVictoryDay()
         saveStats(true)
     }
 
@@ -319,10 +320,14 @@ internal class GameViewModel @Inject constructor(
         storeRepository.saveKeyForms(keyForms.toLogicModel())
     }
 
+    private fun saveLastVictoryDay() = viewModelScope.launch {
+        storeRepository.saveLastVictoryDay(getDaysSinceStartCount())
+    }
+
     private fun saveStats(isVictory: Boolean) = viewModelScope.launch {
         if (isVictory) {
             storeRepository.updateStatsOnVictory(
-                attemptsCount = currentIndex.first + 1,
+                attemptsCount = currentIndex.first,
             )
         } else {
             storeRepository.updateStatsOnOnDefeat()

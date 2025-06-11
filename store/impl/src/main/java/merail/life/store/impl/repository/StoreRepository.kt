@@ -22,6 +22,7 @@ internal class StoreRepository @Inject constructor(
 
     companion object {
         private val DAYS_SINCE_START_COUNT_KEY = intPreferencesKey("days_since_start_count")
+        private val LAST_VICTORY_DAY_KEY = intPreferencesKey("last_victory_day")
         private val GAMES_COUNT_KEY = intPreferencesKey("games_count")
         private val VICTORIES_COUNT_KEY = intPreferencesKey("victories_count")
         private val ATTEMPTS_COUNT_KEY = intPreferencesKey("attempts_count_key")
@@ -37,6 +38,22 @@ internal class StoreRepository @Inject constructor(
 
     override fun getDaysSinceStartCount() = statsDataStore.data.map { preferences ->
         preferences[DAYS_SINCE_START_COUNT_KEY] ?: 0
+    }
+
+    override suspend fun saveLastVictoryDay(day: Int) {
+        statsDataStore.edit { preferences ->
+            preferences[LAST_VICTORY_DAY_KEY] = day
+        }
+    }
+
+    override fun getLastVictoryDay() = statsDataStore.data.map { preferences ->
+        preferences[LAST_VICTORY_DAY_KEY] ?: 0
+    }
+
+    override suspend fun resetVictoriesRowCount() {
+        statsDataStore.edit { preferences ->
+            preferences[VICTORIES_ROW_COUNT_KEY] = 0
+        }
     }
 
     override suspend fun updateStatsOnVictory(attemptsCount: Int) {

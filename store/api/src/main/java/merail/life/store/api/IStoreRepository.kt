@@ -9,6 +9,12 @@ interface IStoreRepository {
 
     fun getDaysSinceStartCount(): Flow<Int>
 
+    suspend fun saveLastVictoryDay(day: Int)
+
+    fun getLastVictoryDay(): Flow<Int>
+
+    suspend fun resetVictoriesRowCount()
+
     suspend fun updateStatsOnVictory(attemptsCount: Int)
 
     suspend fun updateStatsOnOnDefeat()

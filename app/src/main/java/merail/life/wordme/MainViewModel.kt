@@ -28,15 +28,20 @@ internal class MainViewModel @Inject constructor(
             val daysSinceStartCount = getDaysSinceStartCount()
             val dayWordId = databaseRepository.getDayWordId(daysSinceStartCount + 1)
 
-            val lastSinceInitDaysCount = storeRepository.getDaysSinceStartCount().first()
+            val lastSinceStartDaysCount = storeRepository.getDaysSinceStartCount().first()
 
             GameStore.dayWord = databaseRepository.getDayWord(dayWordId.value)
 
-            if (lastSinceInitDaysCount == daysSinceStartCount) {
+            if (lastSinceStartDaysCount == daysSinceStartCount) {
                 GameStore.keyForms = storeRepository.loadKeyForms().first()
             } else {
                 storeRepository.saveDaysSinceStartCount(daysSinceStartCount)
                 storeRepository.removeKeyForms()
+            }
+
+            val lastVictoryDay = storeRepository.getLastVictoryDay().first()
+            if (daysSinceStartCount - lastVictoryDay > 1) {
+                storeRepository.resetVictoriesRowCount()
             }
 
             isLoading = false
