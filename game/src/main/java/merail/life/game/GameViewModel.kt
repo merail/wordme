@@ -7,12 +7,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import merail.life.core.BuildConfig
-import merail.life.core.extensions.countdownStartRealTime
-import merail.life.core.extensions.debugDaysSinceStartCount
-import merail.life.core.extensions.getDaysSinceStartCount
-import merail.life.core.extensions.getTimeUntilNextDay
 import merail.life.database.api.IDatabaseRepository
 import merail.life.domain.GameStore
 import merail.life.domain.orEmpty
@@ -33,6 +30,7 @@ import merail.life.game.utils.toLogicModel
 import merail.life.game.utils.toStringWord
 import merail.life.game.utils.toUiModel
 import merail.life.store.api.IStoreRepository
+import merail.life.time.api.ITimeRepository
 import javax.inject.Inject
 
 internal const val ROWS_COUNT = 6
@@ -43,6 +41,7 @@ internal const val KEYBOARD_COLUMNS_COUNT = 3
 internal class GameViewModel @Inject constructor(
     private val databaseRepository: IDatabaseRepository,
     private val storeRepository: IStoreRepository,
+    private val timeRepository: ITimeRepository,
 ) : ViewModel() {
 
     companion object {
@@ -75,7 +74,7 @@ internal class GameViewModel @Inject constructor(
     var gameResultState = mutableStateOf<GameResultState>(GameResultState.Process)
         private set
 
-    var timeUntilNextDay by mutableStateOf(getTimeUntilNextDay().first)
+    var timeUntilNextDay by mutableStateOf("")
         private set
 
     var isResultBoardVisible by mutableStateOf(false)
@@ -321,7 +320,8 @@ internal class GameViewModel @Inject constructor(
     }
 
     private fun saveLastVictoryDay() = viewModelScope.launch {
-        storeRepository.saveLastVictoryDay(getDaysSinceStartCount())
+        val daysSinceStartCount = timeRepository.getDaysSinceStartCount().first()
+        storeRepository.saveLastVictoryDay(daysSinceStartCount)
     }
 
     private fun saveStats(isVictory: Boolean) = viewModelScope.launch {
@@ -336,11 +336,17 @@ internal class GameViewModel @Inject constructor(
 
     private suspend fun startNextDayTimer() {
         while (isNextDay.not()) {
-            val (time, isNextDay) = getTimeUntilNextDay()
+            val (time, isNextDay) = timeRepository.getTimeUntilNextDay()
             timeUntilNextDay = time
             if (isNextDay) {
+                if (BuildConfig.REDUCE_TIME_UNTIL_NEXT_DAY) {
+                    ITimeRepository.countdownStartRealTime = System.currentTimeMillis()
+                    ITimeRepository.debugDaysSinceStartCount++
+                }
+
                 storeRepository.removeKeyForms()
-                val dayWordId = databaseRepository.getDayWordId(getDaysSinceStartCount() + 1)
+                val daysSinceStartCount = timeRepository.getDaysSinceStartCount().first()
+                val dayWordId = databaseRepository.getDayWordId(daysSinceStartCount + 1)
                 dayWord = databaseRepository.getDayWord(dayWordId.value)
                 keyForms = emptyKeyFields
                 keyButtons = defaultKeyButtons
@@ -349,16 +355,14 @@ internal class GameViewModel @Inject constructor(
                 gameResultState.value = GameResultState.Process
                 currentIndex = Pair(0, 0)
                 isResultBoardVisible = false
+
                 this@GameViewModel.isNextDay = true
             }
             delay(1000L)
         }
 
         isNextDay = false
-        if (BuildConfig.REDUCE_TIME_UNTIL_NEXT_DAY) {
-            countdownStartRealTime = System.currentTimeMillis()
-            debugDaysSinceStartCount++
-        }
+
         startNextDayTimer()
     }
 }

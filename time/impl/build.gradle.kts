@@ -4,10 +4,12 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.hilt.gradle)
 }
 
 android {
-    namespace = "merail.life.core"
+    namespace = "merail.life.time.impl"
     compileSdk = 35
 
     defaultConfig {
@@ -39,4 +41,15 @@ android {
             )
         }
     }
+}
+
+dependencies {
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+
+    implementation(libs.play.services.time)
+
+    implementation(libs.kotlinx.coroutines.android)
+
+    implementation(project(":time:api"))
 }

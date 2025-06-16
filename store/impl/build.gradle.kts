@@ -34,7 +34,6 @@ dependencies {
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
-    implementation(libs.androidx.hilt.navigation.compose)
 
     implementation(libs.protobuf.javalite)
     implementation(libs.protobuf.kotlin.lite)

@@ -8,16 +8,17 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import merail.life.core.extensions.getDaysSinceStartCount
 import merail.life.database.api.IDatabaseRepository
 import merail.life.domain.GameStore
 import merail.life.store.api.IStoreRepository
+import merail.life.time.api.ITimeRepository
 import javax.inject.Inject
 
 @HiltViewModel
 internal class MainViewModel @Inject constructor(
     private val databaseRepository: IDatabaseRepository,
     private val storeRepository: IStoreRepository,
+    private val timeRepository: ITimeRepository,
 ): ViewModel() {
 
     var isLoading by mutableStateOf(true)
@@ -25,7 +26,7 @@ internal class MainViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val daysSinceStartCount = getDaysSinceStartCount()
+            val daysSinceStartCount = timeRepository.getDaysSinceStartCount().first()
             val dayWordId = databaseRepository.getDayWordId(daysSinceStartCount + 1)
 
             val lastSinceStartDaysCount = storeRepository.getDaysSinceStartCount().first()

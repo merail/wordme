@@ -48,4 +48,5 @@ dependencies {
     implementation(project(":domain"))
     implementation(project(":database:api"))
     implementation(project(":store:api"))
+    implementation(project(":time:api"))
 }

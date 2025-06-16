@@ -10,13 +10,14 @@ import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import merail.life.core.extensions.getTimeUntilNextDay
+import merail.life.time.api.ITimeRepository
 import merail.life.wordme.navigation.domain.NavigationRoute
 import javax.inject.Inject
 
 @HiltViewModel
 internal class ResultViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
+    private val timeRepository: ITimeRepository,
 ) : ViewModel() {
 
     companion object {
@@ -27,7 +28,7 @@ internal class ResultViewModel @Inject constructor(
 
     val attemptsCount = savedStateHandle.toRoute<NavigationRoute.Result>().attemptsCount
 
-    var timeUntilNextDay by mutableStateOf(getTimeUntilNextDay().first)
+    var timeUntilNextDay by mutableStateOf("")
         private set
 
     var isNextDay by mutableStateOf(false)
@@ -36,7 +37,7 @@ internal class ResultViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             while (isNextDay.not()) {
-                val (time, isNextDay) = getTimeUntilNextDay()
+                val (time, isNextDay) = timeRepository.getTimeUntilNextDay()
                 timeUntilNextDay = time
                 if (isNextDay) {
                     this@ResultViewModel.isNextDay = true

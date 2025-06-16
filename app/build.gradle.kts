@@ -76,6 +76,8 @@ dependencies {
 
     implementation(libs.androidx.core.splashscreen)
 
+    implementation(libs.play.services.time)
+
     implementation(project(":core"))
     implementation(project(":design"))
     implementation(project(":domain"))
@@ -87,4 +89,6 @@ dependencies {
     implementation(project(":store:impl"))
     implementation(project(":result"))
     implementation(project(":stats"))
+    implementation(project(":time:api"))
+    implementation(project(":time:impl"))
 }
