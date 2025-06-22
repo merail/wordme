@@ -1,5 +1,4 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.library)
@@ -9,7 +8,7 @@ plugins {
 }
 
 android {
-    namespace = "merail.life.time.impl"
+    namespace = "merail.life.config.impl"
     compileSdk = 35
 
     defaultConfig {
@@ -24,33 +23,16 @@ android {
     kotlinOptions {
         jvmTarget = JvmTarget.JVM_17.target
     }
-
-    buildFeatures {
-        buildConfig = true
-    }
-
-    val properties = Properties()
-    properties.load(project.rootProject.file("local.properties").inputStream())
-
-    buildTypes {
-        debug {
-            buildConfigField(
-                type = "Boolean",
-                name = "REDUCE_TIME_UNTIL_NEXT_DAY",
-                value = properties.getProperty("reduceTimeUntilNextDay"),
-            )
-        }
-    }
 }
 
 dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 
-    implementation(libs.play.services.time)
+    implementation(platform(libs.google.firebase.bom))
+    implementation(libs.firebase.config)
 
     implementation(libs.kotlinx.coroutines.android)
 
-    implementation(project(":time:api"))
     implementation(project(":config:api"))
 }

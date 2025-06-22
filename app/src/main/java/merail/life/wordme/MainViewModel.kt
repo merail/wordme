@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import merail.life.config.api.IConfigRepository
 import merail.life.database.api.IDatabaseRepository
 import merail.life.domain.GameStore
 import merail.life.store.api.IStoreRepository
@@ -16,6 +17,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class MainViewModel @Inject constructor(
+    private val configRepository: IConfigRepository,
     private val databaseRepository: IDatabaseRepository,
     private val storeRepository: IStoreRepository,
     private val timeRepository: ITimeRepository,
@@ -26,6 +28,8 @@ internal class MainViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
+            configRepository.fetchAndActivateRemoteConfig()
+
             val daysSinceStartCount = timeRepository.getDaysSinceStartCount().first()
             val dayWordId = databaseRepository.getDayWordId(daysSinceStartCount + 1)
 

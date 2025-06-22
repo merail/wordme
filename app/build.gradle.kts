@@ -91,4 +91,6 @@ dependencies {
     implementation(project(":stats"))
     implementation(project(":time:api"))
     implementation(project(":time:impl"))
+    implementation(project(":config:api"))
+    implementation(project(":config:impl"))
 }

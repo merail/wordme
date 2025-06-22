@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import merail.life.config.api.IConfigRepository
 import merail.life.time.api.ITimeRepository
 import merail.life.time.api.ITimeRepository.Companion.countdownStartRealTime
 import merail.life.time.api.ITimeRepository.Companion.debugDaysSinceStartCount
@@ -18,11 +19,14 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.Locale
 import javax.inject.Inject
 
-internal class TimeRepository @Inject constructor() : ITimeRepository {
+internal class TimeRepository @Inject constructor(
+    private val configRepository: IConfigRepository,
+) : ITimeRepository {
 
     private val trustedTimeClient = MutableStateFlow<TrustedTimeClient?>(null)
 
@@ -35,6 +39,13 @@ internal class TimeRepository @Inject constructor() : ITimeRepository {
             }
         }
 
+    private val dotFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.getDefault())
+
+    private fun String.toLocalDate() = LocalDate.parse(this, dotFormatter)
+
+    private val gameCountdownStartDate: LocalDate
+        get() = configRepository.gameCountdownStartDate().toLocalDate()
+
     private val fakeStartTime = LocalDateTime.now().with(LocalTime.of(23, 59, 40))
 
     override fun setTimeTrustedClient(
@@ -44,7 +55,7 @@ internal class TimeRepository @Inject constructor() : ITimeRepository {
     }
 
     override fun getDaysSinceStartCount() = currentLocalDateTime.filterNotNull().map {
-        val startDay = LocalDate.of(2025, 6, 16 - debugDaysSinceStartCount)
+        val startDay = gameCountdownStartDate.minusDays(debugDaysSinceStartCount.toLong())
         ChronoUnit.DAYS.between(startDay, it).toInt()
     }
 
