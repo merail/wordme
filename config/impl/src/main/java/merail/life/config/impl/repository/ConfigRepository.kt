@@ -12,7 +12,9 @@ internal class ConfigRepository @Inject constructor(
 ) : IConfigRepository {
 
     companion object {
-        private const val GAME_COUNTDOWN_START_DATE = "gameCountdownStartDate"
+        private const val IDS_DATABASE_PASSWORD_KEY = "idsDatabasePassword"
+
+        private const val GAME_COUNTDOWN_START_DATE_KEY = "gameCountdownStartDate"
     }
 
     override suspend fun fetchAndActivateRemoteConfig() {
@@ -21,5 +23,7 @@ internal class ConfigRepository @Inject constructor(
         }
     }
 
-    override fun gameCountdownStartDate() = firebaseRemoteConfig.getString(GAME_COUNTDOWN_START_DATE)
+    override fun getIdsDatabasePassword() = firebaseRemoteConfig.getString(IDS_DATABASE_PASSWORD_KEY)
+
+    override fun getGameCountdownStartDate() = firebaseRemoteConfig.getString(GAME_COUNTDOWN_START_DATE_KEY)
 }

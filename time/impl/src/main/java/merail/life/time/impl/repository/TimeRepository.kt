@@ -44,7 +44,7 @@ internal class TimeRepository @Inject constructor(
     private fun String.toLocalDate() = LocalDate.parse(this, dotFormatter)
 
     private val gameCountdownStartDate: LocalDate
-        get() = configRepository.gameCountdownStartDate().toLocalDate()
+        get() = configRepository.getGameCountdownStartDate().toLocalDate()
 
     private val fakeStartTime = LocalDateTime.now().with(LocalTime.of(23, 59, 40))
 

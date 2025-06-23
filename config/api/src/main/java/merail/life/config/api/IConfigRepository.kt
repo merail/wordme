@@ -3,5 +3,7 @@ package merail.life.config.api
 interface IConfigRepository {
     suspend fun fetchAndActivateRemoteConfig()
 
-    fun gameCountdownStartDate(): String
+    fun getIdsDatabasePassword(): String
+
+    fun getGameCountdownStartDate(): String
 }

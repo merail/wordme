@@ -5,6 +5,10 @@ import merail.life.domain.WordModel
 
 interface IDatabaseRepository {
 
+    fun initIdsDatabase(
+        password: String,
+    )
+
     suspend fun getDayWordId(
         id: Int,
     ): WordIdModel

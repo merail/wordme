@@ -30,6 +30,8 @@ internal class MainViewModel @Inject constructor(
         viewModelScope.launch {
             configRepository.fetchAndActivateRemoteConfig()
 
+            databaseRepository.initIdsDatabase(configRepository.getIdsDatabasePassword())
+
             val daysSinceStartCount = timeRepository.getDaysSinceStartCount().first()
             val dayWordId = databaseRepository.getDayWordId(daysSinceStartCount + 1)
 

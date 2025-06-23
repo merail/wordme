@@ -1,5 +1,6 @@
 [versions]
 agp = "8.7.3"
+androidDatabaseSqlcipher = "4.5.4"
 coreSplashscreen = "1.0.1"
 kotlin = "2.0.20"
 coreKtx = "1.15.0"
@@ -27,6 +28,7 @@ protobufPlugin = "0.9.4"
 protobuf = "4.26.1"
 
 [libraries]
+android-database-sqlcipher = { module = "net.zetetic:android-database-sqlcipher", version.ref = "androidDatabaseSqlcipher" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
 androidx-preference-ktx = { module = "androidx.preference:preference-ktx", version.ref = "preferenceKtx" }

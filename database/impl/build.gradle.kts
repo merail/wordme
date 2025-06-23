@@ -38,6 +38,8 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
 
+    implementation(libs.android.database.sqlcipher)
+
     implementation(project(":domain"))
     implementation(project(":database:api"))
 }

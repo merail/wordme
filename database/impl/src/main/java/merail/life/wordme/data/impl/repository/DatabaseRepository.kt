@@ -2,21 +2,27 @@ package merail.life.wordme.data.impl.repository
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import merail.life.wordme.data.impl.repository.guessedWordId.GuessedWordsIdsDatabase
+import merail.life.database.api.IDatabaseRepository
+import merail.life.wordme.data.impl.repository.guessedWordId.GuessedWordsIdsDatabaseProvider
 import merail.life.wordme.data.impl.repository.guessedWordId.toModel
 import merail.life.wordme.data.impl.repository.word.WordsDatabase
 import merail.life.wordme.data.impl.repository.word.toModel
-import merail.life.database.api.IDatabaseRepository
 import javax.inject.Inject
 
 internal class DatabaseRepository @Inject constructor(
     wordsDatabase: WordsDatabase,
-    guessedWordsIdsDatabase: GuessedWordsIdsDatabase,
+    private val guessedWordsIdsDatabaseProvider: GuessedWordsIdsDatabaseProvider,
 ) : IDatabaseRepository {
 
     private val wordDao = wordsDatabase.wordDao()
 
-    private val guessedWordsIdsDatabase = guessedWordsIdsDatabase.guessedWordsIdDao()
+    private val guessedWordsIdsDatabase by lazy {
+        guessedWordsIdsDatabaseProvider.get().guessedWordsIdDao()
+    }
+
+    override fun initIdsDatabase(password: String) {
+        guessedWordsIdsDatabaseProvider.init(password)
+    }
 
     override suspend fun getDayWordId(
         id: Int,
