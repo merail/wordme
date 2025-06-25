@@ -7,10 +7,13 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import merail.life.design.WordMeTheme
+import merail.life.navigation.graph.WordMeNavHost
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -20,7 +23,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
 
         installSplashScreen().setKeepOnScreenCondition {
-            viewModel.isLoading
+            viewModel.mainState.value is MainState.Loading
         }
 
         super.onCreate(savedInstanceState)
@@ -32,9 +35,12 @@ class MainActivity : ComponentActivity() {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    if (viewModel.isLoading.not()) {
-                        WordMeApp()
-                    }
+                    val state = viewModel.mainState.collectAsState().value
+
+                    WordMeNavHost(
+                        navController = rememberNavController(),
+                        isNoInternet = state is MainState.NoInternetConnection,
+                    )
                 }
             }
         }

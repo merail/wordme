@@ -47,8 +47,6 @@ dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 
-    implementation(libs.play.services.time)
-
     implementation(libs.kotlinx.coroutines.android)
 
     implementation(project(":time:api"))

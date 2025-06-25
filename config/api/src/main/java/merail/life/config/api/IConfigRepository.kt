@@ -1,9 +1,11 @@
 package merail.life.config.api
 
+import kotlinx.coroutines.flow.Flow
+
 interface IConfigRepository {
     suspend fun fetchAndActivateRemoteConfig()
 
-    fun getIdsDatabasePassword(): String
+    fun getIdsDatabasePassword(): Flow<String>
 
-    fun getGameCountdownStartDate(): String
+    fun getGameCountdownStartDate(): Flow<String>
 }

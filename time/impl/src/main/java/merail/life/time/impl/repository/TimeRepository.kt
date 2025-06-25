@@ -1,6 +1,5 @@
 package merail.life.time.impl.repository
 
-import com.google.android.gms.time.TrustedTimeClient
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.callbackFlow
@@ -28,14 +27,12 @@ internal class TimeRepository @Inject constructor(
     private val configRepository: IConfigRepository,
 ) : ITimeRepository {
 
-    private val trustedTimeClient = MutableStateFlow<TrustedTimeClient?>(null)
+    private val currentUnixEpochMillis = MutableStateFlow<Long?>(null)
 
     private val currentLocalDateTime: Flow<LocalDateTime?>
-        get() = trustedTimeClient.map { nullableTrustedTimeClient ->
-            nullableTrustedTimeClient?.let { trustedTimeClient->
-                trustedTimeClient.computeCurrentUnixEpochMillis()?.let {
-                    LocalDateTime.ofInstant(Instant.ofEpochMilli(it), ZoneId.systemDefault())
-                }
+        get() = currentUnixEpochMillis.map { nullableCurrentUnixEpochMillis ->
+            nullableCurrentUnixEpochMillis?.let {
+                LocalDateTime.ofInstant(Instant.ofEpochMilli(it), ZoneId.systemDefault())
             }
         }
 
@@ -43,20 +40,22 @@ internal class TimeRepository @Inject constructor(
 
     private fun String.toLocalDate() = LocalDate.parse(this, dotFormatter)
 
-    private val gameCountdownStartDate: LocalDate
-        get() = configRepository.getGameCountdownStartDate().toLocalDate()
+    private val gameCountdownStartDate: Flow<LocalDate>
+        get() = configRepository.getGameCountdownStartDate().map {
+            it.toLocalDate()
+        }
 
     private val fakeStartTime = LocalDateTime.now().with(LocalTime.of(23, 59, 40))
 
-    override fun setTimeTrustedClient(
-        trustedTimeClient: TrustedTimeClient,
+    override fun setCurrentUnixEpochMillis(
+        currentUnixEpochMillis: Long?,
     ) {
-        this.trustedTimeClient.value = trustedTimeClient
+        this.currentUnixEpochMillis.value = currentUnixEpochMillis
     }
 
     override fun getDaysSinceStartCount() = currentLocalDateTime.filterNotNull().map {
-        val startDay = gameCountdownStartDate.minusDays(debugDaysSinceStartCount.toLong())
-        ChronoUnit.DAYS.between(startDay, it).toInt()
+        val startDay = gameCountdownStartDate.first().minusDays(debugDaysSinceStartCount.toLong())
+        ChronoUnit.DAYS.between(startDay, it).coerceAtLeast(0).toInt()
     }
 
     override suspend fun getTimeUntilNextDay() = if (BuildConfig.REDUCE_TIME_UNTIL_NEXT_DAY) {

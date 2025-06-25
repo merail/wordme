@@ -1,3 +1,4 @@
+import org.gradle.kotlin.dsl.android
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -23,4 +24,6 @@ android {
     }
 }
 
-dependencies {}
+dependencies {
+    implementation(libs.kotlinx.coroutines.android)
+}

@@ -93,4 +93,5 @@ dependencies {
     implementation(project(":time:impl"))
     implementation(project(":config:api"))
     implementation(project(":config:impl"))
+    implementation(project(":connection"))
 }

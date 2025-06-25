@@ -12,7 +12,6 @@ import kotlinx.coroutines.launch
 import merail.life.core.BuildConfig
 import merail.life.database.api.IDatabaseRepository
 import merail.life.domain.GameStore
-import merail.life.domain.orEmpty
 import merail.life.game.model.Key
 import merail.life.game.model.KeyCell
 import merail.life.game.model.KeyState
@@ -48,7 +47,7 @@ internal class GameViewModel @Inject constructor(
         private const val TAG = "GameViewModel"
     }
 
-    private var dayWord = GameStore.dayWord.orEmpty()
+    private var dayWord = GameStore.dayWord
 
     var keyForms = GameStore.keyForms?.toUiModel().orEmpty()
         private set
@@ -180,7 +179,7 @@ internal class GameViewModel @Inject constructor(
 
             val enteredWord = keyForms[rowIndex].toStringWord()
 
-            if (enteredWord == dayWord.value) {
+            if (enteredWord == dayWord.value?.value) {
                 onVictory(rowIndex)
             } else {
                 viewModelScope.launch {
@@ -285,16 +284,17 @@ internal class GameViewModel @Inject constructor(
         enteredWord: String,
         rowIndex: Int,
     ) {
-        val restCharsList = dayWord.value.toMutableList()
+        val restCharsList = dayWord.value?.value.orEmpty().toMutableList()
+
         keyForms[rowIndex].forEachIndexed { index, _ ->
             keyForms[rowIndex][index] = keyForms[rowIndex][index].copy(
                 state = when {
-                    enteredWord[index] == dayWord.value[index] -> {
+                    enteredWord[index] == dayWord.value?.value[index] -> {
                         restCharsList.remove(enteredWord[index])
                         KeyState.CORRECT
                     }
 
-                    enteredWord[index] != dayWord.value[index] -> if (enteredWord[index] in restCharsList) {
+                    enteredWord[index] != dayWord.value?.value[index] -> if (enteredWord[index] in restCharsList) {
                         restCharsList.remove(enteredWord[index])
                         KeyState.PRESENT
                     } else {
@@ -347,7 +347,7 @@ internal class GameViewModel @Inject constructor(
                 storeRepository.removeKeyForms()
                 val daysSinceStartCount = timeRepository.getDaysSinceStartCount().first()
                 val dayWordId = databaseRepository.getDayWordId(daysSinceStartCount + 1)
-                dayWord = databaseRepository.getDayWord(dayWordId.value)
+                dayWord.value = databaseRepository.getDayWord(dayWordId.value)
                 keyForms = emptyKeyFields
                 keyButtons = defaultKeyButtons
                 checkWordKeyState.value = CheckWordKeyState.Disabled

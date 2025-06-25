@@ -5,6 +5,9 @@ import kotlinx.serialization.Serializable
 sealed class NavigationRoute {
 
     @Serializable
+    data object NoInternet : NavigationRoute()
+
+    @Serializable
     data object Game : NavigationRoute()
 
     @Serializable

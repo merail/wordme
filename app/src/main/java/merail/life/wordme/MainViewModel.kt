@@ -1,16 +1,15 @@
 package merail.life.wordme
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import merail.life.config.api.IConfigRepository
 import merail.life.database.api.IDatabaseRepository
 import merail.life.domain.GameStore
+import merail.life.domain.exceptions.NoInternetConnectionException
 import merail.life.store.api.IStoreRepository
 import merail.life.time.api.ITimeRepository
 import javax.inject.Inject
@@ -23,35 +22,43 @@ internal class MainViewModel @Inject constructor(
     private val timeRepository: ITimeRepository,
 ): ViewModel() {
 
-    var isLoading by mutableStateOf(true)
+    var mainState = MutableStateFlow<MainState>(MainState.Loading)
         private set
 
     init {
         viewModelScope.launch {
-            configRepository.fetchAndActivateRemoteConfig()
+            runCatching {
+                configRepository.fetchAndActivateRemoteConfig()
 
-            databaseRepository.initIdsDatabase(configRepository.getIdsDatabasePassword())
+                databaseRepository.initIdsDatabase(
+                    password = configRepository.getIdsDatabasePassword().first(),
+                )
 
-            val daysSinceStartCount = timeRepository.getDaysSinceStartCount().first()
-            val dayWordId = databaseRepository.getDayWordId(daysSinceStartCount + 1)
+                val daysSinceStartCount = timeRepository.getDaysSinceStartCount().first()
+                val dayWordId = databaseRepository.getDayWordId(daysSinceStartCount + 1)
 
-            val lastSinceStartDaysCount = storeRepository.getDaysSinceStartCount().first()
+                val lastSinceStartDaysCount = storeRepository.getDaysSinceStartCount().first()
 
-            GameStore.dayWord = databaseRepository.getDayWord(dayWordId.value)
+                GameStore.dayWord.value = databaseRepository.getDayWord(dayWordId.value)
 
-            if (lastSinceStartDaysCount == daysSinceStartCount) {
-                GameStore.keyForms = storeRepository.loadKeyForms().first()
-            } else {
-                storeRepository.saveDaysSinceStartCount(daysSinceStartCount)
-                storeRepository.removeKeyForms()
+                if (lastSinceStartDaysCount == daysSinceStartCount) {
+                    GameStore.keyForms = storeRepository.loadKeyForms().first()
+                } else {
+                    storeRepository.saveDaysSinceStartCount(daysSinceStartCount)
+                    storeRepository.removeKeyForms()
+                }
+
+                val lastVictoryDay = storeRepository.getLastVictoryDay().first()
+                if (daysSinceStartCount - lastVictoryDay > 1) {
+                    storeRepository.resetVictoriesRowCount()
+                }
+
+                mainState.value = MainState.Success
+            }.onFailure {
+                if (it is NoInternetConnectionException) {
+                    mainState.value = MainState.NoInternetConnection
+                }
             }
-
-            val lastVictoryDay = storeRepository.getLastVictoryDay().first()
-            if (daysSinceStartCount - lastVictoryDay > 1) {
-                storeRepository.resetVictoriesRowCount()
-            }
-
-            isLoading = false
         }
     }
 }

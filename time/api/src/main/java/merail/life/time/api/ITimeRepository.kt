@@ -1,6 +1,5 @@
 package merail.life.time.api
 
-import com.google.android.gms.time.TrustedTimeClient
 import kotlinx.coroutines.flow.Flow
 
 interface ITimeRepository {
@@ -10,7 +9,7 @@ interface ITimeRepository {
         var debugDaysSinceStartCount = 0
     }
 
-    fun setTimeTrustedClient(trustedTimeClient: TrustedTimeClient)
+    fun setCurrentUnixEpochMillis(currentUnixEpochMillis: Long?)
 
     fun getDaysSinceStartCount(): Flow<Int>
 

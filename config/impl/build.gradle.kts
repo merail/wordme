@@ -30,9 +30,10 @@ dependencies {
     ksp(libs.hilt.compiler)
 
     implementation(platform(libs.google.firebase.bom))
-    implementation(libs.firebase.config)
+    implementation(libs.firebase.firestore)
 
     implementation(libs.kotlinx.coroutines.android)
 
+    implementation(project(":domain"))
     implementation(project(":config:api"))
 }

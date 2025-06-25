@@ -7,6 +7,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
+import merail.life.connection.NoInternetContainer
 import merail.life.game.GameContainer
 import merail.life.wordme.navigation.domain.NavigationRoute
 import merail.life.result.ResultContainer
@@ -15,13 +16,28 @@ import merail.life.stats.StatsContainer
 @Composable
 fun WordMeNavHost(
     navController: NavHostController,
+    isNoInternet: Boolean,
     modifier: Modifier = Modifier,
 ) {
     NavHost(
         navController = navController,
-        startDestination = NavigationRoute.Game,
+        startDestination = if (isNoInternet) {
+            NavigationRoute.NoInternet
+        } else {
+            NavigationRoute.Game
+        },
         modifier = modifier,
     ) {
+        composable<NavigationRoute.NoInternet> {
+            NoInternetContainer(
+                onReconnect = {
+                    navController.navigate(
+                        route = NavigationRoute.Game,
+                    )
+                },
+            )
+        }
+
         composable<NavigationRoute.Game> {
             GameContainer(
                 onResult = { isVictory, attemptsCount ->

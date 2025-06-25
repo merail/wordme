@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="no_inernet_title">Интернет куда-то пропал</string>
+    <string name="no_internet_subtitle">Проверьте подключение и обновите экран</string>
+    <string name="no_internet_reconnect_button">Обновить</string>
+</resources>

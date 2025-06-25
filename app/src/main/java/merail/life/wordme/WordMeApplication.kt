@@ -3,6 +3,7 @@ package merail.life.wordme
 import android.app.Application
 import com.google.android.gms.time.TrustedTime
 import dagger.hilt.android.HiltAndroidApp
+import merail.life.core.extensions.isActualGmsVersionInstalled
 import merail.life.time.api.ITimeRepository
 import javax.inject.Inject
 
@@ -15,15 +16,18 @@ internal class WordMeApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        initTrustedTimeClient()
+        if (isActualGmsVersionInstalled) {
+            initTrustedTimeClient()
+        } else {
+            timeRepository.setCurrentUnixEpochMillis(System.currentTimeMillis())
+        }
     }
 
     private fun initTrustedTimeClient() = TrustedTime
         .createClient(this)
         .addOnCompleteListener { task ->
-            task.exception?.printStackTrace()
             if (task.isSuccessful) {
-                timeRepository.setTimeTrustedClient(task.result)
+                timeRepository.setCurrentUnixEpochMillis(task.result.computeCurrentUnixEpochMillis())
             }
         }
 }
