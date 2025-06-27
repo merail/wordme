@@ -41,14 +41,14 @@ internal class MainViewModel @Inject constructor(
                 val lastSinceStartDaysCount = storeRepository.getDaysSinceStartCount().first()
 
                 gameRepository.setDayWord(
-                    databaseRepository.getDayWord(
+                    dayWord = databaseRepository.getDayWord(
                         dayWordId.value
-                    )
+                    ),
                 )
 
                 if (lastSinceStartDaysCount == daysSinceStartCount) {
                     gameRepository.setKeyForms(
-                        storeRepository.loadKeyForms().first()
+                        keyForms = storeRepository.loadKeyForms().first(),
                     )
                 } else {
                     storeRepository.saveDaysSinceStartCount(daysSinceStartCount)
@@ -62,6 +62,7 @@ internal class MainViewModel @Inject constructor(
 
                 mainState.value = MainState.Success
             }.onFailure {
+                println(it.printStackTrace())
                 if (it is NoInternetConnectionException) {
                     mainState.value = MainState.NoInternetConnection
                 }

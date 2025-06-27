@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import merail.life.core.BuildConfig
 import merail.life.database.api.IDatabaseRepository
+import merail.life.domain.Empty
 import merail.life.domain.WordModel
 import merail.life.game.api.IGameRepository
 import merail.life.game.impl.model.Key
@@ -49,9 +50,9 @@ internal class GameViewModel @Inject constructor(
         private const val TAG = "GameViewModel"
     }
 
-    private var dayWord: WordModel?
-        get() = gameRepository.getDayWord().value
-        set(value) = gameRepository.setDayWord(value)
+    private var dayWord: WordModel? = WordModel.Empty
+//        get() = gameRepository.getDayWord().value
+//        set(value) = gameRepository.setDayWord(value)
 
     var keyForms = emptyKeyFields
         private set
@@ -345,6 +346,8 @@ internal class GameViewModel @Inject constructor(
     }
 
     private suspend fun init() {
+        dayWord = gameRepository.getDayWord().first()
+
         gameRepository.getKeyForms().collect {
             keyForms.clear()
             keyForms.addAll(it?.toUiModel().orEmpty())
