@@ -1,4 +1,5 @@
 import org.gradle.kotlin.dsl.android
+import org.gradle.kotlin.dsl.test
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -10,7 +11,7 @@ plugins {
 }
 
 android {
-    namespace = "merail.life.connection"
+    namespace = "merail.life.game.impl"
     compileSdk = 35
 
     defaultConfig {
@@ -37,18 +38,18 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    debugImplementation(libs.androidx.ui.tooling)
+    debugImplementation(libs.androidx.ui.test.manifest)
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
 
-    implementation(libs.androidx.navigation.compose)
-
     implementation(project(":design"))
+    implementation(project(":core"))
     implementation(project(":domain"))
     implementation(project(":database:api"))
     implementation(project(":store:api"))
     implementation(project(":time:api"))
-    implementation(project(":config:api"))
     implementation(project(":game:api"))
 }

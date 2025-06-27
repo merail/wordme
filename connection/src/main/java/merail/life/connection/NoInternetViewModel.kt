@@ -9,8 +9,8 @@ import kotlinx.coroutines.launch
 import merail.life.config.api.IConfigRepository
 import merail.life.connection.state.ReloadingState
 import merail.life.database.api.IDatabaseRepository
-import merail.life.domain.GameStore
 import merail.life.domain.exceptions.NoInternetConnectionException
+import merail.life.game.api.IGameRepository
 import merail.life.store.api.IStoreRepository
 import merail.life.time.api.ITimeRepository
 import javax.inject.Inject
@@ -21,6 +21,7 @@ internal class NoInternetViewModel @Inject constructor(
     private val databaseRepository: IDatabaseRepository,
     private val storeRepository: IStoreRepository,
     private val timeRepository: ITimeRepository,
+    private val gameRepository: IGameRepository,
 ) : ViewModel() {
 
     companion object {
@@ -45,10 +46,10 @@ internal class NoInternetViewModel @Inject constructor(
 
             val lastSinceStartDaysCount = storeRepository.getDaysSinceStartCount().first()
 
-            GameStore.dayWord.value = databaseRepository.getDayWord(dayWordId.value)
+            gameRepository.setDayWord(databaseRepository.getDayWord(dayWordId.value))
 
             if (lastSinceStartDaysCount == daysSinceStartCount) {
-                GameStore.keyForms = storeRepository.loadKeyForms().first()
+                gameRepository.setKeyForms(storeRepository.loadKeyForms().first())
             } else {
                 storeRepository.saveDaysSinceStartCount(daysSinceStartCount)
                 storeRepository.removeKeyForms()

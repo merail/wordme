@@ -1,13 +1,13 @@
+import org.gradle.kotlin.dsl.android
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
 }
 
 android {
-    namespace = "merail.life.navigation.graph"
+    namespace = "merail.life.game.api"
     compileSdk = 35
 
     defaultConfig {
@@ -22,21 +22,10 @@ android {
     kotlinOptions {
         jvmTarget = JvmTarget.JVM_17.target
     }
-
-    buildFeatures {
-        compose = true
-    }
 }
 
 dependencies {
-    implementation(platform(libs.androidx.compose.bom))
-
-    implementation(libs.androidx.navigation.compose)
+    implementation(libs.kotlinx.coroutines.android)
 
     implementation(project(":domain"))
-    implementation(project(":navigation:domain"))
-    implementation(project(":game:impl"))
-    implementation(project(":result"))
-    implementation(project(":stats"))
-    implementation(project(":connection"))
 }

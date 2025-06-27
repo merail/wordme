@@ -8,7 +8,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
 import merail.life.connection.NoInternetContainer
-import merail.life.game.GameContainer
+import merail.life.game.impl.GameContainer
 import merail.life.wordme.navigation.domain.NavigationRoute
 import merail.life.result.ResultContainer
 import merail.life.stats.StatsContainer

@@ -49,6 +49,8 @@ dependencies {
 
     implementation(libs.kotlinx.coroutines.android)
 
+    implementation(libs.play.services.time)
+
     implementation(project(":time:api"))
     implementation(project(":config:api"))
 }
