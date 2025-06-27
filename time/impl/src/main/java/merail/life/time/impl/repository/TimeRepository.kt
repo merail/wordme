@@ -1,8 +1,6 @@
 package merail.life.time.impl.repository
 
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -11,6 +9,7 @@ import merail.life.config.api.IConfigRepository
 import merail.life.time.api.ITimeRepository
 import merail.life.time.api.ITimeRepository.Companion.countdownStartRealTime
 import merail.life.time.api.ITimeRepository.Companion.debugDaysSinceStartCount
+import merail.life.time.api.ITimeSource
 import merail.life.time.impl.BuildConfig
 import java.time.Duration
 import java.time.Instant
@@ -25,15 +24,12 @@ import javax.inject.Inject
 
 internal class TimeRepository @Inject constructor(
     private val configRepository: IConfigRepository,
+    private val timeSource: ITimeSource,
 ) : ITimeRepository {
 
-    private val currentUnixEpochMillis = MutableStateFlow<Long?>(null)
-
     private val currentLocalDateTime: Flow<LocalDateTime?>
-        get() = currentUnixEpochMillis.map { nullableCurrentUnixEpochMillis ->
-            nullableCurrentUnixEpochMillis?.let {
-                LocalDateTime.ofInstant(Instant.ofEpochMilli(it), ZoneId.systemDefault())
-            }
+        get() = timeSource.getCurrentUnixEpochMillis().map {
+            LocalDateTime.ofInstant(Instant.ofEpochMilli(it), ZoneId.systemDefault())
         }
 
     private val dotFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.getDefault())
@@ -46,12 +42,6 @@ internal class TimeRepository @Inject constructor(
         }
 
     private val fakeStartTime = LocalDateTime.now().with(LocalTime.of(23, 59, 40))
-
-    override fun setCurrentUnixEpochMillis(
-        currentUnixEpochMillis: Long?,
-    ) {
-        this.currentUnixEpochMillis.value = currentUnixEpochMillis
-    }
 
     override fun getDaysSinceStartCount() = currentLocalDateTime.filterNotNull().map {
         val startDay = gameCountdownStartDate.first().minusDays(debugDaysSinceStartCount.toLong())
@@ -88,10 +78,6 @@ internal class TimeRepository @Inject constructor(
         val millisPassed = System.currentTimeMillis() - countdownStartRealTime
         val nowFake = fakeStartTime.plusNanos(millisPassed * 1_000_000)
         val midnight = fakeStartTime.toLocalDate().plusDays(1).atStartOfDay()
-
-        val a = callbackFlow<String> {
-            ""
-        }
 
         emit(Duration.between(nowFake, midnight).coerceAtLeast(Duration.ZERO))
     }

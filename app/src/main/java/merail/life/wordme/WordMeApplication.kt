@@ -4,14 +4,14 @@ import android.app.Application
 import com.google.android.gms.time.TrustedTime
 import dagger.hilt.android.HiltAndroidApp
 import merail.life.core.extensions.isActualGmsVersionInstalled
-import merail.life.time.api.ITimeRepository
+import merail.life.time.api.ITimeSource
 import javax.inject.Inject
 
 @HiltAndroidApp
 internal class WordMeApplication : Application() {
 
     @Inject
-    lateinit var timeRepository: ITimeRepository
+    lateinit var timeSource: ITimeSource
 
     override fun onCreate() {
         super.onCreate()
@@ -19,7 +19,7 @@ internal class WordMeApplication : Application() {
         if (isActualGmsVersionInstalled) {
             initTrustedTimeClient()
         } else {
-            timeRepository.setCurrentUnixEpochMillis(System.currentTimeMillis())
+            timeSource.setTimeTrustedClient(null)
         }
     }
 
@@ -27,7 +27,7 @@ internal class WordMeApplication : Application() {
         .createClient(this)
         .addOnCompleteListener { task ->
             if (task.isSuccessful) {
-                timeRepository.setCurrentUnixEpochMillis(task.result.computeCurrentUnixEpochMillis())
+                timeSource.setTimeTrustedClient(task.result)
             }
         }
 }

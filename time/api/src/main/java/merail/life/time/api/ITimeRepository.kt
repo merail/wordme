@@ -9,8 +9,6 @@ interface ITimeRepository {
         var debugDaysSinceStartCount = 0
     }
 
-    fun setCurrentUnixEpochMillis(currentUnixEpochMillis: Long?)
-
     fun getDaysSinceStartCount(): Flow<Int>
 
     suspend fun getTimeUntilNextDay(): Pair<String, Boolean>

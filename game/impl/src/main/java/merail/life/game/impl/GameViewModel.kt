@@ -1,6 +1,5 @@
 package merail.life.game.impl
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -58,7 +57,7 @@ internal class GameViewModel @Inject constructor(
         private set
 
     var currentIndex = Pair(
-        first = keyForms.firstEmptyRow,
+        first = 0,
         second = 0,
     )
         private set
@@ -89,20 +88,7 @@ internal class GameViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            gameRepository.getKeyForms().collect {
-                keyForms.clear()
-                keyForms.addAll(it?.toUiModel().orEmpty())
-
-                currentIndex = Pair(
-                    first = keyForms.firstEmptyRow,
-                    second = 0,
-                )
-
-                when {
-                    keyForms.isDefeat -> gameResultState.value = GameResultState.Defeat
-                    keyForms.isWin -> gameResultState.value = GameResultState.Victory
-                }
-            }
+            init()
         }
 
         viewModelScope.launch {
@@ -355,6 +341,23 @@ internal class GameViewModel @Inject constructor(
             )
         } else {
             storeRepository.updateStatsOnOnDefeat()
+        }
+    }
+
+    private suspend fun init() {
+        gameRepository.getKeyForms().collect {
+            keyForms.clear()
+            keyForms.addAll(it?.toUiModel().orEmpty())
+
+            currentIndex = Pair(
+                first = keyForms.firstEmptyRow,
+                second = 0,
+            )
+
+            when {
+                keyForms.isDefeat -> gameResultState.value = GameResultState.Defeat
+                keyForms.isWin -> gameResultState.value = GameResultState.Victory
+            }
         }
     }
 
