@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import merail.life.time.api.ITimeRepository
@@ -17,7 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 internal class ResultViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val timeRepository: ITimeRepository,
+    timeRepository: ITimeRepository,
 ) : ViewModel() {
 
     companion object {
@@ -34,8 +35,16 @@ internal class ResultViewModel @Inject constructor(
     var isNextDay by mutableStateOf(false)
         private set
 
+    private var timerJob: Job? = null
+
     init {
-        viewModelScope.launch {
+        startTimer(timeRepository)
+    }
+
+    fun startTimer(timeRepository: ITimeRepository) {
+        timerJob?.cancel()
+
+        timerJob = viewModelScope.launch {
             while (isNextDay.not()) {
                 val (time, isNextDay) = timeRepository.getTimeUntilNextDay()
                 timeUntilNextDay = time
