@@ -6,6 +6,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.*
+import merail.life.domain.constants.IS_TEST_ENVIRONMENT
 import merail.life.time.api.ITimeRepository
 import org.junit.After
 import org.junit.Assert.*
@@ -18,7 +19,7 @@ class TestResultViewModel {
     private lateinit var viewModel: ResultViewModel
 
     private val savedStateHandle = SavedStateHandle().apply {
-        set<Boolean>("isTestEnvironment", true)
+        set<Boolean>(IS_TEST_ENVIRONMENT, true)
     }
 
     private val timeRepository: ITimeRepository = mockk()

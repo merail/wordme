@@ -19,6 +19,7 @@ import merail.life.domain.KeyCellModel
 import merail.life.domain.KeyStateModel
 import merail.life.domain.WordIdModel
 import merail.life.domain.WordModel
+import merail.life.domain.constants.IS_TEST_ENVIRONMENT
 import merail.life.game.api.IGameRepository
 import merail.life.game.impl.model.Key
 import merail.life.game.impl.model.KeyState
@@ -41,7 +42,7 @@ class TestGameViewModel {
     private lateinit var viewModel: GameViewModel
     
     private val savedStateHandle = SavedStateHandle().apply {
-        set<Boolean>("isTestEnvironment", true)
+        set<Boolean>(IS_TEST_ENVIRONMENT, true)
     }
 
     private val databaseRepository: IDatabaseRepository = mockk()

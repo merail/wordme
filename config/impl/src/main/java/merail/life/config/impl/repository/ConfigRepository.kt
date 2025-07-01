@@ -9,6 +9,7 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import merail.life.config.api.IConfigRepository
 import merail.life.domain.exceptions.NoInternetConnectionException
+import merail.life.domain.exceptions.TestFirebaseFirestoreException
 import javax.inject.Inject
 
 internal class ConfigRepository @Inject constructor(
@@ -17,11 +18,11 @@ internal class ConfigRepository @Inject constructor(
 ) : IConfigRepository {
 
     companion object {
-        private const val CONFIG_KEY = "config"
-        private const val VALUE_KEY = "value"
+        internal const val CONFIG_KEY = "config"
+        internal const val VALUE_KEY = "value"
 
-        private const val IDS_DATABASE_PASSWORD_KEY = "idsDatabasePassword"
-        private const val GAME_COUNTDOWN_START_DATE_KEY = "gameCountdownStartDate"
+        internal const val IDS_DATABASE_PASSWORD_KEY = "idsDatabasePassword"
+        internal const val GAME_COUNTDOWN_START_DATE_KEY = "gameCountdownStartDate"
     }
 
     private var idsDatabasePassword = MutableStateFlow("")
@@ -51,7 +52,7 @@ internal class ConfigRepository @Inject constructor(
                     .await()
                     .getString(VALUE_KEY).orEmpty()
             } catch (e: Exception) {
-                throw if (e is FirebaseFirestoreException) {
+                throw if (e is FirebaseFirestoreException || e is TestFirebaseFirestoreException) {
                     NoInternetConnectionException()
                 } else {
                     e

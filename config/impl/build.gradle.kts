@@ -1,3 +1,4 @@
+import org.gradle.kotlin.dsl.test
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -26,6 +27,10 @@ android {
 }
 
 dependencies {
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.mockk)
+
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 

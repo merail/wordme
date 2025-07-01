@@ -15,6 +15,7 @@ import merail.life.core.BuildConfig
 import merail.life.database.api.IDatabaseRepository
 import merail.life.domain.Empty
 import merail.life.domain.WordModel
+import merail.life.domain.constants.IS_TEST_ENVIRONMENT
 import merail.life.game.api.IGameRepository
 import merail.life.game.impl.model.Key
 import merail.life.game.impl.model.KeyCell
@@ -28,7 +29,6 @@ import merail.life.game.impl.utils.emptyKeyFields
 import merail.life.game.impl.utils.firstEmptyRow
 import merail.life.game.impl.utils.isDefeat
 import merail.life.game.impl.utils.isWin
-import merail.life.game.impl.utils.orEmpty
 import merail.life.game.impl.utils.toLogicModel
 import merail.life.game.impl.utils.toStringWord
 import merail.life.game.impl.utils.toUiModel
@@ -90,7 +90,7 @@ internal class GameViewModel @Inject constructor(
     var isNextDay by mutableStateOf(false)
         private set
 
-    private val isTestEnvironment = savedStateHandle.get<Boolean>("isTestEnvironment") == true
+    private val isTestEnvironment = savedStateHandle.get<Boolean>(IS_TEST_ENVIRONMENT) == true
 
     init {
         if (isTestEnvironment.not()) {
@@ -106,7 +106,7 @@ internal class GameViewModel @Inject constructor(
 
             gameRepository.getKeyForms().first().let {
                 keyForms.clear()
-                keyForms.addAll(it?.toUiModel().orEmpty())
+                keyForms.addAll(it.toUiModel())
 
                 currentIndex = Pair(
                     first = keyForms.firstEmptyRow,
