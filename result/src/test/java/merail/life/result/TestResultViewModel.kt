@@ -45,6 +45,7 @@ class TestResultViewModel {
     @Test
     fun `timeUntilNextDay updates every second and sets isNextDay only at end`() = runTest(testDispatcher) {
         viewModel = ResultViewModel(
+            isTestEnvironment = true,
             savedStateHandle = SavedStateHandle(),
             timeRepository = timeRepository,
         )

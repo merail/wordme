@@ -1,5 +1,6 @@
 package merail.life.result
 
+import androidx.annotation.VisibleForTesting
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -8,7 +9,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import merail.life.time.api.ITimeRepository
@@ -17,6 +17,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class ResultViewModel @Inject constructor(
+    isTestEnvironment: Boolean = false,
     savedStateHandle: SavedStateHandle,
     timeRepository: ITimeRepository,
 ) : ViewModel() {
@@ -35,24 +36,21 @@ internal class ResultViewModel @Inject constructor(
     var isNextDay by mutableStateOf(false)
         private set
 
-    private var timerJob: Job? = null
-
     init {
-        startTimer(timeRepository)
+        if (isTestEnvironment.not()) {
+            startTimer(timeRepository)
+        }
     }
 
-    fun startTimer(timeRepository: ITimeRepository) {
-        timerJob?.cancel()
-
-        timerJob = viewModelScope.launch {
-            while (isNextDay.not()) {
-                val (time, isNextDay) = timeRepository.getTimeUntilNextDay()
-                timeUntilNextDay = time
-                if (isNextDay) {
-                    this@ResultViewModel.isNextDay = true
-                }
-                delay(1000L)
+    @VisibleForTesting
+    fun startTimer(timeRepository: ITimeRepository) = viewModelScope.launch {
+        while (isNextDay.not()) {
+            val (time, isNextDay) = timeRepository.getTimeUntilNextDay()
+            timeUntilNextDay = time
+            if (isNextDay) {
+                this@ResultViewModel.isNextDay = true
             }
+            delay(1000L)
         }
     }
 }

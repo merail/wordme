@@ -62,7 +62,6 @@ internal class MainViewModel @Inject constructor(
 
                 mainState.value = MainState.Success
             }.onFailure {
-                println(it.printStackTrace())
                 if (it is NoInternetConnectionException) {
                     mainState.value = MainState.NoInternetConnection
                 }

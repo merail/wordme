@@ -1,6 +1,7 @@
 package merail.life.wordme
 
 import io.mockk.*
+import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
@@ -82,9 +83,7 @@ class MainViewModelTest {
 
         val state = viewModel.mainState.value
 
-        assert(state is MainState.Success) {
-            "Expected Success state, but was: $state"
-        }
+        assertEquals(MainState.Success, state)
     }
 
     @Test
@@ -103,9 +102,7 @@ class MainViewModelTest {
 
         val state = viewModel.mainState.value
 
-        assert(state is MainState.NoInternetConnection) {
-            "Expected NoInternetConnection, but got: $state"
-        }
+        assertEquals(MainState.NoInternetConnection, state)
     }
 
     @Test
