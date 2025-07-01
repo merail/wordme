@@ -35,11 +35,13 @@ class MainViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
 
-        coEvery { configRepository.fetchAndActivateRemoteConfig() } returns Unit
+        coEvery { configRepository.authAnonymously() } just Runs
+
+        coEvery { configRepository.fetchInitialValues() } just Runs
 
         coEvery { configRepository.getIdsDatabasePassword() } returns flowOf("test-password")
 
-        every { databaseRepository.initIdsDatabase("test-password") } returns Unit
+        every { databaseRepository.initIdsDatabase("test-password") } just Runs
 
         coEvery { timeRepository.getDaysSinceStartCount() } returns flowOf(1)
 
@@ -47,21 +49,21 @@ class MainViewModelTest {
 
         coEvery { storeRepository.getDaysSinceStartCount() } returns flowOf(0)
 
-        coEvery { gameRepository.setDayWord(any()) } returns Unit
+        coEvery { gameRepository.setDayWord(any()) } just Runs
 
-        coEvery { gameRepository.setKeyForms(any()) } returns Unit
+        coEvery { gameRepository.setKeyForms(any()) } just Runs
 
         coEvery { databaseRepository.getDayWord(any()) } returns WordModel("дубль")
 
         coEvery { storeRepository.loadKeyForms() } returns flowOf(emptyList())
 
-        coEvery { storeRepository.saveDaysSinceStartCount(any()) } returns Unit
+        coEvery { storeRepository.saveDaysSinceStartCount(any()) } just Runs
 
-        coEvery { storeRepository.removeKeyForms() } returns Unit
+        coEvery { storeRepository.removeKeyForms() } just Runs
 
         coEvery { storeRepository.getLastVictoryDay() } returns flowOf(0)
 
-        coEvery { storeRepository.resetVictoriesRowCount() } returns Unit
+        coEvery { storeRepository.resetVictoriesRowCount() } just Runs
     }
 
     @After
@@ -88,7 +90,7 @@ class MainViewModelTest {
 
     @Test
     fun `init failure - no internet - sets mainState to NoInternetConnection`() = runTest(testDispatcher) {
-        coEvery { configRepository.fetchAndActivateRemoteConfig() } throws NoInternetConnectionException()
+        coEvery { configRepository.fetchInitialValues() } throws NoInternetConnectionException()
 
         viewModel = MainViewModel(
             configRepository = configRepository,

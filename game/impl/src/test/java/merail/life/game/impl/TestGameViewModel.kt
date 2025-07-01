@@ -1,5 +1,7 @@
 package merail.life.game.impl
 
+import android.util.Log.e
+import androidx.lifecycle.SavedStateHandle
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -37,6 +39,10 @@ import org.junit.Test
 class TestGameViewModel {
 
     private lateinit var viewModel: GameViewModel
+    
+    private val savedStateHandle = SavedStateHandle().apply {
+        set<Boolean>("isTestEnvironment", true)
+    }
 
     private val databaseRepository: IDatabaseRepository = mockk()
     private val storeRepository: IStoreRepository = mockk()
@@ -61,7 +67,7 @@ class TestGameViewModel {
         val keyCells = mockGameInProcessKeyFormsState()
 
         viewModel = GameViewModel(
-            isTestEnvironment = true,
+            savedStateHandle = savedStateHandle,
             databaseRepository = databaseRepository,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
@@ -83,7 +89,7 @@ class TestGameViewModel {
         val keyCells = mockDefeatKeyFormsState()
 
         viewModel = GameViewModel(
-            isTestEnvironment = true,
+            savedStateHandle = savedStateHandle,
             databaseRepository = databaseRepository,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
@@ -105,7 +111,7 @@ class TestGameViewModel {
         val keyCells = mockVictoryKeyFormsState()
 
         viewModel = GameViewModel(
-            isTestEnvironment = true,
+            savedStateHandle = savedStateHandle,
             databaseRepository = databaseRepository,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
@@ -133,7 +139,7 @@ class TestGameViewModel {
         coEvery { storeRepository.removeKeyForms() } just Runs
 
         viewModel = GameViewModel(
-            isTestEnvironment = true,
+            savedStateHandle = savedStateHandle,
             databaseRepository = databaseRepository,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
@@ -169,7 +175,7 @@ class TestGameViewModel {
     @Test
     fun `disableControlKeys disables keys correctly`() = runTest(testDispatcher) {
         viewModel = GameViewModel(
-            isTestEnvironment = true,
+            savedStateHandle = savedStateHandle,
             databaseRepository = databaseRepository,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
@@ -185,7 +191,7 @@ class TestGameViewModel {
     @Test
     fun `handleKeyClick adds and removes keys correctly`() = runTest(testDispatcher) {
         viewModel = GameViewModel(
-            isTestEnvironment = true,
+            savedStateHandle = savedStateHandle,
             databaseRepository = databaseRepository,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
@@ -204,7 +210,7 @@ class TestGameViewModel {
         coEvery { databaseRepository.isWordExist("ааааа") } returns false
 
         viewModel = GameViewModel(
-            isTestEnvironment = true,
+            savedStateHandle = savedStateHandle,
             databaseRepository = databaseRepository,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
@@ -227,11 +233,11 @@ class TestGameViewModel {
     fun `checkWord sets ExistingWord state and game is not over`() = runTest(testDispatcher) {
         coEvery { gameRepository.getDayWord() } returns flowOf(WordModel("дубль"))
         coEvery { databaseRepository.isWordExist("ааааа") } returns true
-        coEvery { gameRepository.getKeyForms() } returns flowOf(null)
+        coEvery { gameRepository.getKeyForms() } returns flowOf(emptyList())
         coEvery { storeRepository.saveKeyForms(any()) } just Runs
 
         viewModel = GameViewModel(
-            isTestEnvironment = true,
+            savedStateHandle = savedStateHandle,
             databaseRepository = databaseRepository,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
@@ -257,12 +263,12 @@ class TestGameViewModel {
     fun `checkWord sets ExistingWord state and game is over`() = runTest(testDispatcher) {
         coEvery { gameRepository.getDayWord() } returns flowOf(WordModel("дубль"))
         coEvery { databaseRepository.isWordExist("баран") } returns true
-        coEvery { gameRepository.getKeyForms() } returns flowOf(null)
+        coEvery { gameRepository.getKeyForms() } returns flowOf(emptyList())
         coEvery { storeRepository.saveKeyForms(any()) } just Runs
         coEvery { storeRepository.updateStatsOnOnDefeat() } just Runs
 
         viewModel = GameViewModel(
-            isTestEnvironment = true,
+            savedStateHandle = savedStateHandle,
             databaseRepository = databaseRepository,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
@@ -296,14 +302,14 @@ class TestGameViewModel {
     fun `checkWord sets Victory state correctly`() = runTest(testDispatcher) {
         coEvery { gameRepository.getDayWord() } returns flowOf(WordModel("дубль"))
         coEvery { databaseRepository.isWordExist("дубль") } returns true
-        coEvery { gameRepository.getKeyForms() } returns flowOf(null)
+        coEvery { gameRepository.getKeyForms() } returns flowOf(emptyList())
         coEvery { timeRepository.getDaysSinceStartCount() } returns flowOf(1)
         coEvery { storeRepository.saveKeyForms(any()) } just Runs
         coEvery { storeRepository.saveLastVictoryDay(any()) } just Runs
         coEvery { storeRepository.updateStatsOnVictory(any()) } just Runs
 
         viewModel = GameViewModel(
-            isTestEnvironment = true,
+            savedStateHandle = savedStateHandle,
             databaseRepository = databaseRepository,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
@@ -333,7 +339,7 @@ class TestGameViewModel {
         mockDefeatKeyFormsState()
 
         viewModel = GameViewModel(
-            isTestEnvironment = true,
+            savedStateHandle = savedStateHandle,
             databaseRepository = databaseRepository,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
@@ -375,7 +381,7 @@ class TestGameViewModel {
         mockVictoryKeyFormsState()
 
         viewModel = GameViewModel(
-            isTestEnvironment = true,
+            savedStateHandle = savedStateHandle,
             databaseRepository = databaseRepository,
             storeRepository = storeRepository,
             timeRepository = timeRepository,

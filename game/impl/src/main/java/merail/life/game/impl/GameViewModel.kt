@@ -4,6 +4,7 @@ import androidx.annotation.VisibleForTesting
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -41,7 +42,7 @@ internal const val KEYBOARD_COLUMNS_COUNT = 3
 
 @HiltViewModel
 internal class GameViewModel @Inject constructor(
-    private val isTestEnvironment: Boolean = false,
+    savedStateHandle: SavedStateHandle,
     private val databaseRepository: IDatabaseRepository,
     private val storeRepository: IStoreRepository,
     private val timeRepository: ITimeRepository,
@@ -88,6 +89,8 @@ internal class GameViewModel @Inject constructor(
 
     var isNextDay by mutableStateOf(false)
         private set
+
+    private val isTestEnvironment = savedStateHandle.get<Boolean>("isTestEnvironment") == true
 
     init {
         if (isTestEnvironment.not()) {

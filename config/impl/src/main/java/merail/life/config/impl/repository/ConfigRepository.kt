@@ -1,9 +1,8 @@
 package merail.life.config.impl.repository
 
-import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
-import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.tasks.await
@@ -14,6 +13,7 @@ import javax.inject.Inject
 
 internal class ConfigRepository @Inject constructor(
     private val firestore: FirebaseFirestore,
+    private val auth: FirebaseAuth,
 ) : IConfigRepository {
 
     companion object {
@@ -28,7 +28,13 @@ internal class ConfigRepository @Inject constructor(
 
     private var gameCountdownStartDate = MutableStateFlow("")
 
-    override suspend fun fetchAndActivateRemoteConfig() {
+    override suspend fun authAnonymously() {
+        with(Dispatchers.IO) {
+            auth.signInAnonymously().await()
+        }
+    }
+
+    override suspend fun fetchInitialValues() {
         withContext(Dispatchers.IO) {
             try {
                 idsDatabasePassword.value = firestore

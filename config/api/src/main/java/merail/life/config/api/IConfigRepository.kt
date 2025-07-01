@@ -3,7 +3,9 @@ package merail.life.config.api
 import kotlinx.coroutines.flow.Flow
 
 interface IConfigRepository {
-    suspend fun fetchAndActivateRemoteConfig()
+    suspend fun authAnonymously()
+
+    suspend fun fetchInitialValues()
 
     fun getIdsDatabasePassword(): Flow<String>
 

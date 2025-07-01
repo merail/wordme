@@ -1,8 +1,8 @@
 package merail.life.config.impl.di
 
 import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FirebaseFirestoreSettings
-import com.google.firebase.firestore.LocalCacheSettings
 import com.google.firebase.firestore.MemoryCacheSettings
 import com.google.firebase.firestore.firestore
 import dagger.Binds
@@ -26,7 +26,7 @@ internal interface ConfigModule {
     companion object {
         @Provides
         @Singleton
-        fun provideFirestore() = Firebase.firestore.apply {
+        fun provideFirebaseFirestore() = Firebase.firestore.apply {
             val localCacheSettings = MemoryCacheSettings.newBuilder().build()
 
             Firebase.firestore.firestoreSettings = FirebaseFirestoreSettings
@@ -34,5 +34,9 @@ internal interface ConfigModule {
                 .setLocalCacheSettings(localCacheSettings)
                 .build()
         }
+
+        @Provides
+        @Singleton
+        fun provideFirebaseAuth() = Firebase.auth
     }
 }

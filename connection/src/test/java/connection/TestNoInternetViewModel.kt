@@ -1,6 +1,8 @@
 package merail.life.connection
 
+import io.mockk.Runs
 import io.mockk.coEvery
+import io.mockk.just
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -37,23 +39,24 @@ class TestNoInternetViewModel {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
 
-        coEvery { configRepository.fetchAndActivateRemoteConfig() } returns Unit
+        coEvery { configRepository.authAnonymously() } just Runs
+        coEvery { configRepository.fetchInitialValues() } just Runs
         coEvery { configRepository.getIdsDatabasePassword() } returns flowOf("test-password")
 
-        coEvery { databaseRepository.initIdsDatabase(any()) } returns Unit
+        coEvery { databaseRepository.initIdsDatabase(any()) } just Runs
         coEvery { timeRepository.getDaysSinceStartCount() } returns flowOf(5)
         coEvery { databaseRepository.getDayWordId(any()) } returns WordIdModel(42)
         coEvery { databaseRepository.getDayWord(any()) } returns WordModel("дубль")
 
         coEvery { storeRepository.getDaysSinceStartCount() } returns flowOf(5)
         coEvery { storeRepository.loadKeyForms() } returns flowOf(emptyList())
-        coEvery { gameRepository.setDayWord(any()) } returns Unit
-        coEvery { gameRepository.setKeyForms(any()) } returns Unit
+        coEvery { gameRepository.setDayWord(any()) } just Runs
+        coEvery { gameRepository.setKeyForms(any()) } just Runs
 
-        coEvery { storeRepository.saveDaysSinceStartCount(any()) } returns Unit
-        coEvery { storeRepository.removeKeyForms() } returns Unit
+        coEvery { storeRepository.saveDaysSinceStartCount(any()) } just Runs
+        coEvery { storeRepository.removeKeyForms() } just Runs
         coEvery { storeRepository.getLastVictoryDay() } returns flowOf(3)
-        coEvery { storeRepository.resetVictoriesRowCount() } returns Unit
+        coEvery { storeRepository.resetVictoriesRowCount() } just Runs
     }
 
     @After
@@ -80,7 +83,7 @@ class TestNoInternetViewModel {
 
     @Test
     fun `fetchInitialData sets ReloadingState to None on NoInternetConnectionException`() = runTest(testDispatcher) {
-        coEvery { configRepository.fetchAndActivateRemoteConfig() } throws NoInternetConnectionException()
+        coEvery { configRepository.fetchInitialValues() } throws NoInternetConnectionException()
 
         viewModel = NoInternetViewModel(
             configRepository = configRepository,

@@ -35,7 +35,9 @@ internal class NoInternetViewModel @Inject constructor(
         runCatching {
             reloadingState.value = ReloadingState.Reloading
 
-            configRepository.fetchAndActivateRemoteConfig()
+            configRepository.authAnonymously()
+
+            configRepository.fetchInitialValues()
 
             databaseRepository.initIdsDatabase(
                 password = configRepository.getIdsDatabasePassword().first(),

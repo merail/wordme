@@ -1,6 +1,7 @@
 package merail.life.game.impl
 
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import merail.life.domain.KeyCellModel
 import merail.life.domain.WordModel
 import merail.life.game.api.IGameRepository
@@ -15,11 +16,11 @@ internal class GameRepository @Inject constructor() : IGameRepository {
         this.keyForms.value = keyForms
     }
 
-    override fun getKeyForms() = keyForms
+    override fun getKeyForms() = keyForms.filterNotNull()
 
     override fun setDayWord(dayWord: WordModel?) {
         this.dayWord.value = dayWord
     }
 
-    override fun getDayWord() = dayWord
+    override fun getDayWord() = dayWord.filterNotNull()
 }

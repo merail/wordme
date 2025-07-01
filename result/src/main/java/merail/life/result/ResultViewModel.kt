@@ -17,7 +17,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class ResultViewModel @Inject constructor(
-    isTestEnvironment: Boolean = false,
     savedStateHandle: SavedStateHandle,
     timeRepository: ITimeRepository,
 ) : ViewModel() {
@@ -35,6 +34,8 @@ internal class ResultViewModel @Inject constructor(
 
     var isNextDay by mutableStateOf(false)
         private set
+
+    private val isTestEnvironment = savedStateHandle.get<Boolean>("isTestEnvironment") == true
 
     init {
         if (isTestEnvironment.not()) {

@@ -29,7 +29,9 @@ internal class MainViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             runCatching {
-                configRepository.fetchAndActivateRemoteConfig()
+                configRepository.authAnonymously()
+
+                configRepository.fetchInitialValues()
 
                 databaseRepository.initIdsDatabase(
                     password = configRepository.getIdsDatabasePassword().first(),
@@ -42,7 +44,7 @@ internal class MainViewModel @Inject constructor(
 
                 gameRepository.setDayWord(
                     dayWord = databaseRepository.getDayWord(
-                        dayWordId.value
+                        id = dayWordId.value,
                     ),
                 )
 

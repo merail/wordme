@@ -3,6 +3,9 @@ package merail.life.game.impl
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.runBlockingTest
 import kotlinx.coroutines.test.runTest
 import merail.life.domain.KeyCellModel
 import merail.life.domain.KeyStateModel
@@ -49,14 +52,32 @@ class TestGameRepository {
     }
 
     @Test
-    fun `getKeyForms should initially return null`() = runTest {
-        val result = repository.getKeyForms().first()
-        assertEquals(null, result)
+    fun `getKeyForms emits nothing if not set`() = runTest {
+        var emitted = false
+        val job = launch {
+            repository.getKeyForms().collect {
+                emitted = true
+            }
+        }
+
+        advanceTimeBy(10)
+        job.cancel()
+
+        assertEquals(false, emitted)
     }
 
     @Test
-    fun `getDayWord should initially return null`() = runTest {
-        val result = repository.getDayWord().first()
-        assertEquals(null, result)
+    fun `getDayWord emits nothing if not set`() = runTest {
+        var emitted = false
+        val job = launch {
+            repository.getDayWord().collect {
+                emitted = true
+            }
+        }
+
+        advanceTimeBy(10)
+        job.cancel()
+
+        assertEquals(false, emitted)
     }
 }

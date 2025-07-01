@@ -17,6 +17,10 @@ class TestResultViewModel {
 
     private lateinit var viewModel: ResultViewModel
 
+    private val savedStateHandle = SavedStateHandle().apply {
+        set<Boolean>("isTestEnvironment", true)
+    }
+
     private val timeRepository: ITimeRepository = mockk()
 
     private val testDispatcher = StandardTestDispatcher()
@@ -34,7 +38,7 @@ class TestResultViewModel {
     @Test
     fun `isVictory and attemptsCount should be correctly parsed from SavedStateHandle`() {
         viewModel = ResultViewModel(
-            savedStateHandle = SavedStateHandle(),
+            savedStateHandle = savedStateHandle,
             timeRepository = timeRepository,
         )
 
@@ -45,8 +49,7 @@ class TestResultViewModel {
     @Test
     fun `timeUntilNextDay updates every second and sets isNextDay only at end`() = runTest(testDispatcher) {
         viewModel = ResultViewModel(
-            isTestEnvironment = true,
-            savedStateHandle = SavedStateHandle(),
+            savedStateHandle = savedStateHandle,
             timeRepository = timeRepository,
         )
 
