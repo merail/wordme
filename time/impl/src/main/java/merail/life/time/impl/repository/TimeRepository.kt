@@ -1,5 +1,6 @@
 package merail.life.time.impl.repository
 
+import androidx.annotation.VisibleForTesting
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -41,14 +42,17 @@ internal class TimeRepository @Inject constructor(
             it.toLocalDate()
         }
 
-    private val fakeStartTime = LocalDateTime.now().with(LocalTime.of(23, 59, 40))
+    @VisibleForTesting
+    val fakeStartTime = LocalDateTime.now().with(LocalTime.of(23, 59, 40))
 
     override fun getDaysSinceStartCount() = currentLocalDateTime.filterNotNull().map {
         val startDay = gameCountdownStartDate.first().minusDays(debugDaysSinceStartCount.toLong())
         ChronoUnit.DAYS.between(startDay, it).coerceAtLeast(0).toInt()
     }
 
-    override suspend fun getTimeUntilNextDay() = if (BuildConfig.REDUCE_TIME_UNTIL_NEXT_DAY) {
+    override suspend fun getTimeUntilNextDay(
+        explicitReduceTimeFlag: Boolean,
+    ) = if (BuildConfig.REDUCE_TIME_UNTIL_NEXT_DAY || explicitReduceTimeFlag) {
         getDebugTimeUntilNextDay()
     } else {
         getReleaseTimeUntilNextDay()
@@ -60,7 +64,7 @@ internal class TimeRepository @Inject constructor(
         val isNextDay = hours == 0L && minutes == 0L && seconds == 0L
 
         String.format(
-            locale = Locale("ru"),
+            locale = Locale.getDefault(),
             format = "%02d:%02d:%02d",
             hours,
             minutes,
