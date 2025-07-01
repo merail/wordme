@@ -6,7 +6,7 @@ import merail.life.domain.WordModel
 import merail.life.game.api.IGameRepository
 import javax.inject.Inject
 
-class GameRepository @Inject constructor() : IGameRepository {
+internal class GameRepository @Inject constructor() : IGameRepository {
     private val keyForms = MutableStateFlow<List<List<KeyCellModel>>?>(null)
 
     private val dayWord = MutableStateFlow<WordModel?>(null)
