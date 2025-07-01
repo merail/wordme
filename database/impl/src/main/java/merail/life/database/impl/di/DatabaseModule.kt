@@ -1,4 +1,4 @@
-package merail.life.wordme.data.impl.di
+package merail.life.database.impl.di
 
 import android.content.Context
 import androidx.room.Room
@@ -9,11 +9,11 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import merail.life.database.api.IDatabaseRepository
-import merail.life.wordme.data.impl.repository.DatabaseRepository
-import merail.life.wordme.data.impl.repository.guessedWordId.GuessedWordsIdsDatabaseProvider
-import merail.life.wordme.data.impl.repository.word.WORDS_DATABASE_FILE
-import merail.life.wordme.data.impl.repository.word.WORDS_DATABASE_NAME
-import merail.life.wordme.data.impl.repository.word.WordsDatabase
+import merail.life.database.impl.repository.DatabaseRepository
+import merail.life.database.impl.repository.guessedWordId.GuessedWordsIdsDatabaseProvider
+import merail.life.database.impl.repository.word.WORDS_DATABASE_FILE
+import merail.life.database.impl.repository.word.WORDS_DATABASE_NAME
+import merail.life.database.impl.repository.word.WordsDatabase
 import javax.inject.Singleton
 
 @Module

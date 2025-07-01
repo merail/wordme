@@ -1,12 +1,12 @@
-package merail.life.wordme.data.impl.repository
+package merail.life.database.impl.repository
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import merail.life.database.api.IDatabaseRepository
-import merail.life.wordme.data.impl.repository.guessedWordId.GuessedWordsIdsDatabaseProvider
-import merail.life.wordme.data.impl.repository.guessedWordId.toModel
-import merail.life.wordme.data.impl.repository.word.WordsDatabase
-import merail.life.wordme.data.impl.repository.word.toModel
+import merail.life.database.impl.repository.guessedWordId.GuessedWordsIdsDatabaseProvider
+import merail.life.database.impl.repository.guessedWordId.toModel
+import merail.life.database.impl.repository.word.WordsDatabase
+import merail.life.database.impl.repository.word.toModel
 import javax.inject.Inject
 
 internal class DatabaseRepository @Inject constructor(

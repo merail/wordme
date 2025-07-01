@@ -1,4 +1,4 @@
-package merail.life.wordme.data.impl.repository.guessedWordId
+package merail.life.database.impl.repository.guessedWordId
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity

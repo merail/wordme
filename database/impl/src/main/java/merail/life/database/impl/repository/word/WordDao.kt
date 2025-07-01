@@ -1,4 +1,4 @@
-package merail.life.wordme.data.impl.repository.word
+package merail.life.database.impl.repository.word
 
 import androidx.room.Dao
 import androidx.room.Query
