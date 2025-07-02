@@ -63,6 +63,7 @@ class DatabaseRepositoryTest {
             guessedWordId = 42,
         )
         coEvery { guessedWordsIdDao.getDayWordId(1) } returns wordIdEntity
+        coEvery { guessedWordsIdDao.getCount() } returns 1373
 
         val result = repository.getDayWordId(1)
 

@@ -1,7 +1,10 @@
 package merail.life.time.impl
 
 import io.mockk.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
@@ -27,7 +30,11 @@ class TestTimeRepository {
     fun setUp() {
         configRepository = mockk()
         timeSource = mockk()
-        repository = TimeRepository(configRepository, timeSource)
+        repository = TimeRepository(
+            appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default),
+            configRepository = configRepository,
+            timeSource = timeSource,
+        )
     }
 
     @Test
@@ -53,7 +60,7 @@ class TestTimeRepository {
 
         val (timeString, isNextDay) = repository.getTimeUntilNextDay(
             reduceTimeFlag = false,
-        )
+        ).first()
 
         assertEquals("00:00:02", timeString)
         assertEquals(false, isNextDay)
@@ -63,13 +70,9 @@ class TestTimeRepository {
     fun `getTimeUntilNextDay uses debug logic`() = runTest {
         ITimeRepository.countdownStartRealTime = System.currentTimeMillis() - 20_000
 
-        val fakeStart = LocalDateTime.now().with(LocalTime.of(23, 59, 40))
-        mockkConstructor(TimeRepository::class)
-        every { anyConstructed<TimeRepository>().fakeStartTime } returns fakeStart
-
         val (timeString, isNextDay) = repository.getTimeUntilNextDay(
             reduceTimeFlag = true,
-        )
+        ).first()
 
         assertEquals("00:00:00", timeString)
         assertEquals(true, isNextDay)

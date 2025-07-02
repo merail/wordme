@@ -9,7 +9,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import merail.life.domain.constants.IS_TEST_ENVIRONMENT
 import merail.life.time.api.ITimeRepository
@@ -19,7 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 internal class ResultViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    timeRepository: ITimeRepository,
+    private val timeRepository: ITimeRepository,
 ) : ViewModel() {
 
     companion object {
@@ -40,20 +39,21 @@ internal class ResultViewModel @Inject constructor(
 
     init {
         if (isTestEnvironment.not()) {
-            startTimer(timeRepository)
+            viewModelScope.launch {
+                timeRepository.getTimeUntilNextDay().collect { (time, isNextDay) ->
+                    onSecondCount(time, isNextDay)
+                }
+            }
         }
     }
 
     @VisibleForTesting
-    fun startTimer(timeRepository: ITimeRepository) = viewModelScope.launch {
-        while (isNextDay.not()) {
-            val (time, isNextDay) = timeRepository.getTimeUntilNextDay()
-            timeUntilNextDay = time
-            if (isNextDay) {
-                this@ResultViewModel.isNextDay = true
-            }
-            delay(1000L)
-        }
+    fun onSecondCount(
+        time: String,
+        isNextDay: Boolean,
+    ) {
+        timeUntilNextDay = time
+        this@ResultViewModel.isNextDay = isNextDay
     }
 }
 

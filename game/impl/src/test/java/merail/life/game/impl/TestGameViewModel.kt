@@ -74,7 +74,7 @@ class TestGameViewModel {
             gameRepository = gameRepository,
         )
 
-        viewModel.loadValues()
+        viewModel.onLoadValuesStart()
 
         advanceUntilIdle()
 
@@ -96,7 +96,7 @@ class TestGameViewModel {
             gameRepository = gameRepository,
         )
 
-        viewModel.loadValues()
+        viewModel.onLoadValuesStart()
 
         advanceUntilIdle()
 
@@ -118,7 +118,7 @@ class TestGameViewModel {
             gameRepository = gameRepository,
         )
 
-        viewModel.loadValues()
+        viewModel.onLoadValuesStart()
 
         advanceUntilIdle()
 
@@ -130,13 +130,15 @@ class TestGameViewModel {
     @Test
     fun `startNextDayTimer progresses to next day and updates state`() = runTest {
         coEvery { timeRepository.getTimeUntilNextDay() } returnsMany listOf(
-            Pair("00:00:01", false),
-            Pair("00:00:00", true),
+            flowOf(Pair("00:00:01", false)),
+            flowOf(Pair("00:00:00", true)),
+            flowOf(Pair("23:59:59", false)),
         )
         coEvery { timeRepository.getDaysSinceStartCount() } returns flowOf(1)
         coEvery { databaseRepository.getDayWordId(2) } returns WordIdModel(42)
         coEvery { databaseRepository.getDayWord(42) } returns WordModel("аббат")
         coEvery { storeRepository.removeKeyForms() } just Runs
+        coEvery { storeRepository.saveDaysSinceStartCount(any()) } just Runs
 
         viewModel = GameViewModel(
             savedStateHandle = savedStateHandle,
@@ -146,11 +148,23 @@ class TestGameViewModel {
             gameRepository = gameRepository,
         )
 
-        viewModel.startNextDayTimer()
+        timeRepository.getTimeUntilNextDay().collect { (time, isNextDay) ->
+            viewModel.onSecondCount(
+                time = time,
+                isNextDay = isNextDay,
+            )
+        }
 
         advanceTimeBy(1000L)
 
         assertFalse(viewModel.isNextDay)
+
+        timeRepository.getTimeUntilNextDay().collect { (time, isNextDay) ->
+            viewModel.onSecondCount(
+                time = time,
+                isNextDay = isNextDay,
+            )
+        }
 
         advanceTimeBy(1000L)
 
@@ -163,6 +177,13 @@ class TestGameViewModel {
         assertEquals(GameResultState.Process, viewModel.gameResultState.value)
         assertEquals(Pair(0, 0), viewModel.currentIndex)
         assertFalse(viewModel.isResultBoardVisible)
+
+        timeRepository.getTimeUntilNextDay().collect { (time, isNextDay) ->
+            viewModel.onSecondCount(
+                time = time,
+                isNextDay = isNextDay,
+            )
+        }
 
         advanceTimeBy(1000L)
 
@@ -244,7 +265,7 @@ class TestGameViewModel {
             gameRepository = gameRepository,
         )
 
-        viewModel.loadValues()
+        viewModel.onLoadValuesStart()
 
         advanceUntilIdle()
 
@@ -275,7 +296,7 @@ class TestGameViewModel {
             gameRepository = gameRepository,
         )
 
-        viewModel.loadValues()
+        viewModel.onLoadValuesStart()
 
         advanceUntilIdle()
 
@@ -316,7 +337,7 @@ class TestGameViewModel {
             gameRepository = gameRepository,
         )
 
-        viewModel.loadValues()
+        viewModel.onLoadValuesStart()
 
         advanceUntilIdle()
 
@@ -346,7 +367,7 @@ class TestGameViewModel {
             gameRepository = gameRepository,
         )
 
-        viewModel.loadValues()
+        viewModel.onLoadValuesStart()
 
         advanceUntilIdle()
 
@@ -388,7 +409,7 @@ class TestGameViewModel {
             gameRepository = gameRepository,
         )
 
-        viewModel.loadValues()
+        viewModel.onLoadValuesStart()
 
         advanceUntilIdle()
 

@@ -8,7 +8,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import merail.life.core.BuildConfig
@@ -54,7 +53,6 @@ internal class GameViewModel @Inject constructor(
         private const val TAG = "GameViewModel"
     }
 
-    @VisibleForTesting
     var dayWord: WordModel? = WordModel.Empty
         private set
 
@@ -95,68 +93,64 @@ internal class GameViewModel @Inject constructor(
 
     init {
         if (isTestEnvironment.not()) {
-            loadValues()
-            startNextDayTimer()
-        }
-    }
+            viewModelScope.launch {
+                onLoadValuesStart()
+            }
 
-    @VisibleForTesting
-    fun loadValues() {
-        viewModelScope.launch {
-            dayWord = gameRepository.getDayWord().first()
-
-            gameRepository.getKeyForms().first().let {
-                keyForms.clear()
-                keyForms.addAll(it.toUiModel().orEmpty())
-
-                currentIndex = Pair(
-                    first = keyForms.firstEmptyRow,
-                    second = 0,
-                )
-
-                when {
-                    keyForms.isDefeat -> gameResultState.value = GameResultState.Defeat
-                    keyForms.isWin -> gameResultState.value = GameResultState.Victory
+            viewModelScope.launch {
+                timeRepository.getTimeUntilNextDay().collect { (time, isNextDay) ->
+                    onSecondCount(time, isNextDay)
                 }
             }
         }
     }
 
     @VisibleForTesting
-    fun startNextDayTimer() {
-        viewModelScope.launch {
-            while (isNextDay.not()) {
-                val (time, isNextDay) = timeRepository.getTimeUntilNextDay()
-                timeUntilNextDay = time
-                if (isNextDay) {
-                    if (BuildConfig.REDUCE_TIME_UNTIL_NEXT_DAY) {
-                        ITimeRepository.countdownStartRealTime = System.currentTimeMillis()
-                        ITimeRepository.debugDaysSinceStartCount++
-                    }
+    suspend fun onLoadValuesStart() {
+        dayWord = gameRepository.getDayWord().first()
 
-                    storeRepository.removeKeyForms()
-                    val daysSinceStartCount = timeRepository.getDaysSinceStartCount().first()
-                    val dayWordId = databaseRepository.getDayWordId(daysSinceStartCount + 1)
-                    dayWord = databaseRepository.getDayWord(dayWordId.value)
-                    keyForms = emptyKeyFields
-                    keyButtons = defaultKeyButtons
-                    checkWordKeyState.value = CheckWordKeyState.Disabled
-                    wordCheckState.value = WordCheckState.None
-                    gameResultState.value = GameResultState.Process
-                    currentIndex = Pair(0, 0)
-                    isResultBoardVisible = false
+        gameRepository.getKeyForms().first().let {
+            keyForms.clear()
+            keyForms.addAll(it.toUiModel().orEmpty())
 
-                    this@GameViewModel.isNextDay = true
-                }
-                delay(1000L)
-            }
+            currentIndex = Pair(
+                first = keyForms.firstEmptyRow,
+                second = 0,
+            )
 
-            isNextDay = false
-
-            if (isTestEnvironment.not()) {
-                startNextDayTimer()
+            when {
+                keyForms.isDefeat -> gameResultState.value = GameResultState.Defeat
+                keyForms.isWin -> gameResultState.value = GameResultState.Victory
             }
         }
+    }
+
+    @VisibleForTesting
+    suspend fun onSecondCount(
+        time: String,
+        isNextDay: Boolean,
+    ) {
+        timeUntilNextDay = time
+        if (isNextDay) {
+            if (BuildConfig.REDUCE_TIME_UNTIL_NEXT_DAY) {
+                ITimeRepository.countdownStartRealTime = System.currentTimeMillis()
+                ITimeRepository.debugDaysSinceStartCount++
+            }
+
+            storeRepository.removeKeyForms()
+            val daysSinceStartCount = timeRepository.getDaysSinceStartCount().first()
+            val dayWordId = databaseRepository.getDayWordId(daysSinceStartCount + 1)
+            storeRepository.saveDaysSinceStartCount(daysSinceStartCount)
+            dayWord = databaseRepository.getDayWord(dayWordId.value)
+            keyForms = emptyKeyFields
+            keyButtons = defaultKeyButtons
+            checkWordKeyState.value = CheckWordKeyState.Disabled
+            wordCheckState.value = WordCheckState.None
+            gameResultState.value = GameResultState.Process
+            currentIndex = Pair(0, 0)
+            isResultBoardVisible = false
+        }
+        this@GameViewModel.isNextDay = isNextDay
     }
 
     fun disableControlKeys() {

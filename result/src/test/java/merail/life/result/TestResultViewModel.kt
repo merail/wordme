@@ -5,6 +5,7 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.*
 import merail.life.domain.constants.IS_TEST_ENVIRONMENT
 import merail.life.time.api.ITimeRepository
@@ -54,27 +55,43 @@ class TestResultViewModel {
             timeRepository = timeRepository,
         )
 
-        val localTimeRepository = mockk<ITimeRepository>()
-
-        coEvery { localTimeRepository.getTimeUntilNextDay() } returnsMany listOf(
-            "00:00:02" to false,
-            "00:00:01" to false,
-            "00:00:00" to true,
+        coEvery { timeRepository.getTimeUntilNextDay() } returnsMany listOf(
+            flowOf("00:00:02" to false),
+            flowOf("00:00:01" to false),
+            flowOf("00:00:00" to true),
         )
 
-        viewModel.startTimer(localTimeRepository)
+        timeRepository.getTimeUntilNextDay().collect { (time, isNextDay) ->
+            viewModel.onSecondCount(
+                time = time,
+                isNextDay = isNextDay,
+            )
+        }
 
-        runCurrent()
         assertEquals("00:00:02", viewModel.timeUntilNextDay)
         assertFalse(viewModel.isNextDay)
 
         advanceTimeBy(1000)
-        runCurrent()
+
+        timeRepository.getTimeUntilNextDay().collect { (time, isNextDay) ->
+            viewModel.onSecondCount(
+                time = time,
+                isNextDay = isNextDay,
+            )
+        }
+
         assertEquals("00:00:01", viewModel.timeUntilNextDay)
         assertFalse(viewModel.isNextDay)
 
         advanceTimeBy(1000)
-        runCurrent()
+
+        timeRepository.getTimeUntilNextDay().collect { (time, isNextDay) ->
+            viewModel.onSecondCount(
+                time = time,
+                isNextDay = isNextDay,
+            )
+        }
+
         assertEquals("00:00:00", viewModel.timeUntilNextDay)
         assertTrue(viewModel.isNextDay)
     }

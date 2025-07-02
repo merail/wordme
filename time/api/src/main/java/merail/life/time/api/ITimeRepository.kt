@@ -13,5 +13,5 @@ interface ITimeRepository {
 
     suspend fun getTimeUntilNextDay(
         reduceTimeFlag: Boolean = BuildConfig.REDUCE_TIME_UNTIL_NEXT_DAY,
-    ): Pair<String, Boolean>
+    ): Flow<Pair<String, Boolean>>
 }
