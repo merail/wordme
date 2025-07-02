@@ -52,7 +52,7 @@ class TestTimeRepository {
         every { timeSource.getCurrentUnixEpochMillis() } returns flowOf(millis)
 
         val (timeString, isNextDay) = repository.getTimeUntilNextDay(
-            explicitReduceTimeFlag = false,
+            reduceTimeFlag = false,
         )
 
         assertEquals("00:00:02", timeString)
@@ -68,7 +68,7 @@ class TestTimeRepository {
         every { anyConstructed<TimeRepository>().fakeStartTime } returns fakeStart
 
         val (timeString, isNextDay) = repository.getTimeUntilNextDay(
-            explicitReduceTimeFlag = true,
+            reduceTimeFlag = true,
         )
 
         assertEquals("00:00:00", timeString)

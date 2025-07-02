@@ -27,7 +27,8 @@ internal class DatabaseRepository @Inject constructor(
     override suspend fun getDayWordId(
         id: Int,
     ) = withContext(Dispatchers.IO) {
-        guessedWordsIdsDatabase.getDayWordId(id).toModel()
+        val totalCount = guessedWordsIdsDatabase.getCount()
+        guessedWordsIdsDatabase.getDayWordId(id % totalCount).toModel()
     }
 
     override suspend fun getDayWord(

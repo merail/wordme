@@ -12,6 +12,6 @@ interface ITimeRepository {
     fun getDaysSinceStartCount(): Flow<Int>
 
     suspend fun getTimeUntilNextDay(
-        explicitReduceTimeFlag: Boolean = BuildConfig.REDUCE_TIME_UNTIL_NEXT_DAY,
+        reduceTimeFlag: Boolean = BuildConfig.REDUCE_TIME_UNTIL_NEXT_DAY,
     ): Pair<String, Boolean>
 }

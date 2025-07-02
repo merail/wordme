@@ -11,6 +11,7 @@ import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import merail.life.domain.constants.IS_TEST_ENVIRONMENT
 import merail.life.time.api.ITimeRepository
 import merail.life.wordme.navigation.domain.NavigationRoute
 import javax.inject.Inject
@@ -35,7 +36,7 @@ internal class ResultViewModel @Inject constructor(
     var isNextDay by mutableStateOf(false)
         private set
 
-    private val isTestEnvironment = savedStateHandle.get<Boolean>("isTestEnvironment") == true
+    private val isTestEnvironment = savedStateHandle.get<Boolean>(IS_TEST_ENVIRONMENT) == true
 
     init {
         if (isTestEnvironment.not()) {

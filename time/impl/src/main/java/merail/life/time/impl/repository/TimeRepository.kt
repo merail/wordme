@@ -11,7 +11,6 @@ import merail.life.time.api.ITimeRepository
 import merail.life.time.api.ITimeRepository.Companion.countdownStartRealTime
 import merail.life.time.api.ITimeRepository.Companion.debugDaysSinceStartCount
 import merail.life.time.api.ITimeSource
-import merail.life.time.impl.BuildConfig
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
@@ -51,8 +50,8 @@ internal class TimeRepository @Inject constructor(
     }
 
     override suspend fun getTimeUntilNextDay(
-        explicitReduceTimeFlag: Boolean,
-    ) = if (BuildConfig.REDUCE_TIME_UNTIL_NEXT_DAY || explicitReduceTimeFlag) {
+        reduceTimeFlag: Boolean,
+    ) = if (reduceTimeFlag) {
         getDebugTimeUntilNextDay()
     } else {
         getReleaseTimeUntilNextDay()

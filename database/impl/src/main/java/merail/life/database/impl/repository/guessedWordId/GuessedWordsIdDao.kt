@@ -7,4 +7,7 @@ import androidx.room.Query
 internal interface GuessedWordsIdDao {
     @Query("SELECT * FROM guessedWordId where id = :id")
     suspend fun getDayWordId(id: Int): GuessedWordIdEntity
+
+    @Query("SELECT COUNT(*) FROM guessedWordId")
+    suspend fun getCount(): Int
 }
