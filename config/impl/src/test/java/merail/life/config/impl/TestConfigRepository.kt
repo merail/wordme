@@ -15,7 +15,7 @@ import merail.life.config.impl.repository.ConfigRepository.Companion.GAME_COUNTD
 import merail.life.config.impl.repository.ConfigRepository.Companion.IDS_DATABASE_PASSWORD_KEY
 import merail.life.config.impl.repository.ConfigRepository.Companion.VALUE_KEY
 import merail.life.domain.exceptions.NoInternetConnectionException
-import merail.life.domain.exceptions.TestFirebaseFirestoreException
+import merail.life.domain.exceptions.TestFirebaseException
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -42,6 +42,15 @@ class TestConfigRepository {
         repository.authAnonymously()
 
         coVerify { auth.signInAnonymously() }
+    }
+
+    @Test(expected = NoInternetConnectionException::class)
+    fun `authAnonymously throws NoInternetConnectionException on Firestore error`() = runTest {
+        every {
+            auth.signInAnonymously()
+        } throws TestFirebaseException()
+
+        repository.authAnonymously()
     }
 
     @Test
@@ -75,7 +84,7 @@ class TestConfigRepository {
     fun `fetchInitialValues throws NoInternetConnectionException on Firestore error`() = runTest {
         every {
             firestore.collection(CONFIG_KEY).document(any()).get()
-        } throws TestFirebaseFirestoreException()
+        } throws TestFirebaseException()
 
         repository.fetchInitialValues()
     }

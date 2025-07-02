@@ -1,5 +1,6 @@
 package merail.life.config.impl.repository
 
+import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
@@ -9,7 +10,7 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import merail.life.config.api.IConfigRepository
 import merail.life.domain.exceptions.NoInternetConnectionException
-import merail.life.domain.exceptions.TestFirebaseFirestoreException
+import merail.life.domain.exceptions.TestFirebaseException
 import javax.inject.Inject
 
 internal class ConfigRepository @Inject constructor(
@@ -29,9 +30,23 @@ internal class ConfigRepository @Inject constructor(
 
     private var gameCountdownStartDate = MutableStateFlow("")
 
+    private val Exception.isFirebaseException: Boolean
+        get() = this is FirebaseNetworkException
+                || this is FirebaseFirestoreException
+                || this is TestFirebaseException
+
     override suspend fun authAnonymously() {
         with(Dispatchers.IO) {
-            auth.signInAnonymously().await()
+            try {
+                auth.signInAnonymously().await()
+
+            } catch (e: Exception) {
+                throw if (e.isFirebaseException) {
+                    NoInternetConnectionException()
+                } else {
+                    e
+                }
+            }
         }
     }
 
@@ -52,7 +67,7 @@ internal class ConfigRepository @Inject constructor(
                     .await()
                     .getString(VALUE_KEY).orEmpty()
             } catch (e: Exception) {
-                throw if (e is FirebaseFirestoreException || e is TestFirebaseFirestoreException) {
+                throw if (e.isFirebaseException) {
                     NoInternetConnectionException()
                 } else {
                     e

@@ -29,6 +29,7 @@ import merail.life.game.impl.utils.emptyKeyFields
 import merail.life.game.impl.utils.firstEmptyRow
 import merail.life.game.impl.utils.isDefeat
 import merail.life.game.impl.utils.isWin
+import merail.life.game.impl.utils.orEmpty
 import merail.life.game.impl.utils.toLogicModel
 import merail.life.game.impl.utils.toStringWord
 import merail.life.game.impl.utils.toUiModel
@@ -106,7 +107,7 @@ internal class GameViewModel @Inject constructor(
 
             gameRepository.getKeyForms().first().let {
                 keyForms.clear()
-                keyForms.addAll(it.toUiModel())
+                keyForms.addAll(it.toUiModel().orEmpty())
 
                 currentIndex = Pair(
                     first = keyForms.firstEmptyRow,
