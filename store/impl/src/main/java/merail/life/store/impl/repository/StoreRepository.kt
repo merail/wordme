@@ -77,7 +77,7 @@ internal class StoreRepository @Inject constructor(
         }
     }
 
-    override suspend fun updateStatsOnOnDefeat() {
+    override suspend fun updateStatsOnDefeat() {
         statsDataStore.edit { preferences ->
             val previousGamesCountValue = preferences[GAMES_COUNT_KEY]
             preferences[GAMES_COUNT_KEY] = (previousGamesCountValue ?: 0) + 1
@@ -129,7 +129,6 @@ internal class StoreRepository @Inject constructor(
             }
         }
     }
-
 
     override suspend fun removeKeyForms() {
         keyFormsDataStore.updateData { preferences ->

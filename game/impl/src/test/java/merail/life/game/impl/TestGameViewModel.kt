@@ -1,6 +1,5 @@
 package merail.life.game.impl
 
-import android.util.Log.e
 import androidx.lifecycle.SavedStateHandle
 import io.mockk.Runs
 import io.mockk.coEvery
@@ -266,7 +265,7 @@ class TestGameViewModel {
         coEvery { databaseRepository.isWordExist("баран") } returns true
         coEvery { gameRepository.getKeyForms() } returns flowOf(emptyList())
         coEvery { storeRepository.saveKeyForms(any()) } just Runs
-        coEvery { storeRepository.updateStatsOnOnDefeat() } just Runs
+        coEvery { storeRepository.updateStatsOnDefeat() } just Runs
 
         viewModel = GameViewModel(
             savedStateHandle = savedStateHandle,

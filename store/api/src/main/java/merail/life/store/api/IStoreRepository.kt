@@ -17,7 +17,7 @@ interface IStoreRepository {
 
     suspend fun updateStatsOnVictory(attemptsCount: Int)
 
-    suspend fun updateStatsOnOnDefeat()
+    suspend fun updateStatsOnDefeat()
 
     fun getStats(): Flow<StatsModel>
 

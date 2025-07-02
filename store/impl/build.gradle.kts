@@ -1,4 +1,5 @@
 import com.google.protobuf.gradle.GenerateProtoTask
+import org.gradle.kotlin.dsl.test
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -29,6 +30,10 @@ android {
 
 dependencies {
     implementation(libs.androidx.core.ktx)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.mockk)
 
     implementation(libs.androidx.datastore.preferences)
 

@@ -402,7 +402,7 @@ internal class GameViewModel @Inject constructor(
                 attemptsCount = currentIndex.first,
             )
         } else {
-            storeRepository.updateStatsOnOnDefeat()
+            storeRepository.updateStatsOnDefeat()
         }
     }
 }
