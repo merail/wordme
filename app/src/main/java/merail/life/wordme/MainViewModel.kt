@@ -1,12 +1,15 @@
 package merail.life.wordme
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import merail.life.config.api.IConfigRepository
+import merail.life.core.extensions.suspendableRunCatching
 import merail.life.database.api.IDatabaseRepository
 import merail.life.domain.exceptions.NoInternetConnectionException
 import merail.life.game.api.IGameRepository
@@ -23,12 +26,16 @@ internal class MainViewModel @Inject constructor(
     private val gameRepository: IGameRepository,
 ): ViewModel() {
 
+    companion object {
+        private const val TAG = "MainViewModel"
+    }
+
     var mainState = MutableStateFlow<MainState>(MainState.Loading)
         private set
 
     init {
         viewModelScope.launch {
-            runCatching {
+            suspendableRunCatching {
                 configRepository.authAnonymously()
 
                 configRepository.fetchInitialValues()
@@ -64,8 +71,12 @@ internal class MainViewModel @Inject constructor(
 
                 mainState.value = MainState.Success
             }.onFailure {
+                Log.w(TAG, it)
+
                 if (it is NoInternetConnectionException) {
                     mainState.value = MainState.NoInternetConnection
+                } else {
+                    FirebaseCrashlytics.getInstance().recordException(it)
                 }
             }
         }

@@ -13,6 +13,7 @@ import merail.life.database.impl.repository.guessedWordId.GuessedWordsIdsDatabas
 import merail.life.database.impl.repository.word.WordDao
 import merail.life.database.impl.repository.word.WordEntity
 import merail.life.database.impl.repository.word.WordsDatabase
+import merail.life.domain.WordIdModel
 import org.junit.Before
 import org.junit.Test
 
@@ -54,6 +55,56 @@ class DatabaseRepositoryTest {
         repository.initIdsDatabase("secret")
 
         verify { guessedWordsIdsDatabaseProvider.init("secret") }
+    }
+
+    @Test
+    fun `getDayWordId returns correct model when id modulo totalCount is not 0`() = runTest {
+        val id = 5
+        val totalCount = 10
+        val expectedIndex = id % totalCount
+        val entity = GuessedWordIdEntity(
+            id = 10,
+            guessedWordId = 377,
+        )
+        val model = WordIdModel(
+            value = 377,
+        )
+
+        coEvery { guessedWordsIdDao.getCount() } returns totalCount
+        coEvery { guessedWordsIdDao.getDayWordId(expectedIndex) } returns entity
+
+        val result = repository.getDayWordId(id)
+
+        assertEquals(model.value, result.value)
+    }
+
+    @Test
+    fun `getDayWordId applies totalBias when id modulo totalCount is 0`() = runTest {
+        val id = 10
+        val totalCount = 10
+        val totalBias = 1
+        val expectedIndex = (id + totalBias) % totalCount
+        val entity = GuessedWordIdEntity(
+            id = 10,
+            guessedWordId = 377,
+        )
+        val model = WordIdModel(
+            value = 377,
+        )
+
+        coEvery { guessedWordsIdDao.getCount() } returns totalCount
+        coEvery { guessedWordsIdDao.getDayWordId(expectedIndex) } returns entity
+
+        val result = repository.getDayWordId(id)
+
+        assertEquals(model.value, result.value)
+    }
+
+    @Test(expected = ArithmeticException::class)
+    fun `getDayWordId throws ArithmeticException when totalCount is 0`() = runTest {
+        coEvery { guessedWordsIdDao.getCount() } returns 0
+
+        repository.getDayWordId(1)
     }
 
     @Test

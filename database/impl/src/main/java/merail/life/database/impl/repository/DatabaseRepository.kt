@@ -28,7 +28,12 @@ internal class DatabaseRepository @Inject constructor(
         id: Int,
     ) = withContext(Dispatchers.IO) {
         val totalCount = guessedWordsIdsDatabase.getCount()
-        guessedWordsIdsDatabase.getDayWordId(id % totalCount).toModel()
+        val totalBias = if (id % totalCount == 0) {
+            1
+        } else {
+            0
+        }
+        guessedWordsIdsDatabase.getDayWordId((id  + totalBias) % totalCount).toModel()
     }
 
     override suspend fun getDayWord(

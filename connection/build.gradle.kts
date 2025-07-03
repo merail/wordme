@@ -42,6 +42,9 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockk)
 
+    implementation(platform(libs.google.firebase.bom))
+    implementation(libs.firebase.crashlytics)
+
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
@@ -50,6 +53,7 @@ dependencies {
 
     implementation(project(":design"))
     implementation(project(":domain"))
+    implementation(project(":core"))
     implementation(project(":database:api"))
     implementation(project(":store:api"))
     implementation(project(":time:api"))

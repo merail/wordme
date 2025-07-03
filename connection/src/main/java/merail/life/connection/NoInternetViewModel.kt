@@ -1,13 +1,17 @@
 package merail.life.connection
 
+import android.util.Log
+import android.util.Log.e
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import merail.life.config.api.IConfigRepository
 import merail.life.connection.state.ReloadingState
+import merail.life.core.extensions.suspendableRunCatching
 import merail.life.database.api.IDatabaseRepository
 import merail.life.domain.exceptions.NoInternetConnectionException
 import merail.life.game.api.IGameRepository
@@ -32,7 +36,7 @@ internal class NoInternetViewModel @Inject constructor(
         private set
 
     fun fetchInitialData() = viewModelScope.launch {
-        runCatching {
+        suspendableRunCatching {
             reloadingState.value = ReloadingState.Reloading
 
             configRepository.authAnonymously()
@@ -64,8 +68,12 @@ internal class NoInternetViewModel @Inject constructor(
 
             reloadingState.value = ReloadingState.Success
         }.onFailure {
+            Log.w(TAG, it)
+
             if (it is NoInternetConnectionException) {
                 reloadingState.value = ReloadingState.None
+            } else {
+                FirebaseCrashlytics.getInstance().recordException(it)
             }
         }
     }
