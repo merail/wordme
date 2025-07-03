@@ -10,7 +10,6 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import merail.life.core.BuildConfig
 import merail.life.database.api.IDatabaseRepository
 import merail.life.domain.Empty
 import merail.life.domain.WordModel
@@ -33,6 +32,7 @@ import merail.life.game.impl.utils.toLogicModel
 import merail.life.game.impl.utils.toStringWord
 import merail.life.game.impl.utils.toUiModel
 import merail.life.store.api.IStoreRepository
+import merail.life.time.api.BuildConfig
 import merail.life.time.api.ITimeRepository
 import javax.inject.Inject
 

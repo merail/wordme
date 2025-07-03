@@ -39,6 +39,16 @@ android {
             )
         }
     }
+
+    buildTypes {
+        release {
+            buildConfigField(
+                type = "Boolean",
+                name = "REDUCE_TIME_UNTIL_NEXT_DAY",
+                value = "false",
+            )
+        }
+    }
 }
 
 dependencies {

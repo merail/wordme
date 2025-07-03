@@ -23,10 +23,6 @@ android {
     kotlinOptions {
         jvmTarget = JvmTarget.JVM_17.target
     }
-
-    buildFeatures {
-        buildConfig = true
-    }
 }
 
 dependencies {
