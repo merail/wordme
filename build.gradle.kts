@@ -10,4 +10,6 @@ plugins {
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.hilt.gradle) apply false
     alias(libs.plugins.protobuf) apply false
+    alias(libs.plugins.android.test) apply false
+    alias(libs.plugins.baselineprofile) apply false
 }
