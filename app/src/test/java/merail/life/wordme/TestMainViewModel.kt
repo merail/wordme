@@ -1,5 +1,6 @@
 package merail.life.wordme
 
+import androidx.lifecycle.SavedStateHandle
 import io.mockk.*
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.Dispatchers
@@ -10,6 +11,7 @@ import merail.life.config.api.IConfigRepository
 import merail.life.database.api.IDatabaseRepository
 import merail.life.domain.WordIdModel
 import merail.life.domain.WordModel
+import merail.life.domain.constants.IS_TEST_ENVIRONMENT
 import merail.life.domain.exceptions.NoInternetConnectionException
 import merail.life.game.api.IGameRepository
 import merail.life.store.api.IStoreRepository
@@ -28,6 +30,9 @@ class MainViewModelTest {
     private val gameRepository: IGameRepository = mockk()
 
     private lateinit var viewModel: MainViewModel
+    private val savedStateHandle = SavedStateHandle().apply {
+        set<Boolean>(IS_TEST_ENVIRONMENT, true)
+    }
 
     private val testDispatcher = StandardTestDispatcher()
 
@@ -74,6 +79,7 @@ class MainViewModelTest {
     @Test
     fun `init success - sets mainState to Success`() = runTest(testDispatcher) {
         viewModel = MainViewModel(
+            savedStateHandle = savedStateHandle,
             configRepository = configRepository,
             databaseRepository = databaseRepository,
             storeRepository = storeRepository,
@@ -83,9 +89,7 @@ class MainViewModelTest {
 
         advanceUntilIdle()
 
-        val state = viewModel.mainState.value
-
-        assertEquals(MainState.Success, state)
+        assertEquals(MainState.Success, viewModel.mainState.value)
     }
 
     @Test
@@ -93,6 +97,7 @@ class MainViewModelTest {
         coEvery { configRepository.fetchInitialValues() } throws NoInternetConnectionException()
 
         viewModel = MainViewModel(
+            savedStateHandle = savedStateHandle,
             configRepository = configRepository,
             databaseRepository = databaseRepository,
             storeRepository = storeRepository,
@@ -102,9 +107,7 @@ class MainViewModelTest {
 
         advanceUntilIdle()
 
-        val state = viewModel.mainState.value
-
-        assertEquals(MainState.NoInternetConnection, state)
+        assertEquals(MainState.NoInternetConnection, viewModel.mainState.value)
     }
 
     @Test
@@ -114,6 +117,7 @@ class MainViewModelTest {
         coEvery { storeRepository.loadKeyForms() } returns flowOf(listOf(mockk()))
 
         viewModel = MainViewModel(
+            savedStateHandle = savedStateHandle,
             configRepository = configRepository,
             databaseRepository = databaseRepository,
             storeRepository = storeRepository,
@@ -133,6 +137,7 @@ class MainViewModelTest {
         coEvery { timeRepository.getDaysSinceStartCount() } returns flowOf(1)
 
         viewModel = MainViewModel(
+            savedStateHandle = savedStateHandle,
             configRepository = configRepository,
             databaseRepository = databaseRepository,
             storeRepository = storeRepository,
@@ -154,6 +159,7 @@ class MainViewModelTest {
         coEvery { storeRepository.getLastVictoryDay() } returns flowOf(1)
 
         viewModel = MainViewModel(
+            savedStateHandle = savedStateHandle,
             configRepository = configRepository,
             databaseRepository = databaseRepository,
             storeRepository = storeRepository,
@@ -173,6 +179,7 @@ class MainViewModelTest {
         coEvery { storeRepository.getLastVictoryDay() } returns flowOf(1)
 
         viewModel = MainViewModel(
+            savedStateHandle = savedStateHandle,
             configRepository = configRepository,
             databaseRepository = databaseRepository,
             storeRepository = storeRepository,

@@ -1,5 +1,6 @@
 package merail.life.connection
 
+import androidx.lifecycle.SavedStateHandle
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.just
@@ -13,6 +14,7 @@ import merail.life.connection.state.ReloadingState
 import merail.life.database.api.IDatabaseRepository
 import merail.life.domain.WordIdModel
 import merail.life.domain.WordModel
+import merail.life.domain.constants.IS_TEST_ENVIRONMENT
 import merail.life.domain.exceptions.NoInternetConnectionException
 import merail.life.game.api.IGameRepository
 import merail.life.store.api.IStoreRepository
@@ -26,6 +28,9 @@ import org.junit.Test
 class TestNoInternetViewModel {
 
     private lateinit var viewModel: NoInternetViewModel
+    private val savedStateHandle = SavedStateHandle().apply {
+        set<Boolean>(IS_TEST_ENVIRONMENT, true)
+    }
 
     private val configRepository: IConfigRepository = mockk()
     private val databaseRepository: IDatabaseRepository = mockk()
@@ -67,6 +72,7 @@ class TestNoInternetViewModel {
     @Test
     fun `fetchInitialData sets ReloadingState to Success`() = runTest(testDispatcher) {
         viewModel = NoInternetViewModel(
+            savedStateHandle = savedStateHandle,
             configRepository = configRepository,
             databaseRepository = databaseRepository,
             storeRepository = storeRepository,
@@ -86,6 +92,7 @@ class TestNoInternetViewModel {
         coEvery { configRepository.fetchInitialValues() } throws NoInternetConnectionException()
 
         viewModel = NoInternetViewModel(
+            savedStateHandle = savedStateHandle,
             configRepository = configRepository,
             databaseRepository = databaseRepository,
             storeRepository = storeRepository,

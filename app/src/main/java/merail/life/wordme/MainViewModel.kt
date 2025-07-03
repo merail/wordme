@@ -1,6 +1,7 @@
 package merail.life.wordme
 
 import android.util.Log
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.crashlytics.FirebaseCrashlytics
@@ -11,6 +12,7 @@ import kotlinx.coroutines.launch
 import merail.life.config.api.IConfigRepository
 import merail.life.core.extensions.suspendableRunCatching
 import merail.life.database.api.IDatabaseRepository
+import merail.life.domain.constants.IS_TEST_ENVIRONMENT
 import merail.life.domain.exceptions.NoInternetConnectionException
 import merail.life.game.api.IGameRepository
 import merail.life.store.api.IStoreRepository
@@ -19,6 +21,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class MainViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     private val configRepository: IConfigRepository,
     private val databaseRepository: IDatabaseRepository,
     private val storeRepository: IStoreRepository,
@@ -32,6 +35,8 @@ internal class MainViewModel @Inject constructor(
 
     var mainState = MutableStateFlow<MainState>(MainState.Loading)
         private set
+
+    private val isTestEnvironment = savedStateHandle.get<Boolean>(IS_TEST_ENVIRONMENT) == true
 
     init {
         viewModelScope.launch {
@@ -71,7 +76,9 @@ internal class MainViewModel @Inject constructor(
 
                 mainState.value = MainState.Success
             }.onFailure {
-                Log.w(TAG, it)
+                if (isTestEnvironment.not()) {
+                    Log.w(TAG, it)
+                }
 
                 if (it is NoInternetConnectionException) {
                     mainState.value = MainState.NoInternetConnection

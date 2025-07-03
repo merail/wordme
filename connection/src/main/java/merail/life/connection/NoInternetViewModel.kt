@@ -1,7 +1,7 @@
 package merail.life.connection
 
 import android.util.Log
-import android.util.Log.e
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.crashlytics.FirebaseCrashlytics
@@ -13,6 +13,7 @@ import merail.life.config.api.IConfigRepository
 import merail.life.connection.state.ReloadingState
 import merail.life.core.extensions.suspendableRunCatching
 import merail.life.database.api.IDatabaseRepository
+import merail.life.domain.constants.IS_TEST_ENVIRONMENT
 import merail.life.domain.exceptions.NoInternetConnectionException
 import merail.life.game.api.IGameRepository
 import merail.life.store.api.IStoreRepository
@@ -21,6 +22,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class NoInternetViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     private val configRepository: IConfigRepository,
     private val databaseRepository: IDatabaseRepository,
     private val storeRepository: IStoreRepository,
@@ -34,6 +36,8 @@ internal class NoInternetViewModel @Inject constructor(
 
     var reloadingState = MutableStateFlow<ReloadingState>(ReloadingState.None)
         private set
+
+    private val isTestEnvironment = savedStateHandle.get<Boolean>(IS_TEST_ENVIRONMENT) == true
 
     fun fetchInitialData() = viewModelScope.launch {
         suspendableRunCatching {
@@ -68,7 +72,9 @@ internal class NoInternetViewModel @Inject constructor(
 
             reloadingState.value = ReloadingState.Success
         }.onFailure {
-            Log.w(TAG, it)
+            if (isTestEnvironment.not()) {
+                Log.w(TAG, it)
+            }
 
             if (it is NoInternetConnectionException) {
                 reloadingState.value = ReloadingState.None
