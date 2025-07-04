@@ -7,5 +7,7 @@
         <item name="postSplashScreenTheme">@style/Theme.WordMe</item>
     </style>
 
-    <style name="Theme.WordMe" parent="android:Theme.Material.Light.NoActionBar"/>
+    <style name="Theme.WordMe" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:forceDarkAllowed">false</item>
+    </style>
 </resources>

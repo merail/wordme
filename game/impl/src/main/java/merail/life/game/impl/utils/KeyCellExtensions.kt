@@ -33,13 +33,13 @@ internal val emptyKeyFields: KeyCellsList
 
 internal val defaultKeyButtons: KeyCellsList
     get() = mutableStateListOf(
-        mutableStateListOf(KeyCell(Key.А), KeyCell(Key.Б), KeyCell(Key.В), KeyCell(Key.Г), KeyCell(Key.Д),
-            KeyCell(Key.Е), KeyCell(Key.Ж), KeyCell(Key.З), KeyCell(Key.И), KeyCell(Key.Й), KeyCell(Key.К),
-            KeyCell(Key.Л)),
-        mutableStateListOf(KeyCell(Key.М), KeyCell(Key.Н), KeyCell(Key.О), KeyCell(Key.П), KeyCell(Key.Р),
-            KeyCell(Key.С), KeyCell(Key.Т), KeyCell(Key.У), KeyCell(Key.Ф), KeyCell(Key.Х), KeyCell(Key.Ц)),
-        mutableStateListOf(KeyCell(Key.DEL), KeyCell(Key.Ч), KeyCell(Key.Ш), KeyCell(Key.Щ), KeyCell(Key.Ъ),
-            KeyCell(Key.Ы), KeyCell(Key.Ь), KeyCell(Key.Э), KeyCell(Key.Ю), KeyCell( Key.Я), KeyCell(Key.OK)),
+        mutableStateListOf(KeyCell(Key.Й), KeyCell(Key.Ц), KeyCell(Key.У), KeyCell(Key.К), KeyCell(Key.Е),
+            KeyCell(Key.Н), KeyCell(Key.Г), KeyCell(Key.Ш), KeyCell(Key.Щ), KeyCell(Key.З), KeyCell(Key.Х),
+            KeyCell(Key.Ъ)),
+        mutableStateListOf(KeyCell(Key.Ф), KeyCell(Key.Ы), KeyCell(Key.В), KeyCell(Key.А), KeyCell(Key.П),
+            KeyCell(Key.Р), KeyCell(Key.О), KeyCell(Key.Л), KeyCell(Key.Д), KeyCell(Key.Ж), KeyCell(Key.Э)),
+        mutableStateListOf(KeyCell(Key.DEL), KeyCell(Key.Я), KeyCell(Key.Ч), KeyCell(Key.С), KeyCell(Key.М),
+            KeyCell(Key.И), KeyCell(Key.Т), KeyCell(Key.Ь), KeyCell(Key.Б), KeyCell( Key.Ю), KeyCell(Key.OK)),
     )
 
 internal fun List<List<KeyCellModel>>.toUiModel() = KeyCellsList().apply {
