@@ -21,5 +21,9 @@ infix fun Int.partOf(total: Int): String {
     } else {
         toDouble() / total
     }
-    return percentage.toString()
+    return String.format(
+        locale = Locale.US,
+        format = "%.1f",
+        percentage,
+    )
 }
