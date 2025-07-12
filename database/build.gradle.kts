@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrains.kotlin.android)
@@ -31,6 +33,29 @@ android {
     room {
         schemaDirectory("$projectDir/schemas")
     }
+
+    buildFeatures {
+        buildConfig = true
+    }
+
+    val properties = Properties()
+    properties.load(project.rootProject.file("local.properties").inputStream())
+
+    buildTypes {
+        debug {
+            buildConfigField(
+                type = "String",
+                name = "WORDS_ENCRYPTED_DATABASE_PASSPHRASE",
+                value = properties.getProperty("wordsEncryptedDatabasePassphrase"),
+            )
+
+            buildConfigField(
+                type = "String",
+                name = "WORDS_IDS_ENCRYPTED_DATABASE_PASSPHRASE",
+                value = properties.getProperty("wordsIdsEncryptedDatabasePassphrase"),
+            )
+        }
+    }
 }
 
 dependencies {
@@ -40,4 +65,6 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
+
+    implementation(libs.android.database.sqlcipher)
 }

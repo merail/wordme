@@ -1,4 +1,4 @@
-package merail.tools.database
+package merail.tools.database.words
 
 import androidx.room.Dao
 import androidx.room.Insert
@@ -7,7 +7,6 @@ import androidx.room.Query
 
 @Dao
 interface WordDao {
-
     @Query("SELECT * FROM word")
     suspend fun getAll(): List<WordEntity>
 
