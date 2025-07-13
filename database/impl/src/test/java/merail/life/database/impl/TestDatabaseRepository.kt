@@ -6,10 +6,10 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import merail.life.database.api.IDatabaseRepository
 import merail.life.database.impl.repository.DatabaseRepository
-import merail.life.database.impl.repository.guessedWordId.GuessedWordIdEntity
-import merail.life.database.impl.repository.guessedWordId.GuessedWordsIdDao
-import merail.life.database.impl.repository.guessedWordId.GuessedWordsIdsDatabase
-import merail.life.database.impl.repository.guessedWordId.GuessedWordsIdsDatabaseProvider
+import merail.life.database.impl.repository.id.IdEntity
+import merail.life.database.impl.repository.id.IdDao
+import merail.life.database.impl.repository.id.IdsDatabase
+import merail.life.database.impl.repository.id.IdsDatabaseProvider
 import merail.life.database.impl.repository.word.WordDao
 import merail.life.database.impl.repository.word.WordEntity
 import merail.life.database.impl.repository.word.WordsDatabase
@@ -21,57 +21,57 @@ import org.junit.Test
 class DatabaseRepositoryTest {
 
     private lateinit var wordsDatabase: WordsDatabase
-    private lateinit var guessedWordsIdsDatabaseProvider: GuessedWordsIdsDatabaseProvider
+    private lateinit var idsDatabaseProvider: IdsDatabaseProvider
 
     private lateinit var wordDao: WordDao
-    private lateinit var guessedWordsIdDao: GuessedWordsIdDao
+    private lateinit var idDao: IdDao
 
-    private lateinit var guessedWordsIdsDatabase: GuessedWordsIdsDatabase
+    private lateinit var idsDatabase: IdsDatabase
     private lateinit var repository: IDatabaseRepository
 
     @Before
     fun setUp() {
         wordDao = mockk()
-        guessedWordsIdDao = mockk()
+        idDao = mockk()
         wordsDatabase = mockk {
             every { wordDao() } returns wordDao
         }
 
-        guessedWordsIdsDatabase = mockk {
-            every { guessedWordsIdDao() } returns guessedWordsIdDao
+        idsDatabase = mockk {
+            every { idDao() } returns idDao
         }
 
-        guessedWordsIdsDatabaseProvider = mockk {
-            every { get() } returns guessedWordsIdsDatabase
+        idsDatabaseProvider = mockk {
+            every { get() } returns idsDatabase
         }
 
-        repository = DatabaseRepository(wordsDatabase, guessedWordsIdsDatabaseProvider)
+        repository = DatabaseRepository(wordsDatabase, idsDatabaseProvider)
     }
 
     @Test
     fun `initIdsDatabase calls provider init`() {
-        every { guessedWordsIdsDatabaseProvider.init("secret") } just Runs
+        every { idsDatabaseProvider.init("secret") } just Runs
 
         repository.initIdsDatabase("secret")
 
-        verify { guessedWordsIdsDatabaseProvider.init("secret") }
+        verify { idsDatabaseProvider.init("secret") }
     }
 
     @Test
-    fun `getDayWordId returns correct model when id modulo totalCount is not 0`() = runTest {
+    fun `getDayId returns correct model when id modulo totalCount is not 0`() = runTest {
         val id = 5
         val totalCount = 10
         val expectedIndex = id % totalCount
-        val entity = GuessedWordIdEntity(
+        val entity = IdEntity(
             id = 10,
-            guessedWordId = 377,
+            wordId = 377,
         )
         val model = WordIdModel(
             value = 377,
         )
 
-        coEvery { guessedWordsIdDao.getCount() } returns totalCount
-        coEvery { guessedWordsIdDao.getDayWordId(expectedIndex) } returns entity
+        coEvery { idDao.getCount() } returns totalCount
+        coEvery { idDao.getDayId(expectedIndex) } returns entity
 
         val result = repository.getDayWordId(id)
 
@@ -79,21 +79,21 @@ class DatabaseRepositoryTest {
     }
 
     @Test
-    fun `getDayWordId applies totalBias when id modulo totalCount is 0`() = runTest {
+    fun `getDayId applies totalBias when id modulo totalCount is 0`() = runTest {
         val id = 10
         val totalCount = 10
         val totalBias = 1
         val expectedIndex = (id + totalBias) % totalCount
-        val entity = GuessedWordIdEntity(
+        val entity = IdEntity(
             id = 10,
-            guessedWordId = 377,
+            wordId = 377,
         )
         val model = WordIdModel(
             value = 377,
         )
 
-        coEvery { guessedWordsIdDao.getCount() } returns totalCount
-        coEvery { guessedWordsIdDao.getDayWordId(expectedIndex) } returns entity
+        coEvery { idDao.getCount() } returns totalCount
+        coEvery { idDao.getDayId(expectedIndex) } returns entity
 
         val result = repository.getDayWordId(id)
 
@@ -101,20 +101,20 @@ class DatabaseRepositoryTest {
     }
 
     @Test(expected = ArithmeticException::class)
-    fun `getDayWordId throws ArithmeticException when totalCount is 0`() = runTest {
-        coEvery { guessedWordsIdDao.getCount() } returns 0
+    fun `getDayId throws ArithmeticException when totalCount is 0`() = runTest {
+        coEvery { idDao.getCount() } returns 0
 
         repository.getDayWordId(1)
     }
 
     @Test
-    fun `getDayWordId returns mapped model`() = runTest {
-        val wordIdEntity = GuessedWordIdEntity(
+    fun `getDayId returns mapped model`() = runTest {
+        val idEntity = IdEntity(
             id = 1,
-            guessedWordId = 42,
+            wordId = 42,
         )
-        coEvery { guessedWordsIdDao.getDayWordId(1) } returns wordIdEntity
-        coEvery { guessedWordsIdDao.getCount() } returns 1373
+        coEvery { idDao.getDayId(1) } returns idEntity
+        coEvery { idDao.getCount() } returns 1373
 
         val result = repository.getDayWordId(1)
 

@@ -98,4 +98,4 @@ lint/tmp/
 app/release/output.json
 
 # File with words order
-database/impl/src/main/assets/guessed_words_ids_database.db
+database/impl/src/main/assets/ids_database.db

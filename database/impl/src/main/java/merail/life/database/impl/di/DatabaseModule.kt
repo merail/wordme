@@ -10,7 +10,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import merail.life.database.api.IDatabaseRepository
 import merail.life.database.impl.repository.DatabaseRepository
-import merail.life.database.impl.repository.guessedWordId.GuessedWordsIdsDatabaseProvider
+import merail.life.database.impl.repository.id.IdsDatabaseProvider
 import merail.life.database.impl.repository.word.WORDS_DATABASE_FILE
 import merail.life.database.impl.repository.word.WORDS_DATABASE_NAME
 import merail.life.database.impl.repository.word.WordsDatabase
@@ -41,9 +41,9 @@ internal interface DatabaseModule {
 
         @Provides
         @Singleton
-        fun provideGuessedWordsIdsDatabaseProvider(
+        fun provideIdsDatabaseProvider(
             @ApplicationContext context: Context,
-        ): GuessedWordsIdsDatabaseProvider = GuessedWordsIdsDatabaseProvider(
+        ): IdsDatabaseProvider = IdsDatabaseProvider(
             context = context,
         )
     }
