@@ -20,7 +20,6 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class TestConfigRepository {
 
     private lateinit var firestore: FirebaseFirestore

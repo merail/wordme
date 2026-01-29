@@ -22,6 +22,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -45,6 +47,12 @@ internal fun StatsScreen(
     onDismiss: () -> Unit,
     viewModel: StatsViewModel = hiltViewModel<StatsViewModel>(),
 ) {
+    val victoriesCount by viewModel.victoriesCount.collectAsState()
+    val victoriesPercent by viewModel.victoriesPercent.collectAsState()
+    val victoriesRowCount by viewModel.victoriesRowCount.collectAsState()
+    val victoriesRowMaxCount by viewModel.victoriesRowMaxCount.collectAsState()
+    val attemptsRatio by viewModel.attemptsRatio.collectAsState()
+
     val coroutineScope = rememberCoroutineScope()
     val bottomSheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true,
@@ -110,7 +118,7 @@ internal fun StatsScreen(
             Row {
                 InfoBlock(
                     label = stringResource(R.string.stats_victories_count_label),
-                    value = viewModel.victoriesCount.orEmpty(),
+                    value = victoriesCount.orEmpty(),
                     padding = PaddingValues(
                         end = 8.dp,
                     ),
@@ -118,7 +126,7 @@ internal fun StatsScreen(
 
                 InfoBlock(
                     label = stringResource(R.string.stats_successful_games_percent_label),
-                    value = viewModel.victoriesPercent.orEmpty(),
+                    value = victoriesPercent.orEmpty(),
                     padding = PaddingValues(
                         start = 8.dp,
                     ),
@@ -133,7 +141,7 @@ internal fun StatsScreen(
             ) {
                 InfoBlock(
                     label = stringResource(R.string.stats_victories_row_count_label),
-                    value = viewModel.victoriesRowCount.orEmpty(),
+                    value = victoriesRowCount.orEmpty(),
                     padding = PaddingValues(
                         end = 8.dp,
                     ),
@@ -141,7 +149,7 @@ internal fun StatsScreen(
 
                 InfoBlock(
                     label = stringResource(R.string.stats_victories_row_max_count_label),
-                    value = viewModel.victoriesRowMaxCount.orEmpty(),
+                    value = victoriesRowMaxCount.orEmpty(),
                     padding = PaddingValues(
                         start = 8.dp,
                     ),
@@ -157,7 +165,7 @@ internal fun StatsScreen(
             ) {
                 InfoBlock(
                     label = stringResource(R.string.stats_average_attempts_count_label),
-                    value = viewModel.attemptsRatio.orEmpty(),
+                    value = attemptsRatio.orEmpty(),
                     padding = PaddingValues(0.dp),
                 )
             }

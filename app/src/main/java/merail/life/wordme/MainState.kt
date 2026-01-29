@@ -1,9 +1,9 @@
 package merail.life.wordme
 
 sealed class MainState {
-    object Loading : MainState()
+    data object Loading : MainState()
 
-    object NoInternetConnection : MainState()
+    data object NoInternetConnection : MainState()
 
-    object Success : MainState()
+    data object Success : MainState()
 }

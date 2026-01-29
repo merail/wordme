@@ -1,18 +1,16 @@
 package merail.life.wordme
 
-import android.util.Log
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.crashlytics.FirebaseCrashlytics
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import merail.life.config.api.IConfigRepository
 import merail.life.core.extensions.suspendableRunCatching
+import merail.life.core.log.IWordMeLogger
 import merail.life.database.api.IDatabaseRepository
-import merail.life.domain.constants.IS_TEST_ENVIRONMENT
 import merail.life.domain.exceptions.NoInternetConnectionException
 import merail.life.game.api.IGameRepository
 import merail.life.store.api.IStoreRepository
@@ -21,22 +19,20 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class MainViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle,
     private val configRepository: IConfigRepository,
     private val databaseRepository: IDatabaseRepository,
     private val storeRepository: IStoreRepository,
     private val timeRepository: ITimeRepository,
     private val gameRepository: IGameRepository,
+    private val logger: IWordMeLogger,
 ): ViewModel() {
 
     companion object {
         private const val TAG = "MainViewModel"
     }
 
-    var mainState = MutableStateFlow<MainState>(MainState.Loading)
-        private set
-
-    private val isTestEnvironment = savedStateHandle.get<Boolean>(IS_TEST_ENVIRONMENT) == true
+    private val _mainState = MutableStateFlow<MainState>(MainState.Loading)
+    val mainState: StateFlow<MainState> = _mainState
 
     init {
         viewModelScope.launch {
@@ -74,16 +70,12 @@ internal class MainViewModel @Inject constructor(
                     storeRepository.resetVictoriesRowCount()
                 }
 
-                mainState.value = MainState.Success
+                _mainState.value = MainState.Success
             }.onFailure {
-                if (isTestEnvironment.not()) {
-                    Log.w(TAG, it)
-                }
+                logger.w(TAG, it.message.orEmpty(), it)
 
                 if (it is NoInternetConnectionException) {
-                    mainState.value = MainState.NoInternetConnection
-                } else {
-                    FirebaseCrashlytics.getInstance().recordException(it)
+                    _mainState.value = MainState.NoInternetConnection
                 }
             }
         }

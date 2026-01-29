@@ -19,6 +19,8 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -48,8 +50,11 @@ internal fun ResultScreen(
         skipPartiallyExpanded = true,
     )
 
-    LaunchedEffect(viewModel.isNextDay) {
-        if (viewModel.isNextDay) {
+    val timeUntilNextDay by viewModel.timeUntilNextDay.collectAsState()
+    val isNextDay by viewModel.isNextDay.collectAsState()
+
+    LaunchedEffect(isNextDay) {
+        if (isNextDay) {
             coroutineScope.launch {
                 bottomSheetState.hide()
                 onDismiss()
@@ -161,7 +166,7 @@ internal fun ResultScreen(
                 )
 
                 Text(
-                    text = viewModel.timeUntilNextDay,
+                    text = timeUntilNextDay,
                     style = WordMeTheme.typography.displaySmall,
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
