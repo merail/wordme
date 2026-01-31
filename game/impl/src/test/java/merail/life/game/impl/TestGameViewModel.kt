@@ -41,7 +41,7 @@ class TestGameViewModel {
     private lateinit var viewModel: GameViewModel
     
     private val savedStateHandle = SavedStateHandle().apply {
-        set<Boolean>(IS_TEST_ENVIRONMENT, true)
+        set(IS_TEST_ENVIRONMENT, true)
     }
 
     private val databaseRepository: IDatabaseRepository = mockk()
@@ -78,7 +78,7 @@ class TestGameViewModel {
 
         advanceUntilIdle()
 
-        assertEquals(keyCells, viewModel.keyForms.toLogicModel())
+        assertEquals(keyCells, viewModel.keyForms.value.toLogicModel())
         assertEquals(Pair(1, 0), viewModel.currentIndex)
         assertEquals(GameResultState.Process, viewModel.gameResultState.value)
     }
@@ -100,7 +100,7 @@ class TestGameViewModel {
 
         advanceUntilIdle()
 
-        assertEquals(keyCells, viewModel.keyForms.toLogicModel())
+        assertEquals(keyCells, viewModel.keyForms.value.toLogicModel())
         assertEquals(Pair(6, 0), viewModel.currentIndex)
         assertEquals(GameResultState.Defeat, viewModel.gameResultState.value)
     }
@@ -122,7 +122,7 @@ class TestGameViewModel {
 
         advanceUntilIdle()
 
-        assertEquals(keyCells, viewModel.keyForms.toLogicModel())
+        assertEquals(keyCells, viewModel.keyForms.value.toLogicModel())
         assertEquals(Pair(1, 0), viewModel.currentIndex)
         assertEquals(GameResultState.Victory, viewModel.gameResultState.value)
     }
@@ -157,7 +157,7 @@ class TestGameViewModel {
 
         advanceTimeBy(1000L)
 
-        assertFalse(viewModel.isNextDay)
+        assertFalse(viewModel.isNextDay.value)
 
         timeRepository.getTimeUntilNextDay().collect { (time, isNextDay) ->
             viewModel.onSecondCount(
@@ -169,14 +169,14 @@ class TestGameViewModel {
         advanceTimeBy(1000L)
 
         assertEquals(WordModel("аббат"), viewModel.dayWord)
-        assertEquals(viewModel.keyForms.toLogicModel(), emptyKeyFields.toLogicModel())
-        assertEquals(viewModel.keyButtons.toLogicModel(), defaultKeyButtons.toLogicModel())
-        assertTrue(viewModel.isNextDay)
+        assertEquals(viewModel.keyForms.value.toLogicModel(), emptyKeyFields.toLogicModel())
+        assertEquals(viewModel.keyButtons.value.toLogicModel(), defaultKeyButtons.toLogicModel())
+        assertTrue(viewModel.isNextDay.value)
         assertEquals(CheckWordKeyState.Disabled, viewModel.checkWordKeyState.value)
         assertEquals(WordCheckState.None, viewModel.wordCheckState.value)
         assertEquals(GameResultState.Process, viewModel.gameResultState.value)
         assertEquals(Pair(0, 0), viewModel.currentIndex)
-        assertFalse(viewModel.isResultBoardVisible)
+        assertFalse(viewModel.isResultBoardVisible.value)
 
         timeRepository.getTimeUntilNextDay().collect { (time, isNextDay) ->
             viewModel.onSecondCount(
@@ -190,7 +190,7 @@ class TestGameViewModel {
         coVerify { storeRepository.removeKeyForms() }
         coVerify { databaseRepository.getDayWordId(2) }
         coVerify { databaseRepository.getDayWord(42) }
-        assertFalse(viewModel.isNextDay)
+        assertFalse(viewModel.isNextDay.value)
     }
 
     @Test
@@ -316,7 +316,7 @@ class TestGameViewModel {
 
         assertEquals(WordCheckState.ExistingWord(5), viewModel.wordCheckState.value)
         assertEquals(GameResultState.Defeat, viewModel.gameResultState.value)
-        assertEquals(viewModel.keyForms.toLogicModel()[5], oneCorrectKeyCells)
+        assertEquals(viewModel.keyForms.value.toLogicModel()[5], oneCorrectKeyCells)
     }
 
     @Test
@@ -351,12 +351,12 @@ class TestGameViewModel {
 
         assertEquals(GameResultState.Victory, viewModel.gameResultState.value)
         assertEquals(WordCheckState.CorrectWord(0), viewModel.wordCheckState.value)
-        assertEquals(viewModel.keyForms.toLogicModel()[0], correctKeyCells)
+        assertEquals(viewModel.keyForms.value.toLogicModel()[0], correctKeyCells)
     }
 
     @Test
     fun `onFlipAnimationEnd triggers defeat correctly`() = runTest(testDispatcher) {
-        coEvery { gameRepository.getDayWord() } returns flowOf(WordModel("баран"))
+        coEvery { gameRepository.getDayWord() } returns flowOf(WordModel("дубль"))
         mockDefeatKeyFormsState()
 
         viewModel = GameViewModel(
@@ -371,28 +371,30 @@ class TestGameViewModel {
 
         advanceUntilIdle()
 
-        val keyButtons = defaultKeyButtons.apply {
-            this[0][1] = this[0][1].copy(
-                state = KeyState.PRESENT,
-            )
-            this[0][0] = this[0][0].copy(
-                state = KeyState.ABSENT,
-            )
-            this[1][4] = this[1][4].copy(
-                state = KeyState.ABSENT,
-            )
-            this[0][0] = this[0][0].copy(
-                state = KeyState.ABSENT,
-            )
-            this[1][1] = this[1][1].copy(
-                state = KeyState.ABSENT,
-            )
+        val keyButtons = defaultKeyButtons.mapIndexed { r, row ->
+            row.mapIndexed { c, cell ->
+                when {
+                    r == 2 && c == 8 -> cell.copy(
+                        state = KeyState.PRESENT,
+                    )
+                    r == 1 && c == 3 -> cell.copy(
+                        state = KeyState.ABSENT,
+                    )
+                    r == 1 && c == 5 -> cell.copy(
+                        state = KeyState.ABSENT,
+                    )
+                    r == 0 && c == 5 -> cell.copy(
+                        state = KeyState.ABSENT,
+                    )
+                    else -> cell
+                }
+            }
         }
 
         viewModel.onFlipAnimationEnd { victory, rowIndex ->
             assertFalse(victory)
             assertEquals(6, rowIndex)
-            assertEquals(keyButtons.toLogicModel(), viewModel.keyButtons.toLogicModel())
+            assertEquals(keyButtons.toLogicModel(), viewModel.keyButtons.value.toLogicModel())
         }
     }
 
@@ -413,28 +415,33 @@ class TestGameViewModel {
 
         advanceUntilIdle()
 
-        val keyButtons = defaultKeyButtons.apply {
-            this[0][4] = this[0][4].copy(
-                state = KeyState.CORRECT,
-            )
-            this[1][7] = this[1][7].copy(
-                state = KeyState.CORRECT,
-            )
-            this[0][1] = this[0][1].copy(
-                state = KeyState.CORRECT,
-            )
-            this[0][11] = this[0][11].copy(
-                state = KeyState.CORRECT,
-            )
-            this[2][6] = this[2][6].copy(
-                state = KeyState.CORRECT,
-            )
+        val keyButtons = defaultKeyButtons.mapIndexed { r, row ->
+            row.mapIndexed { c, cell ->
+                when {
+                    r == 1 && c == 8 -> cell.copy(
+                        state = KeyState.CORRECT,
+                    )
+                    r == 0 && c == 2 -> cell.copy(
+                        state = KeyState.CORRECT,
+                    )
+                    r == 2 && c == 8 -> cell.copy(
+                        state = KeyState.CORRECT,
+                    )
+                    r == 1 && c == 7 -> cell.copy(
+                        state = KeyState.CORRECT,
+                    )
+                    r == 2 && c == 7 -> cell.copy(
+                        state = KeyState.CORRECT,
+                    )
+                    else -> cell
+                }
+            }
         }
 
         viewModel.onFlipAnimationEnd { victory, rowIndex ->
             assertTrue(victory)
             assertEquals(1, rowIndex)
-            assertEquals(keyButtons.toLogicModel(), viewModel.keyButtons.toLogicModel())
+            assertEquals(keyButtons.toLogicModel(), viewModel.keyButtons.value.toLogicModel())
         }
     }
 
@@ -508,7 +515,7 @@ class TestGameViewModel {
     )
 
     private fun mockGameInProcessKeyFormsState():  List<List<KeyCellModel>> {
-        val keyCells = buildList {
+        val keyCells = buildList<List<KeyCellModel>> {
             add(allAbsentKeyCells)
             repeat(ROWS_COUNT - 1) {
                 add(emptyList())
@@ -533,7 +540,7 @@ class TestGameViewModel {
     }
 
     private fun mockVictoryKeyFormsState(): List<List<KeyCellModel>> {
-        val keyCells = buildList {
+        val keyCells = buildList<List<KeyCellModel>> {
             add(correctKeyCells)
             repeat(ROWS_COUNT - 1) {
                 add(emptyList())

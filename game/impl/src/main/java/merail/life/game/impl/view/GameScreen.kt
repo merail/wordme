@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.Dp
@@ -40,6 +42,16 @@ internal fun GameScreen(
     onInfoClick: () -> Unit,
     viewModel: GameViewModel = hiltViewModel<GameViewModel>(),
 ) {
+    val keyForms by viewModel.keyForms.collectAsState()
+    val keyButtons by viewModel.keyButtons.collectAsState()
+    val wordCheckState by viewModel.wordCheckState.collectAsState()
+    val isNextDay by viewModel.isNextDay.collectAsState()
+    val isResultBoardVisible by viewModel.isResultBoardVisible.collectAsState()
+    val gameResultState by viewModel.gameResultState.collectAsState()
+    val checkWordKeyState by viewModel.checkWordKeyState.collectAsState()
+    val deleteKeyState by viewModel.deleteKeyState.collectAsState()
+    val timeUntilNextDay by viewModel.timeUntilNextDay.collectAsState()
+
     Column(
         verticalArrangement = Arrangement.Bottom,
     ) {
@@ -48,9 +60,9 @@ internal fun GameScreen(
         )
 
         KeyFields(
-            keyForms = viewModel.keyForms,
-            wordCheckState = viewModel.wordCheckState,
-            isNextDay = viewModel.isNextDay,
+            keyForms = keyForms,
+            wordCheckState = wordCheckState,
+            isNextDay = isNextDay,
             onFlipAnimationEnd = remember {
                 {
                     viewModel.onFlipAnimationEnd(onGameEnd)
@@ -62,14 +74,14 @@ internal fun GameScreen(
             mutableIntStateOf(0)
         }
 
-        if (viewModel.isResultBoardVisible) {
+        if (isResultBoardVisible) {
             ResultBoard(
-                viewModel = viewModel,
+                timeUntilNextDay = timeUntilNextDay,
                 keyboardHeight = keyboardHeight,
                 onResultClick = remember {
                     {
                         onGameEnd(
-                            viewModel.gameResultState.value.isWin,
+                            gameResultState.isWin,
                             viewModel.currentIndex.first,
                         )
                     }
@@ -77,9 +89,9 @@ internal fun GameScreen(
             )
         } else {
             Keyboard(
-                keyButtons = viewModel.keyButtons,
-                checkWordKeyState = viewModel.checkWordKeyState,
-                deleteKeyState = viewModel.deleteKeyState,
+                keyButtons = keyButtons,
+                checkWordKeyState = checkWordKeyState,
+                deleteKeyState = deleteKeyState,
                 keyboardHeight = keyboardHeight,
                 onKeyButtonClick = remember {
                     {

@@ -25,12 +25,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import merail.life.design.WordMeTheme
-import merail.life.game.impl.GameViewModel
 import merail.life.game.impl.R
 
 @Composable
 internal fun ResultBoard(
-    viewModel: GameViewModel,
+    timeUntilNextDay: String,
     keyboardHeight: MutableState<Int>,
     onResultClick: () -> Unit,
 ) {
@@ -89,7 +88,7 @@ internal fun ResultBoard(
             )
 
             Text(
-                text = viewModel.timeUntilNextDay,
+                text = timeUntilNextDay,
                 style = WordMeTheme.typography.displaySmall,
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
