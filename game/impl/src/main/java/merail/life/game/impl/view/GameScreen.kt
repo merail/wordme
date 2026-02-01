@@ -2,12 +2,22 @@ package merail.life.game.impl.view
 
 import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -52,53 +62,90 @@ internal fun GameScreen(
     val deleteKeyState by viewModel.deleteKeyState.collectAsState()
     val timeUntilNextDay by viewModel.timeUntilNextDay.collectAsState()
 
-    Column(
-        verticalArrangement = Arrangement.Bottom,
-    ) {
-        Toolbar(
-            onInfoClick = onInfoClick,
-        )
+    val keyboardHeight = remember {
+        mutableIntStateOf(0)
+    }
 
-        KeyFields(
-            keyForms = keyForms,
-            wordCheckState = wordCheckState,
-            isNextDay = isNextDay,
-            onFlipAnimationEnd = remember {
-                {
-                    viewModel.onFlipAnimationEnd(onGameEnd)
-                }
+    val keyFieldsContentBottom = remember {
+        mutableIntStateOf(0)
+    }
+
+    val parentBottom = remember {
+        mutableIntStateOf(0)
+    }
+
+    Box(
+        modifier = Modifier
+            .onGloballyPositioned {
+                parentBottom.intValue = (it.positionInRoot().y + it.size.height).toInt()
             },
-        )
+    ) {
+        Column(
+            verticalArrangement = Arrangement.Bottom,
+        ) {
+            Toolbar(
+                onInfoClick = onInfoClick,
+            )
 
-        var keyboardHeight = remember {
-            mutableIntStateOf(0)
+            KeyFields(
+                keyForms = keyForms,
+                wordCheckState = wordCheckState,
+                isNextDay = isNextDay,
+                keyFieldsContentBottom = keyFieldsContentBottom,
+                onFlipAnimationEnd = {
+                    viewModel.onFlipAnimationEnd(onGameEnd)
+                },
+            )
+
+            if (isResultBoardVisible) {
+                val density = LocalDensity.current
+                val bottomPadding = LocalContext.current.bottomPadding
+                Spacer(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(
+                            height = with(density) {
+                                keyboardHeight.intValue.toDp()
+                            } + bottomPadding,
+                        ),
+                )
+            } else {
+                Keyboard(
+                    keyButtons = keyButtons,
+                    checkWordKeyState = checkWordKeyState,
+                    deleteKeyState = deleteKeyState,
+                    keyboardHeight = keyboardHeight,
+                    onKeyButtonClick = {
+                        viewModel.handleKeyClick(it)
+                    },
+                )
+            }
         }
 
         if (isResultBoardVisible) {
-            ResultBoard(
-                timeUntilNextDay = timeUntilNextDay,
-                keyboardHeight = keyboardHeight,
-                onResultClick = remember {
-                    {
+            val density = LocalDensity.current
+            val availableHeight = parentBottom.intValue - keyFieldsContentBottom.intValue
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .height(
+                        height = with(density) {
+                            availableHeight.toDp()
+                        },
+                    ),
+            ) {
+                ResultBoard(
+                    timeUntilNextDay = timeUntilNextDay,
+                    onResultClick = {
                         onGameEnd(
                             gameResultState.isWin,
                             viewModel.currentIndex.first,
                         )
-                    }
-                },
-            )
-        } else {
-            Keyboard(
-                keyButtons = keyButtons,
-                checkWordKeyState = checkWordKeyState,
-                deleteKeyState = deleteKeyState,
-                keyboardHeight = keyboardHeight,
-                onKeyButtonClick = remember {
-                    {
-                        viewModel.handleKeyClick(it)
-                    }
-                },
-            )
+                    },
+                )
+            }
         }
     }
 }

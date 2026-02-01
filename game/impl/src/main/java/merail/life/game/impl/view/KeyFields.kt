@@ -17,13 +17,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.MutableIntState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
@@ -46,7 +49,6 @@ import merail.life.game.impl.utils.launchBounceAnimation
 import merail.life.game.impl.utils.launchErrorColorAnimation
 import merail.life.game.impl.utils.launchFlipAnimation
 import merail.life.game.impl.utils.launchVibrateAnimation
-import kotlin.ranges.coerceAtMost
 import androidx.compose.animation.Animatable as ColorAnimatable
 
 private const val KEY_SIZE_THRESHOLD = 60
@@ -56,6 +58,7 @@ internal fun ColumnScope.KeyFields(
     keyForms: KeyCellsList,
     wordCheckState: WordCheckState,
     isNextDay: Boolean,
+    keyFieldsContentBottom: MutableIntState,
     onFlipAnimationEnd: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
@@ -72,7 +75,11 @@ internal fun ColumnScope.KeyFields(
         Column(
             verticalArrangement = Arrangement.spacedBy(keyFieldContentVerticalPadding),
             modifier = Modifier
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .onGloballyPositioned { coordinates ->
+                    keyFieldsContentBottom.intValue =
+                        (coordinates.positionInRoot().y + coordinates.size.height).toInt()
+                },
         ) {
             repeat(ROWS_COUNT) { row ->
                 Row(
@@ -277,6 +284,9 @@ private fun KeyFieldsPreview() {
             ),
             wordCheckState = WordCheckState.None,
             isNextDay = false,
+            keyFieldsContentBottom = remember {
+                mutableIntStateOf(0)
+            },
             onFlipAnimationEnd = {},
         )
     }

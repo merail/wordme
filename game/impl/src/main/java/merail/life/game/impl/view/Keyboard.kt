@@ -100,10 +100,8 @@ internal fun RowScope.KeyButton(
     }
 
     Button(
-        onClick = remember {
-            {
-                onKeyClick(keyButton.key)
-            }
+        onClick = {
+            onKeyClick(keyButton.key)
         },
         colors = ButtonDefaults.buttonColors(
             containerColor = when(keyButton.key) {
