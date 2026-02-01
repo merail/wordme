@@ -1,7 +1,5 @@
 package merail.life.game.impl
 
-import androidx.annotation.VisibleForTesting
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -12,7 +10,6 @@ import kotlinx.coroutines.launch
 import merail.life.database.api.IDatabaseRepository
 import merail.life.domain.Empty
 import merail.life.domain.WordModel
-import merail.life.domain.constants.IS_TEST_ENVIRONMENT
 import merail.life.game.api.IGameRepository
 import merail.life.game.impl.model.Key
 import merail.life.game.impl.model.KeyCell
@@ -42,7 +39,6 @@ internal const val KEYBOARD_COLUMNS_COUNT = 3
 
 @HiltViewModel
 internal class GameViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle,
     private val databaseRepository: IDatabaseRepository,
     private val storeRepository: IStoreRepository,
     private val timeRepository: ITimeRepository,
@@ -89,24 +85,19 @@ internal class GameViewModel @Inject constructor(
     private val _isNextDay = MutableStateFlow(false)
     val isNextDay: StateFlow<Boolean> = _isNextDay
 
-    private val isTestEnvironment = savedStateHandle.get<Boolean>(IS_TEST_ENVIRONMENT) == true
-
     init {
-        if (isTestEnvironment.not()) {
-            viewModelScope.launch {
-                onLoadValuesStart()
-            }
+        viewModelScope.launch {
+            onLoadValuesStart()
+        }
 
-            viewModelScope.launch {
-                timeRepository.getTimeUntilNextDay().collect { (time, isNextDay) ->
-                    onSecondCount(time, isNextDay)
-                }
+        viewModelScope.launch {
+            timeRepository.getTimeUntilNextDay().collect { (time, isNextDay) ->
+                onSecondCount(time, isNextDay)
             }
         }
     }
 
-    @VisibleForTesting
-    suspend fun onLoadValuesStart() {
+    private suspend fun onLoadValuesStart() {
         dayWord = gameRepository.getDayWord().first()
 
         gameRepository.getKeyForms().first().let {
@@ -124,8 +115,7 @@ internal class GameViewModel @Inject constructor(
         }
     }
 
-    @VisibleForTesting
-    suspend fun onSecondCount(
+    private suspend fun onSecondCount(
         time: String,
         isNextDay: Boolean,
     ) {

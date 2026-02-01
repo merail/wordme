@@ -33,7 +33,7 @@ class TestNoInternetViewModel {
     private val storeRepository: IStoreRepository = mockk()
     private val timeRepository: ITimeRepository = mockk()
     private val gameRepository: IGameRepository = mockk()
-    private val logger: IWordMeLogger = mockk()
+    private val logger: IWordMeLogger = mockk(relaxed = true)
 
     private val testDispatcher = StandardTestDispatcher()
 

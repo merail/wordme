@@ -5,9 +5,9 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.*
-import merail.life.domain.constants.IS_TEST_ENVIRONMENT
 import merail.life.time.api.ITimeRepository
 import org.junit.After
 import org.junit.Assert.*
@@ -19,9 +19,7 @@ class TestResultViewModel {
 
     private lateinit var viewModel: ResultViewModel
 
-    private val savedStateHandle = SavedStateHandle().apply {
-        set<Boolean>(IS_TEST_ENVIRONMENT, true)
-    }
+    private val savedStateHandle = SavedStateHandle()
 
     private val timeRepository: ITimeRepository = mockk()
 
@@ -30,6 +28,8 @@ class TestResultViewModel {
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
+
+        coEvery { timeRepository.getTimeUntilNextDay() } returns flowOf(Pair("23:59:59", false))
     }
 
     @After
@@ -50,49 +50,32 @@ class TestResultViewModel {
 
     @Test
     fun `timeUntilNextDay updates every second and sets isNextDay only at end`() = runTest(testDispatcher) {
+        val timeFlow = MutableSharedFlow<Pair<String, Boolean>>(extraBufferCapacity = 1)
+        coEvery { timeRepository.getTimeUntilNextDay() } returns timeFlow
+
         viewModel = ResultViewModel(
             savedStateHandle = savedStateHandle,
             timeRepository = timeRepository,
         )
 
-        coEvery { timeRepository.getTimeUntilNextDay() } returnsMany listOf(
-            flowOf("00:00:02" to false),
-            flowOf("00:00:01" to false),
-            flowOf("00:00:00" to true),
-        )
+        advanceUntilIdle()
 
-        timeRepository.getTimeUntilNextDay().collect { (time, isNextDay) ->
-            viewModel.onSecondCount(
-                time = time,
-                isNextDay = isNextDay,
-            )
-        }
+        timeFlow.tryEmit(Pair("00:00:02", false))
+        advanceUntilIdle()
 
-        assertEquals("00:00:02", viewModel.timeUntilNextDay)
-        assertFalse(viewModel.isNextDay)
+        assertEquals("00:00:02", viewModel.timeUntilNextDay.value)
+        assertFalse(viewModel.isNextDay.value)
 
-        advanceTimeBy(1000)
+        timeFlow.tryEmit(Pair("00:00:01", false))
+        advanceUntilIdle()
 
-        timeRepository.getTimeUntilNextDay().collect { (time, isNextDay) ->
-            viewModel.onSecondCount(
-                time = time,
-                isNextDay = isNextDay,
-            )
-        }
+        assertEquals("00:00:01", viewModel.timeUntilNextDay.value)
+        assertFalse(viewModel.isNextDay.value)
 
-        assertEquals("00:00:01", viewModel.timeUntilNextDay)
-        assertFalse(viewModel.isNextDay)
+        timeFlow.tryEmit(Pair("00:00:00", true))
+        advanceUntilIdle()
 
-        advanceTimeBy(1000)
-
-        timeRepository.getTimeUntilNextDay().collect { (time, isNextDay) ->
-            viewModel.onSecondCount(
-                time = time,
-                isNextDay = isNextDay,
-            )
-        }
-
-        assertEquals("00:00:00", viewModel.timeUntilNextDay)
-        assertTrue(viewModel.isNextDay)
+        assertEquals("00:00:00", viewModel.timeUntilNextDay.value)
+        assertTrue(viewModel.isNextDay.value)
     }
 }

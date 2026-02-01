@@ -17,7 +17,6 @@ import org.junit.Before
 import org.junit.Test
 import java.time.*
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class TestTimeRepository {
 
     private lateinit var configRepository: IConfigRepository

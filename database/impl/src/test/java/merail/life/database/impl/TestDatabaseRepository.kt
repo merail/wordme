@@ -17,7 +17,6 @@ import merail.life.domain.WordIdModel
 import org.junit.Before
 import org.junit.Test
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class DatabaseRepositoryTest {
 
     private lateinit var wordsDatabase: WordsDatabase

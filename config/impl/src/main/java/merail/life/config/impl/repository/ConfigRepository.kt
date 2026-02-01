@@ -39,7 +39,6 @@ internal class ConfigRepository @Inject constructor(
         with(Dispatchers.IO) {
             try {
                 auth.signInAnonymously().await()
-
             } catch (e: Exception) {
                 throw if (e.isFirebaseException) {
                     NoInternetConnectionException()

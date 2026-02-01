@@ -36,7 +36,7 @@ class MainViewModelTest {
     private val storeRepository: IStoreRepository = mockk()
     private val timeRepository: ITimeRepository = mockk()
     private val gameRepository: IGameRepository = mockk()
-    private val logger: IWordMeLogger = mockk()
+    private val logger: IWordMeLogger = mockk(relaxed = true)
 
     private lateinit var viewModel: MainViewModel
 
