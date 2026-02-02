@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import merail.life.time.api.ITimeRepository
-import merail.life.wordme.navigation.domain.NavigationRoute
 import javax.inject.Inject
 
 @HiltViewModel
@@ -22,9 +21,9 @@ internal class ResultViewModel @Inject constructor(
         private const val TAG = "ResultViewModel"
     }
 
-    val isVictory = savedStateHandle.toRoute<NavigationRoute.Result>().isVictory
+    val isVictory = savedStateHandle.toRoute<ResultRoute>().isVictory
 
-    val attemptsCount = savedStateHandle.toRoute<NavigationRoute.Result>().attemptsCount
+    val attemptsCount = savedStateHandle.toRoute<ResultRoute>().attemptsCount
 
     private val _timeUntilNextDay = MutableStateFlow("")
     val timeUntilNextDay: StateFlow<String> = _timeUntilNextDay

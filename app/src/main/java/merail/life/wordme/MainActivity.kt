@@ -13,7 +13,6 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import merail.life.design.WordMeTheme
-import merail.life.navigation.graph.WordMeNavHost
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
