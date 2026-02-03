@@ -1,4 +1,4 @@
-package merail.life.wordme
+package merail.life.wordme.state
 
 sealed class MainState {
     data object Loading : MainState()

@@ -22,7 +22,7 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "merail.life.wordme.HiltTestRunner"
     }
 
     buildTypes {
@@ -75,10 +75,12 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockk)
 
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.androidx.runner)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
+    androidTestImplementation(libs.androidx.uiautomator)
+    androidTestImplementation(libs.hilt.android.testing)
+    androidTestImplementation(libs.androidx.navigation.testing)
 
     implementation(platform(libs.google.firebase.bom))
     implementation(libs.firebase.crashlytics)

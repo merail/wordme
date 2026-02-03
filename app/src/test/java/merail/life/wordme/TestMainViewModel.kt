@@ -24,6 +24,7 @@ import merail.life.domain.exceptions.NoInternetConnectionException
 import merail.life.game.api.IGameRepository
 import merail.life.store.api.IStoreRepository
 import merail.life.time.api.ITimeRepository
+import merail.life.wordme.state.MainState
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
