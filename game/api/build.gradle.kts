@@ -27,5 +27,5 @@ android {
 dependencies {
     implementation(libs.kotlinx.coroutines.android)
 
-    implementation(project(":domain"))
+    implementation(projects.domain)
 }

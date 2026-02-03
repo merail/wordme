@@ -40,6 +40,6 @@ dependencies {
 
     implementation(libs.kotlinx.coroutines.android)
 
-    implementation(project(":domain"))
-    implementation(project(":config:api"))
+    implementation(projects.domain)
+    implementation(projects.config.api)
 }

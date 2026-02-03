@@ -44,6 +44,6 @@ dependencies {
 
     implementation(libs.android.database.sqlcipher)
 
-    implementation(project(":domain"))
-    implementation(project(":database:api"))
+    implementation(projects.domain)
+    implementation(projects.database.api)
 }

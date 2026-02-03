@@ -54,11 +54,11 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.kotlinx.serialization.json)
 
-    implementation(project(":design"))
-    implementation(project(":core"))
-    implementation(project(":domain"))
-    implementation(project(":database:api"))
-    implementation(project(":store:api"))
-    implementation(project(":time:api"))
-    implementation(project(":game:api"))
+    implementation(projects.design)
+    implementation(projects.core)
+    implementation(projects.domain)
+    implementation(projects.database.api)
+    implementation(projects.store.api)
+    implementation(projects.time.api)
+    implementation(projects.game.api)
 }

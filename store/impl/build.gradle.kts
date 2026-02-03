@@ -44,8 +44,8 @@ dependencies {
     implementation(libs.protobuf.kotlin.lite)
     implementation(libs.androidx.preference.ktx)
 
-    implementation(project(":domain"))
-    implementation(project(":store:api"))
+    implementation(projects.domain)
+    implementation(projects.store.api)
 }
 
 protobuf {
