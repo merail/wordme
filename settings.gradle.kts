@@ -1,6 +1,7 @@
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
+    includeBuild("plugin")
     repositories {
         google {
             content {
