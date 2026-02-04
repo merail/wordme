@@ -24,7 +24,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Create local.properties
-        run: touch local.properties
+        run: echo "reduceTimeUntilNextDay=${{ secrets.REDUCE_TIME_UNTIL_NEXT_DAY_FLAG }}" >> local.properties
 
       - name: Create google-services.json
         run: |
