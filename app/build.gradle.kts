@@ -15,12 +15,12 @@ plugins {
 android {
     namespace = "merail.life.wordme"
 
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "merail.life.wordme"
         minSdk = 30
-        targetSdk = 35
+        targetSdk = 36
         versionCode = (project.findProperty("VERSION_CODE") as String?)?.toIntOrNull() ?: 1
         versionName = project.findProperty("VERSION_NAME") as String? ?: "1.0"
         testInstrumentationRunner = "merail.life.wordme.HiltTestRunner"

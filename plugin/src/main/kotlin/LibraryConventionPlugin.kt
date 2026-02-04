@@ -14,7 +14,7 @@ class LibraryConventionPlugin : Plugin<Project> {
             pluginManager.apply("org.jetbrains.kotlin.android")
 
             extensions.configure<LibraryExtension> {
-                compileSdk = 35
+                compileSdk = 36
 
                 defaultConfig {
                     minSdk = 30
