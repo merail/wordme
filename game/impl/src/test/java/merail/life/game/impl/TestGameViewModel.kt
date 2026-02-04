@@ -356,7 +356,7 @@ class TestGameViewModel {
 
     @Test
     fun `onFlipAnimationEnd triggers defeat correctly`() = runTest(testDispatcher) {
-        coEvery { gameRepository.getDayWord() } returns flowOf(WordModel("баран"))
+        coEvery { gameRepository.getDayWord() } returns flowOf(WordModel("дубль"))
         mockDefeatKeyFormsState()
 
         viewModel = GameViewModel(
@@ -372,19 +372,16 @@ class TestGameViewModel {
         advanceUntilIdle()
 
         val keyButtons = defaultKeyButtons.apply {
-            this[0][1] = this[0][1].copy(
+            this[2][8] = this[2][8].copy(
                 state = KeyState.PRESENT,
             )
-            this[0][0] = this[0][0].copy(
+            this[1][3] = this[1][3].copy(
                 state = KeyState.ABSENT,
             )
-            this[1][4] = this[1][4].copy(
+            this[1][5] = this[1][5].copy(
                 state = KeyState.ABSENT,
             )
-            this[0][0] = this[0][0].copy(
-                state = KeyState.ABSENT,
-            )
-            this[1][1] = this[1][1].copy(
+            this[0][5] = this[0][5].copy(
                 state = KeyState.ABSENT,
             )
         }
@@ -414,19 +411,19 @@ class TestGameViewModel {
         advanceUntilIdle()
 
         val keyButtons = defaultKeyButtons.apply {
-            this[0][4] = this[0][4].copy(
+            this[1][8] = this[1][8].copy(
+                state = KeyState.CORRECT,
+            )
+            this[0][2] = this[0][2].copy(
+                state = KeyState.CORRECT,
+            )
+            this[2][8] = this[2][8].copy(
                 state = KeyState.CORRECT,
             )
             this[1][7] = this[1][7].copy(
                 state = KeyState.CORRECT,
             )
-            this[0][1] = this[0][1].copy(
-                state = KeyState.CORRECT,
-            )
-            this[0][11] = this[0][11].copy(
-                state = KeyState.CORRECT,
-            )
-            this[2][6] = this[2][6].copy(
+            this[2][7] = this[2][7].copy(
                 state = KeyState.CORRECT,
             )
         }
