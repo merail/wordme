@@ -23,6 +23,9 @@ jobs:
       - name: Make Gradle executable
         run: chmod +x ./gradlew
 
+      - name: Create local.properties
+        run: touch local.properties
+
       - name: Create google-services.json
         run: |
           echo '${{ secrets.DEV_GOOGLE_SERVICES_JSON }}' > app/google-services.json
