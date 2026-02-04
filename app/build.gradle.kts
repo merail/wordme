@@ -20,15 +20,37 @@ android {
         applicationId = "merail.life.wordme"
         minSdk = 30
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = (project.findProperty("VERSION_CODE") as String?)?.toIntOrNull() ?: 1
+        versionName = project.findProperty("VERSION_NAME") as String? ?: "1.0"
         testInstrumentationRunner = "merail.life.wordme.HiltTestRunner"
+    }
+
+    signingConfigs {
+        create("release") {
+            val keystorePath = System.getenv("RELEASE_KEYSTORE_FILE")
+
+            if (keystorePath != null) {
+                storeFile = file(keystorePath)
+                storePassword = System.getenv("RELEASE_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("RELEASE_KEY_ALIAS")
+                keyPassword = System.getenv("RELEASE_KEY_PASSWORD")
+            } else {
+                val localProperties = gradleLocalProperties(rootDir, providers)
+
+                storeFile = file("keystore.keystore")
+                storePassword = localProperties.getProperty("releaseKeystorePassword")
+                keyAlias = localProperties.getProperty("releaseKeystoreAlias")
+                keyPassword = localProperties.getProperty("releaseKeyPassword")
+            }
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = true
-            enableUnitTestCoverage = true
+
+            signingConfig = signingConfigs.getByName("release")
+
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",

@@ -1,0 +1,82 @@
+name: Build Release APK
+
+run-name: v${{ github.event.inputs.versionName }} (code ${{ github.event.inputs.versionCode }})
+
+on:
+  workflow_dispatch:
+    inputs:
+      versionCode:
+        type: number
+        description: "Version Code"
+        required: true
+      versionName:
+        type: string
+        description: "Version Name"
+        required: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare safe version name
+        run: |
+          SAFE_VERSION_NAME="${{ github.event.inputs.versionName }}"
+          SAFE_VERSION_NAME="${SAFE_VERSION_NAME//./_}"
+          echo "SAFE_VERSION_NAME=$SAFE_VERSION_NAME" >> $GITHUB_ENV
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Make Gradle executable
+        run: chmod +x ./gradlew
+
+      - name: Create local.properties
+        run: echo "reduceTimeUntilNextDay=${{ secrets.REDUCE_TIME_UNTIL_NEXT_DAY_FLAG }}" >> local.properties
+
+      - name: Create google-services.json
+        run: |
+          echo '${{ secrets.PROD_GOOGLE_SERVICES_JSON }}' > app/google-services.json
+
+      - name: Decode keystore
+        run: |
+          echo "${{ secrets.RELEASE_KEYSTORE }}" | base64 --decode > app/release.keystore
+
+      - name: Set signing variables
+        run: |
+          echo "RELEASE_KEYSTORE_FILE=release.keystore" >> $GITHUB_ENV
+          echo "RELEASE_KEYSTORE_PASSWORD=${{ secrets.RELEASE_KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
+          echo "RELEASE_KEY_ALIAS=${{ secrets.RELEASE_KEY_ALIAS }}" >> $GITHUB_ENV
+          echo "RELEASE_KEY_PASSWORD=${{ secrets.RELEASE_KEY_PASSWORD }}" >> $GITHUB_ENV
+
+      - name: Run Unit Tests
+        run: |
+          ./gradlew test \
+            -PVERSION_CODE=${{ github.event.inputs.versionCode }} \
+            -PVERSION_NAME='${{ github.event.inputs.versionName }}' \
+            --stacktrace
+
+      - name: Build Release APK
+        run: |
+          ./gradlew assembleRelease \
+            -PVERSION_CODE=${{ github.event.inputs.versionCode }} \
+            -PVERSION_NAME='${{ github.event.inputs.versionName }}' \
+            -PreleaseKeystoreFile=$RELEASE_KEYSTORE_FILE \
+            --stacktrace
+
+      - name: Rename APK
+        run: |
+          mv app/build/outputs/apk/release/app-release.apk \
+             app/build/outputs/apk/release/wordme_release_${SAFE_VERSION_NAME}.apk
+
+      - name: Upload Release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: wordme_release_${{ env.SAFE_VERSION_NAME }}
+          path: app/build/outputs/apk/release/wordme_release_${{ env.SAFE_VERSION_NAME }}.apk
