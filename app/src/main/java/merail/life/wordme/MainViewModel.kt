@@ -10,7 +10,7 @@ import kotlinx.coroutines.launch
 import merail.life.config.api.IConfigRepository
 import merail.life.core.extensions.suspendableRunCatching
 import merail.life.core.log.IWordMeLogger
-import merail.life.database.api.IDatabaseRepository
+import merail.life.server.api.IServerRepository
 import merail.life.domain.exceptions.NoInternetConnectionException
 import merail.life.game.api.IGameRepository
 import merail.life.store.api.IStoreRepository
@@ -21,7 +21,7 @@ import javax.inject.Inject
 @HiltViewModel
 internal class MainViewModel @Inject constructor(
     private val configRepository: IConfigRepository,
-    private val databaseRepository: IDatabaseRepository,
+    private val serverRepository: IServerRepository,
     private val storeRepository: IStoreRepository,
     private val timeRepository: ITimeRepository,
     private val gameRepository: IGameRepository,
@@ -42,18 +42,13 @@ internal class MainViewModel @Inject constructor(
 
                 configRepository.fetchInitialValues()
 
-                databaseRepository.initIdsDatabase(
-                    password = configRepository.getIdsDatabasePassword().first(),
-                )
-
                 val daysSinceStartCount = timeRepository.getDaysSinceStartCount().first()
-                val dayWordId = databaseRepository.getDayWordId(daysSinceStartCount + 1)
 
                 val lastSinceStartDaysCount = storeRepository.getDaysSinceStartCount().first()
 
                 gameRepository.setDayWord(
-                    dayWord = databaseRepository.getDayWord(
-                        id = dayWordId.value,
+                    dayWord = serverRepository.getDayWord(
+                        id = daysSinceStartCount + 1,
                     ),
                 )
 

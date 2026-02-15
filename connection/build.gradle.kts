@@ -38,7 +38,7 @@ dependencies {
     implementation(projects.design)
     implementation(projects.domain)
     implementation(projects.core)
-    implementation(projects.database.api)
+    implementation(projects.server.api)
     implementation(projects.store.api)
     implementation(projects.time.api)
     implementation(projects.config.api)

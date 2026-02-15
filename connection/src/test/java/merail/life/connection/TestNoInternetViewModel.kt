@@ -7,12 +7,15 @@ import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.test.*
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
 import merail.life.config.api.IConfigRepository
 import merail.life.connection.state.ReloadingState
 import merail.life.core.log.IWordMeLogger
-import merail.life.database.api.IDatabaseRepository
-import merail.life.domain.WordIdModel
+import merail.life.server.api.IServerRepository
 import merail.life.domain.WordModel
 import merail.life.domain.exceptions.NoInternetConnectionException
 import merail.life.game.api.IGameRepository
@@ -29,7 +32,7 @@ class TestNoInternetViewModel {
     private lateinit var viewModel: NoInternetViewModel
 
     private val configRepository: IConfigRepository = mockk()
-    private val databaseRepository: IDatabaseRepository = mockk()
+    private val serverRepository: IServerRepository = mockk()
     private val storeRepository: IStoreRepository = mockk()
     private val timeRepository: ITimeRepository = mockk()
     private val gameRepository: IGameRepository = mockk()
@@ -45,10 +48,8 @@ class TestNoInternetViewModel {
         coEvery { configRepository.fetchInitialValues() } just Runs
         coEvery { configRepository.getIdsDatabasePassword() } returns flowOf("test-password")
 
-        coEvery { databaseRepository.initIdsDatabase(any()) } just Runs
         coEvery { timeRepository.getDaysSinceStartCount() } returns flowOf(5)
-        coEvery { databaseRepository.getDayWordId(any()) } returns WordIdModel(42)
-        coEvery { databaseRepository.getDayWord(any()) } returns WordModel("дубль")
+        coEvery { serverRepository.getDayWord(any()) } returns WordModel("дубль")
 
         coEvery { storeRepository.getDaysSinceStartCount() } returns flowOf(5)
         coEvery { storeRepository.loadKeyForms() } returns flowOf(emptyList())
@@ -70,7 +71,7 @@ class TestNoInternetViewModel {
     fun `fetchInitialData sets ReloadingState to Success`() = runTest(testDispatcher) {
         viewModel = NoInternetViewModel(
             configRepository = configRepository,
-            databaseRepository = databaseRepository,
+            serverRepository = serverRepository,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
@@ -90,7 +91,7 @@ class TestNoInternetViewModel {
 
         viewModel = NoInternetViewModel(
             configRepository = configRepository,
-            databaseRepository = databaseRepository,
+            serverRepository = serverRepository,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,

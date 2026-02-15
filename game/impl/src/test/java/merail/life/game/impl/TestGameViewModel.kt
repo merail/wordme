@@ -12,11 +12,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.test.*
-import merail.life.database.api.IDatabaseRepository
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import merail.life.server.api.IServerRepository
 import merail.life.domain.KeyCellModel
 import merail.life.domain.KeyStateModel
-import merail.life.domain.WordIdModel
 import merail.life.domain.WordModel
 import merail.life.game.api.IGameRepository
 import merail.life.game.impl.model.Key
@@ -39,7 +42,7 @@ class TestGameViewModel {
 
     private lateinit var viewModel: GameViewModel
 
-    private val databaseRepository: IDatabaseRepository = mockk()
+    private val serverRepository: IServerRepository = mockk()
     private val storeRepository: IStoreRepository = mockk()
     private val timeRepository: ITimeRepository  = mockk()
     private val gameRepository: IGameRepository = mockk()
@@ -65,7 +68,7 @@ class TestGameViewModel {
         val keyCells = mockGameInProcessKeyFormsState()
 
         viewModel = GameViewModel(
-            databaseRepository = databaseRepository,
+            serverRepository = serverRepository,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
@@ -83,7 +86,7 @@ class TestGameViewModel {
         val keyCells = mockDefeatKeyFormsState()
 
         viewModel = GameViewModel(
-            databaseRepository = databaseRepository,
+            serverRepository = serverRepository,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
@@ -101,7 +104,7 @@ class TestGameViewModel {
         val keyCells = mockVictoryKeyFormsState()
 
         viewModel = GameViewModel(
-            databaseRepository = databaseRepository,
+            serverRepository = serverRepository,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
@@ -119,13 +122,12 @@ class TestGameViewModel {
         val timeFlow = MutableSharedFlow<Pair<String, Boolean>>(extraBufferCapacity = 1)
         coEvery { timeRepository.getTimeUntilNextDay() } returns timeFlow
         coEvery { timeRepository.getDaysSinceStartCount() } returns flowOf(1)
-        coEvery { databaseRepository.getDayWordId(2) } returns WordIdModel(42)
-        coEvery { databaseRepository.getDayWord(42) } returns WordModel("аббат")
+        coEvery { serverRepository.getDayWord(2) } returns WordModel("аббат")
         coEvery { storeRepository.removeKeyForms() } just Runs
         coEvery { storeRepository.saveDaysSinceStartCount(any()) } just Runs
 
         viewModel = GameViewModel(
-            databaseRepository = databaseRepository,
+            serverRepository = serverRepository,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
@@ -155,15 +157,14 @@ class TestGameViewModel {
         advanceUntilIdle()
 
         coVerify { storeRepository.removeKeyForms() }
-        coVerify { databaseRepository.getDayWordId(2) }
-        coVerify { databaseRepository.getDayWord(42) }
+        coVerify { serverRepository.getDayWord(2) }
         assertFalse(viewModel.isNextDay.value)
     }
 
     @Test
     fun `disableControlKeys disables keys correctly`() = runTest(testDispatcher) {
         viewModel = GameViewModel(
-            databaseRepository = databaseRepository,
+            serverRepository = serverRepository,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
@@ -180,7 +181,7 @@ class TestGameViewModel {
     @Test
     fun `handleKeyClick adds and removes keys correctly`() = runTest(testDispatcher) {
         viewModel = GameViewModel(
-            databaseRepository = databaseRepository,
+            serverRepository = serverRepository,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
@@ -197,10 +198,10 @@ class TestGameViewModel {
 
     @Test
     fun `checkWord disables check when word is invalid`() = runTest(testDispatcher) {
-        coEvery { databaseRepository.isWordExist("ааааа") } returns false
+        coEvery { serverRepository.isWordExist("ааааа") } returns false
 
         viewModel = GameViewModel(
-            databaseRepository = databaseRepository,
+            serverRepository = serverRepository,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
@@ -222,11 +223,11 @@ class TestGameViewModel {
 
     @Test
     fun `checkWord sets ExistingWord state and game is not over`() = runTest(testDispatcher) {
-        coEvery { databaseRepository.isWordExist("ааааа") } returns true
+        coEvery { serverRepository.isWordExist("ааааа") } returns true
         coEvery { storeRepository.saveKeyForms(any()) } just Runs
 
         viewModel = GameViewModel(
-            databaseRepository = databaseRepository,
+            serverRepository = serverRepository,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
@@ -247,12 +248,12 @@ class TestGameViewModel {
 
     @Test
     fun `checkWord sets ExistingWord state and game is over`() = runTest(testDispatcher) {
-        coEvery { databaseRepository.isWordExist("баран") } returns true
+        coEvery { serverRepository.isWordExist("баран") } returns true
         coEvery { storeRepository.saveKeyForms(any()) } just Runs
         coEvery { storeRepository.updateStatsOnDefeat() } just Runs
 
         viewModel = GameViewModel(
-            databaseRepository = databaseRepository,
+            serverRepository = serverRepository,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
@@ -281,14 +282,14 @@ class TestGameViewModel {
 
     @Test
     fun `checkWord sets Victory state correctly`() = runTest(testDispatcher) {
-        coEvery { databaseRepository.isWordExist("дубль") } returns true
+        coEvery { serverRepository.isWordExist("дубль") } returns true
         coEvery { timeRepository.getDaysSinceStartCount() } returns flowOf(1)
         coEvery { storeRepository.saveKeyForms(any()) } just Runs
         coEvery { storeRepository.saveLastVictoryDay(any()) } just Runs
         coEvery { storeRepository.updateStatsOnVictory(any()) } just Runs
 
         viewModel = GameViewModel(
-            databaseRepository = databaseRepository,
+            serverRepository = serverRepository,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
@@ -314,7 +315,7 @@ class TestGameViewModel {
         mockDefeatKeyFormsState()
 
         viewModel = GameViewModel(
-            databaseRepository = databaseRepository,
+            serverRepository = serverRepository,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
@@ -354,7 +355,7 @@ class TestGameViewModel {
         mockVictoryKeyFormsState()
 
         viewModel = GameViewModel(
-            databaseRepository = databaseRepository,
+            serverRepository = serverRepository,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,

@@ -73,12 +73,6 @@ android {
     }
 }
 
-afterEvaluate {
-    tasks.named("assembleRelease") {
-        dependsOn("testReleaseUnitTest")
-    }
-}
-
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -123,8 +117,8 @@ dependencies {
     implementation(projects.domain)
     implementation(projects.game.api)
     implementation(projects.game.impl)
-    implementation(projects.database.api)
-    implementation(projects.database.impl)
+    implementation(projects.server.api)
+    implementation(projects.server.impl)
     implementation(projects.store.api)
     implementation(projects.store.impl)
     implementation(projects.result)

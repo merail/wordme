@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import merail.life.database.api.IDatabaseRepository
+import merail.life.server.api.IServerRepository
 import merail.life.domain.Empty
 import merail.life.domain.WordModel
 import merail.life.game.api.IGameRepository
@@ -39,7 +39,7 @@ internal const val KEYBOARD_COLUMNS_COUNT = 3
 
 @HiltViewModel
 internal class GameViewModel @Inject constructor(
-    private val databaseRepository: IDatabaseRepository,
+    private val serverRepository: IServerRepository,
     private val storeRepository: IStoreRepository,
     private val timeRepository: ITimeRepository,
     private val gameRepository: IGameRepository,
@@ -128,9 +128,8 @@ internal class GameViewModel @Inject constructor(
 
             storeRepository.removeKeyForms()
             val daysSinceStartCount = timeRepository.getDaysSinceStartCount().first()
-            val dayWordId = databaseRepository.getDayWordId(daysSinceStartCount + 1)
             storeRepository.saveDaysSinceStartCount(daysSinceStartCount)
-            dayWord = databaseRepository.getDayWord(dayWordId.value)
+            dayWord = serverRepository.getDayWord(daysSinceStartCount + 1)
             _keyForms.value = emptyKeyFields
             _keyButtons.value = defaultKeyButtons
             _checkWordKeyState.value = CheckWordKeyState.Disabled
@@ -236,7 +235,7 @@ internal class GameViewModel @Inject constructor(
                 onVictory(rowIndex)
             } else {
                 viewModelScope.launch {
-                    val isWordExist = databaseRepository.isWordExist(enteredWord)
+                    val isWordExist = serverRepository.isWordExist(enteredWord)
 
                     if (isWordExist) {
                         onCorrectWord(

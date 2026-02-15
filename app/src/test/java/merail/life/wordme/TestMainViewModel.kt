@@ -3,7 +3,6 @@ package merail.life.wordme
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import junit.framework.TestCase.assertEquals
@@ -17,8 +16,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import merail.life.config.api.IConfigRepository
 import merail.life.core.log.IWordMeLogger
-import merail.life.database.api.IDatabaseRepository
-import merail.life.domain.WordIdModel
+import merail.life.server.api.IServerRepository
 import merail.life.domain.WordModel
 import merail.life.domain.exceptions.NoInternetConnectionException
 import merail.life.game.api.IGameRepository
@@ -33,7 +31,7 @@ import org.junit.Test
 class MainViewModelTest {
 
     private val configRepository: IConfigRepository = mockk()
-    private val databaseRepository: IDatabaseRepository = mockk()
+    private val serverRepository: IServerRepository = mockk()
     private val storeRepository: IStoreRepository = mockk()
     private val timeRepository: ITimeRepository = mockk()
     private val gameRepository: IGameRepository = mockk()
@@ -53,11 +51,7 @@ class MainViewModelTest {
 
         coEvery { configRepository.getIdsDatabasePassword() } returns flowOf("test-password")
 
-        every { databaseRepository.initIdsDatabase("test-password") } just Runs
-
         coEvery { timeRepository.getDaysSinceStartCount() } returns flowOf(1)
-
-        coEvery { databaseRepository.getDayWordId(any()) } returns WordIdModel(42)
 
         coEvery { storeRepository.getDaysSinceStartCount() } returns flowOf(0)
 
@@ -65,7 +59,7 @@ class MainViewModelTest {
 
         coEvery { gameRepository.setKeyForms(any()) } just Runs
 
-        coEvery { databaseRepository.getDayWord(any()) } returns WordModel("дубль")
+        coEvery { serverRepository.getDayWord(any()) } returns WordModel("дубль")
 
         coEvery { storeRepository.loadKeyForms() } returns flowOf(emptyList())
 
@@ -87,7 +81,7 @@ class MainViewModelTest {
     fun `init success - sets mainState to Success`() = runTest(testDispatcher) {
         viewModel = MainViewModel(
             configRepository = configRepository,
-            databaseRepository = databaseRepository,
+            serverRepository = serverRepository,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
@@ -105,7 +99,7 @@ class MainViewModelTest {
 
         viewModel = MainViewModel(
             configRepository = configRepository,
-            databaseRepository = databaseRepository,
+            serverRepository = serverRepository,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
@@ -125,7 +119,7 @@ class MainViewModelTest {
 
         viewModel = MainViewModel(
             configRepository = configRepository,
-            databaseRepository = databaseRepository,
+            serverRepository = serverRepository,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
@@ -145,7 +139,7 @@ class MainViewModelTest {
 
         viewModel = MainViewModel(
             configRepository = configRepository,
-            databaseRepository = databaseRepository,
+            serverRepository = serverRepository,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
@@ -167,7 +161,7 @@ class MainViewModelTest {
 
         viewModel = MainViewModel(
             configRepository = configRepository,
-            databaseRepository = databaseRepository,
+            serverRepository = serverRepository,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
@@ -187,7 +181,7 @@ class MainViewModelTest {
 
         viewModel = MainViewModel(
             configRepository = configRepository,
-            databaseRepository = databaseRepository,
+            serverRepository = serverRepository,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
