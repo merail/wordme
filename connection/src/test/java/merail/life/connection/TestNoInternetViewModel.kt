@@ -45,8 +45,6 @@ class TestNoInternetViewModel {
         Dispatchers.setMain(testDispatcher)
 
         coEvery { configRepository.authAnonymously() } just Runs
-        coEvery { configRepository.fetchInitialValues() } just Runs
-        coEvery { configRepository.getIdsDatabasePassword() } returns flowOf("test-password")
 
         coEvery { timeRepository.getDaysSinceStartCount() } returns flowOf(5)
         coEvery { serverRepository.getDayWord(any()) } returns WordModel("дубль")
@@ -87,7 +85,7 @@ class TestNoInternetViewModel {
 
     @Test
     fun `fetchInitialData sets ReloadingState to None on NoInternetConnectionException`() = runTest(testDispatcher) {
-        coEvery { configRepository.fetchInitialValues() } throws NoInternetConnectionException()
+        coEvery { configRepository.authAnonymously() } throws NoInternetConnectionException()
 
         viewModel = NoInternetViewModel(
             configRepository = configRepository,

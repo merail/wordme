@@ -40,8 +40,6 @@ internal class MainViewModel @Inject constructor(
             suspendableRunCatching {
                 configRepository.authAnonymously()
 
-                configRepository.fetchInitialValues()
-
                 val daysSinceStartCount = timeRepository.getDaysSinceStartCount().first()
 
                 val lastSinceStartDaysCount = storeRepository.getDaysSinceStartCount().first()

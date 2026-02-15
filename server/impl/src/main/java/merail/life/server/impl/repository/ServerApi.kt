@@ -20,4 +20,8 @@ internal class ServerApi @Inject constructor(
     ): Boolean = serverHttpClient.httpClient.get("isWordExist") {
         parameter("enteredWord", enteredWord)
     }.body()
+
+    suspend fun getGameCountdownStartDate(): String = serverHttpClient.httpClient.get(
+        urlString = "gameCountdownStartDate",
+    ).body()
 }

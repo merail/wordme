@@ -11,4 +11,6 @@ interface IServerRepository {
     suspend fun isWordExist(
         word: String,
     ): Boolean
+
+    suspend fun getGameCountdownStartDate(): String
 }

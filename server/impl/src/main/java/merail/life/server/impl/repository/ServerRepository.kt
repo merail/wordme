@@ -21,4 +21,8 @@ internal class ServerRepository @Inject constructor(
     ) = withContext(Dispatchers.IO) {
         serverApi.isWordExist(word)
     }
+
+    override suspend fun getGameCountdownStartDate() = withContext(Dispatchers.IO) {
+        serverApi.getGameCountdownStartDate()
+    }
 }

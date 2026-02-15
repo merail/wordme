@@ -64,4 +64,21 @@ class ServerRepositoryTest {
 
         repository.isWordExist("аббат")
     }
+
+    @Test
+    fun `getGameCountdownStartDate returns date from server`() = runTest {
+        coEvery { serverApi.getGameCountdownStartDate() } returns "29.06.2025"
+
+        val result = repository.getGameCountdownStartDate()
+
+        assertEquals("29.06.2025", result)
+        coVerify { serverApi.getGameCountdownStartDate() }
+    }
+
+    @Test(expected = RuntimeException::class)
+    fun `getGameCountdownStartDate propagates exception from server`() = runTest {
+        coEvery { serverApi.getGameCountdownStartDate() } throws RuntimeException("Network error")
+
+        repository.getGameCountdownStartDate()
+    }
 }

@@ -42,8 +42,6 @@ internal class NoInternetViewModel @Inject constructor(
 
             configRepository.authAnonymously()
 
-            configRepository.fetchInitialValues()
-
             val daysSinceStartCount = timeRepository.getDaysSinceStartCount().first()
 
             val lastSinceStartDaysCount = storeRepository.getDaysSinceStartCount().first()

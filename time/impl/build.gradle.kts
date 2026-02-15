@@ -21,5 +21,5 @@ dependencies {
     implementation(libs.play.services.time)
 
     implementation(projects.time.api)
-    implementation(projects.config.api)
+    implementation(projects.server.api)
 }

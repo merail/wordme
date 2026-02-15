@@ -47,10 +47,6 @@ class MainViewModelTest {
 
         coEvery { configRepository.authAnonymously() } just Runs
 
-        coEvery { configRepository.fetchInitialValues() } just Runs
-
-        coEvery { configRepository.getIdsDatabasePassword() } returns flowOf("test-password")
-
         coEvery { timeRepository.getDaysSinceStartCount() } returns flowOf(1)
 
         coEvery { storeRepository.getDaysSinceStartCount() } returns flowOf(0)
@@ -95,7 +91,7 @@ class MainViewModelTest {
 
     @Test
     fun `init failure - no internet - sets mainState to NoInternetConnection`() = runTest(testDispatcher) {
-        coEvery { configRepository.fetchInitialValues() } throws NoInternetConnectionException()
+        coEvery { configRepository.authAnonymously() } throws NoInternetConnectionException()
 
         viewModel = MainViewModel(
             configRepository = configRepository,
