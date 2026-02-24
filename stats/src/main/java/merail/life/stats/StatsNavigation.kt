@@ -7,6 +7,7 @@ import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.compose.dialog
 import kotlinx.serialization.Serializable
 import merail.life.core.NavigationRoute
+import merail.life.stats.view.StatsScreen
 
 @Serializable
 data object StatsRoute : NavigationRoute
@@ -28,7 +29,7 @@ fun NavGraphBuilder.statsScreen(
             dismissOnClickOutside = false,
         ),
     ) {
-        StatsContainer(
+        StatsScreen(
             onDismiss = onDismiss,
         )
     }

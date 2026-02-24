@@ -17,6 +17,7 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import merail.life.core.log.IWordMeLogger
 import merail.life.server.api.IServerRepository
 import merail.life.domain.KeyCellModel
 import merail.life.domain.KeyStateModel
@@ -24,8 +25,11 @@ import merail.life.domain.WordModel
 import merail.life.game.api.IGameRepository
 import merail.life.game.impl.model.Key
 import merail.life.game.impl.model.KeyState
+import merail.life.game.impl.useCases.CheckWordExistenceUseCase
+import merail.life.game.impl.useCases.GetDayWordUseCase
 import merail.life.game.impl.state.CheckWordKeyState
 import merail.life.game.impl.state.DeleteKeyState
+import merail.life.game.impl.state.GameErrorState
 import merail.life.game.impl.state.GameResultState
 import merail.life.game.impl.state.WordCheckState
 import merail.life.game.impl.utils.defaultKeyButtons
@@ -46,6 +50,10 @@ class TestGameViewModel {
     private val storeRepository: IStoreRepository = mockk()
     private val timeRepository: ITimeRepository  = mockk()
     private val gameRepository: IGameRepository = mockk()
+    private val logger: IWordMeLogger = mockk(relaxed = true)
+
+    private val getDayWordUseCase = GetDayWordUseCase(serverRepository, logger)
+    private val checkWordExistenceUseCase = CheckWordExistenceUseCase(serverRepository, logger)
 
     private val testDispatcher = StandardTestDispatcher()
 
@@ -68,7 +76,8 @@ class TestGameViewModel {
         val keyCells = mockGameInProcessKeyFormsState()
 
         viewModel = GameViewModel(
-            serverRepository = serverRepository,
+            getDayWordUseCase = getDayWordUseCase,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
@@ -86,7 +95,8 @@ class TestGameViewModel {
         val keyCells = mockDefeatKeyFormsState()
 
         viewModel = GameViewModel(
-            serverRepository = serverRepository,
+            getDayWordUseCase = getDayWordUseCase,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
@@ -104,7 +114,8 @@ class TestGameViewModel {
         val keyCells = mockVictoryKeyFormsState()
 
         viewModel = GameViewModel(
-            serverRepository = serverRepository,
+            getDayWordUseCase = getDayWordUseCase,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
@@ -127,7 +138,8 @@ class TestGameViewModel {
         coEvery { storeRepository.saveDaysSinceStartCount(any()) } just Runs
 
         viewModel = GameViewModel(
-            serverRepository = serverRepository,
+            getDayWordUseCase = getDayWordUseCase,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
@@ -147,6 +159,7 @@ class TestGameViewModel {
         assertEquals(viewModel.keyForms.value.toLogicModel(), emptyKeyFields.toLogicModel())
         assertEquals(viewModel.keyButtons.value.toLogicModel(), defaultKeyButtons.toLogicModel())
         assertTrue(viewModel.isNextDay.value)
+        assertEquals(DeleteKeyState.Disabled, viewModel.deleteKeyState.value)
         assertEquals(CheckWordKeyState.Disabled, viewModel.checkWordKeyState.value)
         assertEquals(WordCheckState.None, viewModel.wordCheckState.value)
         assertEquals(GameResultState.Process, viewModel.gameResultState.value)
@@ -162,9 +175,42 @@ class TestGameViewModel {
     }
 
     @Test
+    fun `getDayWord fails on next day sets DayWordGettingError and resets state`() = runTest(testDispatcher) {
+        val timeFlow = MutableSharedFlow<Pair<String, Boolean>>(extraBufferCapacity = 1)
+        coEvery { timeRepository.getTimeUntilNextDay() } returns timeFlow
+        coEvery { timeRepository.getDaysSinceStartCount() } returns flowOf(1)
+        coEvery { serverRepository.getDayWord(2) } throws RuntimeException("Network error")
+        coEvery { storeRepository.removeKeyForms() } just Runs
+        coEvery { storeRepository.saveDaysSinceStartCount(any()) } just Runs
+
+        viewModel = GameViewModel(
+            getDayWordUseCase = getDayWordUseCase,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
+            storeRepository = storeRepository,
+            timeRepository = timeRepository,
+            gameRepository = gameRepository,
+        )
+
+        advanceUntilIdle()
+
+        timeFlow.tryEmit(Pair("00:00:00", true))
+        advanceUntilIdle()
+
+        assertEquals(GameErrorState.DayWordGettingError, viewModel.gameErrorState.value)
+        assertEquals(emptyKeyFields.toLogicModel(), viewModel.keyForms.value.toLogicModel())
+        assertEquals(defaultKeyButtons.toLogicModel(), viewModel.keyButtons.value.toLogicModel())
+        assertEquals(DeleteKeyState.Disabled, viewModel.deleteKeyState.value)
+        assertEquals(CheckWordKeyState.Disabled, viewModel.checkWordKeyState.value)
+        assertEquals(WordCheckState.None, viewModel.wordCheckState.value)
+        assertEquals(Pair(0, 0), viewModel.currentIndex)
+        assertFalse(viewModel.isResultBoardVisible.value)
+    }
+
+    @Test
     fun `disableControlKeys disables keys correctly`() = runTest(testDispatcher) {
         viewModel = GameViewModel(
-            serverRepository = serverRepository,
+            getDayWordUseCase = getDayWordUseCase,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
@@ -181,7 +227,8 @@ class TestGameViewModel {
     @Test
     fun `handleKeyClick adds and removes keys correctly`() = runTest(testDispatcher) {
         viewModel = GameViewModel(
-            serverRepository = serverRepository,
+            getDayWordUseCase = getDayWordUseCase,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
@@ -201,7 +248,8 @@ class TestGameViewModel {
         coEvery { serverRepository.isWordExist("ааааа") } returns false
 
         viewModel = GameViewModel(
-            serverRepository = serverRepository,
+            getDayWordUseCase = getDayWordUseCase,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
@@ -227,7 +275,8 @@ class TestGameViewModel {
         coEvery { storeRepository.saveKeyForms(any()) } just Runs
 
         viewModel = GameViewModel(
-            serverRepository = serverRepository,
+            getDayWordUseCase = getDayWordUseCase,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
@@ -253,7 +302,8 @@ class TestGameViewModel {
         coEvery { storeRepository.updateStatsOnDefeat() } just Runs
 
         viewModel = GameViewModel(
-            serverRepository = serverRepository,
+            getDayWordUseCase = getDayWordUseCase,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
@@ -289,7 +339,8 @@ class TestGameViewModel {
         coEvery { storeRepository.updateStatsOnVictory(any()) } just Runs
 
         viewModel = GameViewModel(
-            serverRepository = serverRepository,
+            getDayWordUseCase = getDayWordUseCase,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
@@ -315,7 +366,8 @@ class TestGameViewModel {
         mockDefeatKeyFormsState()
 
         viewModel = GameViewModel(
-            serverRepository = serverRepository,
+            getDayWordUseCase = getDayWordUseCase,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
@@ -355,7 +407,8 @@ class TestGameViewModel {
         mockVictoryKeyFormsState()
 
         viewModel = GameViewModel(
-            serverRepository = serverRepository,
+            getDayWordUseCase = getDayWordUseCase,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
@@ -391,6 +444,61 @@ class TestGameViewModel {
             assertEquals(1, rowIndex)
             assertEquals(keyButtons.toLogicModel(), viewModel.keyButtons.value.toLogicModel())
         }
+    }
+
+    @Test
+    fun `isWordExist throws sets error visible and resets checkWordKeyState`() = runTest(testDispatcher) {
+        coEvery { serverRepository.isWordExist("ааааа") } throws RuntimeException("Network error")
+
+        viewModel = GameViewModel(
+            getDayWordUseCase = getDayWordUseCase,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
+            storeRepository = storeRepository,
+            timeRepository = timeRepository,
+            gameRepository = gameRepository,
+        )
+
+        advanceUntilIdle()
+
+        repeat(5) {
+            viewModel.handleKeyClick(Key.А)
+        }
+
+        viewModel.handleKeyClick(Key.OK)
+
+        advanceUntilIdle()
+
+        assertEquals(GameErrorState.WordExistingCheckError, viewModel.gameErrorState.value)
+        assertEquals(CheckWordKeyState.Enabled, viewModel.checkWordKeyState.value)
+    }
+
+    @Test
+    fun `dismissError sets isErrorVisible to false`() = runTest(testDispatcher) {
+        coEvery { serverRepository.isWordExist("ааааа") } throws RuntimeException("Network error")
+
+        viewModel = GameViewModel(
+            getDayWordUseCase = getDayWordUseCase,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
+            storeRepository = storeRepository,
+            timeRepository = timeRepository,
+            gameRepository = gameRepository,
+        )
+
+        advanceUntilIdle()
+
+        repeat(5) {
+            viewModel.handleKeyClick(Key.А)
+        }
+
+        viewModel.handleKeyClick(Key.OK)
+
+        advanceUntilIdle()
+
+        assertEquals(GameErrorState.WordExistingCheckError, viewModel.gameErrorState.value)
+
+        viewModel.dismissError()
+
+        assertEquals(GameErrorState.Hidden, viewModel.gameErrorState.value)
     }
 
     private val allAbsentKeyCells = listOf(

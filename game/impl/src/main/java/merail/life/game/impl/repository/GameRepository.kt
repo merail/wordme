@@ -1,4 +1,4 @@
-package merail.life.game.impl
+package merail.life.game.impl.repository
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull

@@ -7,6 +7,7 @@ import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.compose.dialog
 import kotlinx.serialization.Serializable
 import merail.life.core.NavigationRoute
+import merail.life.result.view.ResultScreen
 
 @Serializable
 data class ResultRoute(
@@ -36,7 +37,7 @@ fun NavGraphBuilder.resultScreen(
             dismissOnClickOutside = false,
         ),
     ) {
-        ResultContainer(
+        ResultScreen(
             onDismiss = onDismiss,
         )
     }

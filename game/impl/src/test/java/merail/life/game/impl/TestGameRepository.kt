@@ -5,11 +5,11 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceTimeBy
-import kotlinx.coroutines.test.runBlockingTest
 import kotlinx.coroutines.test.runTest
 import merail.life.domain.KeyCellModel
 import merail.life.domain.KeyStateModel
 import merail.life.domain.WordModel
+import merail.life.game.impl.repository.GameRepository
 import org.junit.Before
 import org.junit.Test
 

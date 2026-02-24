@@ -178,7 +178,7 @@ internal fun RowScope.KeyButton(
                             WordMeTheme.colors.elementInversePrimary
                         },
                     ),
-                    contentDescription = null,
+                    contentDescription = "check word icon",
                 )
             }
             else -> Text(

@@ -6,6 +6,7 @@ import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.compose.composable
 import kotlinx.serialization.Serializable
 import merail.life.core.NavigationRoute
+import merail.life.connection.view.NoInternetScreen
 
 @Serializable
 data object NoInternetRoute : NavigationRoute
@@ -23,7 +24,7 @@ fun NavGraphBuilder.noInternetScreen(
     navigateToGame: () -> Unit,
 ) {
     composable<NoInternetRoute> {
-        NoInternetContainer(
+        NoInternetScreen(
             onReconnect = navigateToGame,
         )
     }

@@ -6,6 +6,7 @@ import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.compose.composable
 import kotlinx.serialization.Serializable
 import merail.life.core.NavigationRoute
+import merail.life.game.impl.view.GameScreen
 
 @Serializable
 data object GameRoute : NavigationRoute
@@ -24,9 +25,9 @@ fun NavGraphBuilder.gameScreen(
     navigateToStats: () -> Unit,
 ) {
     composable<GameRoute> {
-        GameContainer(
-            onResult = navigateToResult,
-            onStats = navigateToStats,
+        GameScreen(
+            onGameEnd = navigateToResult,
+            onInfoClick = navigateToStats,
         )
     }
 }

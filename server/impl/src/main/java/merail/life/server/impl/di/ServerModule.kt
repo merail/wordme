@@ -10,10 +10,10 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-internal interface ServerModule {
+abstract class ServerModule {
     @Singleton
     @Binds
-    fun bindServerRepository(
+    internal abstract fun bindServerRepository(
         serverRepository: ServerRepository,
     ): IServerRepository
 }

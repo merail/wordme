@@ -29,6 +29,7 @@ data class Colors(
     val elementDisabled: Color = ColorConstants.darkGrey,
     val elementInversePrimary: Color = ColorConstants.smokeWhite,
     val elementPositive: Color = ColorConstants.cyan_500,
+    val elementNegative: Color = ColorConstants.red,
 
     val textPrimary: Color = ColorConstants.black,
     val textSecondary: Color = ColorConstants.darkGrayishRed,

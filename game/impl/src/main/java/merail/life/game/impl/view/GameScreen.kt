@@ -20,9 +20,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import merail.life.core.extensions.isNavigationBarEnabled
 import merail.life.game.impl.GameViewModel
+import merail.life.game.impl.state.isGettingError
 
 internal val toolbarMinHeight = 32.dp
 
@@ -61,6 +63,7 @@ internal fun GameScreen(
     val checkWordKeyState by viewModel.checkWordKeyState.collectAsState()
     val deleteKeyState by viewModel.deleteKeyState.collectAsState()
     val timeUntilNextDay by viewModel.timeUntilNextDay.collectAsState()
+    val gameErrorState by viewModel.gameErrorState.collectAsState()
 
     val keyboardHeight = remember {
         mutableIntStateOf(0)
@@ -116,7 +119,9 @@ internal fun GameScreen(
                     deleteKeyState = deleteKeyState,
                     keyboardHeight = keyboardHeight,
                     onKeyButtonClick = {
-                        viewModel.handleKeyClick(it)
+                        if (gameErrorState.isGettingError.not()) {
+                            viewModel.handleKeyClick(it)
+                        }
                     },
                 )
             }
@@ -147,5 +152,13 @@ internal fun GameScreen(
                 )
             }
         }
+
+        ErrorBanner(
+            errorState = gameErrorState,
+            onDismiss = viewModel::dismissError,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .zIndex(1f),
+        )
     }
 }
