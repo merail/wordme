@@ -4,27 +4,33 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
+import merail.life.design.R as designR
 import merail.life.design.WordMeTheme
 import merail.life.game.impl.R
 import merail.life.game.impl.state.GameErrorState
@@ -47,49 +53,56 @@ internal fun ErrorBanner(
                 top = topPadding,
             ),
     ) {
-        key(errorState) {
-            val dismissState = rememberSwipeToDismissBoxState()
+        val coroutineScope = rememberCoroutineScope()
 
-            LaunchedEffect(dismissState.currentValue) {
-                if (dismissState.currentValue != SwipeToDismissBoxValue.Settled) {
-                    onDismiss()
-                }
+        val dismissState = rememberSwipeToDismissBoxState()
+
+        LaunchedEffect(dismissState.currentValue) {
+            if (dismissState.currentValue != SwipeToDismissBoxValue.Settled) {
+                onDismiss()
             }
+        }
 
-            SwipeToDismissBox(
-                state = dismissState,
-                backgroundContent = {},
+        SwipeToDismissBox(
+            state = dismissState,
+            backgroundContent = {},
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(WordMeTheme.colors.elementNegative)
+                    .padding(
+                        horizontal = 16.dp,
+                        vertical = 12.dp,
+                    ),
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
+                Text(
+                    text = errorState.errorText(),
+                    color = WordMeTheme.colors.textInversePrimary,
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(WordMeTheme.colors.elementNegative)
-                        .padding(
-                            start = 16.dp,
-                            top = 12.dp,
-                            bottom = 12.dp,
-                        ),
-                ) {
-                    Text(
-                        text = errorState.errorText(),
-                        color = WordMeTheme.colors.textInversePrimary,
-                        modifier = Modifier
-                            .weight(1f),
-                    )
-                    IconButton(
-                        onClick = onDismiss,
-                        modifier = Modifier
-                            .size(40.dp),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = "close error banner icon",
-                            tint = WordMeTheme.colors.textInversePrimary,
-                        )
-                    }
-                }
+                        .weight(1f),
+                )
+                Icon(
+                    imageVector = ImageVector.vectorResource(designR.drawable.ic_cross_negative),
+                    tint = Color.Unspecified,
+                    contentDescription = "close error banner icon",
+                    modifier = Modifier
+                        .clickable(
+                            interactionSource = remember {
+                                MutableInteractionSource()
+                            },
+                            indication = ripple(
+                                bounded = false,
+                            ),
+                        ) {
+                            coroutineScope.launch {
+                                onDismiss()
+                            }
+                        },
+                )
             }
         }
     }

@@ -37,6 +37,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
+import merail.life.design.R as designR
 import merail.life.design.WordMeTheme
 import merail.life.stats.StatsViewModel
 import merail.life.stats.R
@@ -77,7 +78,7 @@ internal fun StatsScreen(
                 .padding(16.dp),
         ) {
             Icon(
-                imageVector = ImageVector.vectorResource(merail.life.design.R.drawable.ic_cross),
+                imageVector = ImageVector.vectorResource(designR.drawable.ic_cross),
                 tint = Color.Unspecified,
                 contentDescription = null,
                 modifier = Modifier

@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
+import merail.life.design.R as designR
 import merail.life.design.WordMeTheme
 import merail.life.game.impl.R
 
@@ -45,7 +46,7 @@ internal fun ResultBoard(
             .padding(16.dp),
     ) {
         Icon(
-            imageVector = ImageVector.vectorResource(merail.life.design.R.drawable.ic_info),
+            imageVector = ImageVector.vectorResource(designR.drawable.ic_info),
             tint = Color.Unspecified,
             contentDescription = null,
             modifier = Modifier
