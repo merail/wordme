@@ -2,7 +2,6 @@ package merail.life.connection
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.crashlytics.FirebaseCrashlytics
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,15 +11,14 @@ import merail.life.config.api.IConfigRepository
 import merail.life.connection.state.ReloadingState
 import merail.life.core.extensions.suspendableRunCatching
 import merail.life.core.log.IWordMeLogger
-import merail.life.server.api.IServerRepository
-import merail.life.domain.exceptions.NoInternetConnectionException
 import merail.life.game.api.IGameRepository
+import merail.life.server.api.IServerRepository
 import merail.life.store.api.IStoreRepository
 import merail.life.time.api.ITimeRepository
 import javax.inject.Inject
 
 @HiltViewModel
-internal class NoInternetViewModel @Inject constructor(
+internal class LoadingErrorViewModel @Inject constructor(
     private val configRepository: IConfigRepository,
     private val serverRepository: IServerRepository,
     private val storeRepository: IStoreRepository,
@@ -30,7 +28,7 @@ internal class NoInternetViewModel @Inject constructor(
 ) : ViewModel() {
 
     companion object {
-        private const val TAG = "NoInternetViewModel"
+        private const val TAG = "LoadingErrorViewModel"
     }
 
     private val _reloadingState = MutableStateFlow<ReloadingState>(ReloadingState.None)
@@ -66,14 +64,9 @@ internal class NoInternetViewModel @Inject constructor(
 
             _reloadingState.value = ReloadingState.Success
         }.onFailure {
-            logger.w(TAG, it.message.orEmpty(), it)
+            logger.w(TAG, "Initial loading. Failure", it)
 
-            if (it is NoInternetConnectionException) {
-                _reloadingState.value = ReloadingState.None
-            } else {
-                FirebaseCrashlytics.getInstance().recordException(it)
-            }
+            _reloadingState.value = ReloadingState.None
         }
     }
 }
-

@@ -64,7 +64,7 @@ class ErrorBannerTest {
             navController = rememberNavController()
             WordMeNavHost(
                 navController = navController,
-                isNoInternet = false,
+                isLoadingError = false,
             )
         }
 
@@ -85,14 +85,14 @@ class ErrorBannerTest {
             navController = rememberNavController()
             WordMeNavHost(
                 navController = navController,
-                isNoInternet = false,
+                isLoadingError = false,
             )
         }
 
         composeTestRule.waitForIdle()
 
         composeTestRule
-            .onNodeWithContentDescription("close error banner icon")
+            .onNodeWithContentDescription("cross icon button")
             .assertDoesNotExist()
     }
 
@@ -102,7 +102,7 @@ class ErrorBannerTest {
             navController = rememberNavController()
             WordMeNavHost(
                 navController = navController,
-                isNoInternet = false,
+                isLoadingError = false,
             )
         }
 
@@ -128,7 +128,7 @@ class ErrorBannerTest {
             navController = rememberNavController()
             WordMeNavHost(
                 navController = navController,
-                isNoInternet = false,
+                isLoadingError = false,
             )
         }
 
@@ -138,13 +138,13 @@ class ErrorBannerTest {
 
         composeTestRule.waitUntil(timeoutMillis = 5_000) {
             composeTestRule
-                .onAllNodesWithContentDescription("close error banner icon")
+                .onAllNodesWithContentDescription("cross icon button")
                 .fetchSemanticsNodes()
                 .isNotEmpty()
         }
 
         composeTestRule
-            .onNodeWithContentDescription("close error banner icon")
+            .onNodeWithContentDescription("cross icon button")
             .assertIsDisplayed()
     }
 
@@ -154,7 +154,7 @@ class ErrorBannerTest {
             navController = rememberNavController()
             WordMeNavHost(
                 navController = navController,
-                isNoInternet = false,
+                isLoadingError = false,
             )
         }
 
@@ -170,7 +170,7 @@ class ErrorBannerTest {
         }
 
         composeTestRule
-            .onNodeWithContentDescription("close error banner icon")
+            .onNodeWithContentDescription("cross icon button")
             .performClick()
 
         composeTestRule.waitForIdle()

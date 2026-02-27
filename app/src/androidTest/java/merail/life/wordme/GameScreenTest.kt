@@ -37,7 +37,7 @@ class GameScreenTest {
             navController = rememberNavController()
             WordMeNavHost(
                 navController = navController,
-                isNoInternet = false,
+                isLoadingError = false,
             )
         }
 
@@ -62,7 +62,7 @@ class GameScreenTest {
             navController = rememberNavController()
             WordMeNavHost(
                 navController = navController,
-                isNoInternet = false,
+                isLoadingError = false,
             )
         }
 
@@ -87,7 +87,7 @@ class GameScreenTest {
             navController = rememberNavController()
             WordMeNavHost(
                 navController = navController,
-                isNoInternet = false,
+                isLoadingError = false,
             )
         }
 
@@ -112,7 +112,7 @@ class GameScreenTest {
             navController = rememberNavController()
             WordMeNavHost(
                 navController = navController,
-                isNoInternet = false,
+                isLoadingError = false,
             )
         }
 
@@ -132,7 +132,7 @@ class GameScreenTest {
             navController = rememberNavController()
             WordMeNavHost(
                 navController = navController,
-                isNoInternet = false,
+                isLoadingError = false,
             )
         }
 

@@ -17,7 +17,6 @@ import merail.life.connection.state.ReloadingState
 import merail.life.core.log.IWordMeLogger
 import merail.life.server.api.IServerRepository
 import merail.life.domain.WordModel
-import merail.life.domain.exceptions.NoInternetConnectionException
 import merail.life.game.api.IGameRepository
 import merail.life.store.api.IStoreRepository
 import merail.life.time.api.ITimeRepository
@@ -27,9 +26,9 @@ import org.junit.Before
 import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class TestNoInternetViewModel {
+class TestLoadingErrorViewModel {
 
-    private lateinit var viewModel: NoInternetViewModel
+    private lateinit var viewModel: LoadingErrorViewModel
 
     private val configRepository: IConfigRepository = mockk()
     private val serverRepository: IServerRepository = mockk()
@@ -67,7 +66,7 @@ class TestNoInternetViewModel {
 
     @Test
     fun `fetchInitialData sets ReloadingState to Success`() = runTest(testDispatcher) {
-        viewModel = NoInternetViewModel(
+        viewModel = LoadingErrorViewModel(
             configRepository = configRepository,
             serverRepository = serverRepository,
             storeRepository = storeRepository,
@@ -84,10 +83,10 @@ class TestNoInternetViewModel {
     }
 
     @Test
-    fun `fetchInitialData sets ReloadingState to None on NoInternetConnectionException`() = runTest(testDispatcher) {
-        coEvery { configRepository.authAnonymously() } throws NoInternetConnectionException()
+    fun `fetchInitialData sets ReloadingState to None on failure`() = runTest(testDispatcher) {
+        coEvery { configRepository.authAnonymously() } throws RuntimeException()
 
-        viewModel = NoInternetViewModel(
+        viewModel = LoadingErrorViewModel(
             configRepository = configRepository,
             serverRepository = serverRepository,
             storeRepository = storeRepository,

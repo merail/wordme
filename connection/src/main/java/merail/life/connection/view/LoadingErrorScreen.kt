@@ -14,7 +14,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -26,16 +25,15 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import merail.life.connection.NoInternetViewModel
+import merail.life.connection.LoadingErrorViewModel
 import merail.life.connection.R
 import merail.life.connection.state.ReloadingState
 import merail.life.design.WordMeTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun NoInternetScreen(
+internal fun LoadingErrorScreen(
     onReconnect: () -> Unit,
-    viewModel: NoInternetViewModel = hiltViewModel<NoInternetViewModel>(),
+    viewModel: LoadingErrorViewModel = hiltViewModel<LoadingErrorViewModel>(),
 ) {
     val state = viewModel.reloadingState.collectAsState().value
 
@@ -55,7 +53,7 @@ internal fun NoInternetScreen(
         ) {
             Image(
                 imageVector = ImageVector.vectorResource(
-                    id = R.drawable.ic_no_internet,
+                    id = R.drawable.ic_loading_error,
                 ),
                 contentDescription = null,
                 modifier = Modifier
@@ -63,7 +61,7 @@ internal fun NoInternetScreen(
             )
 
             Text(
-                text = stringResource(R.string.no_inernet_title),
+                text = stringResource(R.string.loading_error_title),
                 style = WordMeTheme.typography.displaySmall,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
@@ -74,7 +72,7 @@ internal fun NoInternetScreen(
             )
 
             Text(
-                text = stringResource(R.string.no_internet_subtitle),
+                text = stringResource(R.string.loading_error_subtitle),
                 style = WordMeTheme.typography.titleLarge,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
@@ -110,7 +108,7 @@ internal fun NoInternetScreen(
                 )
             } else {
                 Text(
-                    text = stringResource(R.string.no_internet_reconnect_button),
+                    text = stringResource(R.string.loading_error_reconnect_button),
                     style = WordMeTheme.typography.titleLarge,
                     textAlign = TextAlign.Center,
                 )

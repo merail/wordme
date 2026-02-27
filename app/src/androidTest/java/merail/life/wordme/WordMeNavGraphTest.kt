@@ -37,7 +37,7 @@ class WordMeNavGraphTest {
             navController = rememberNavController()
             WordMeNavHost(
                 navController = navController,
-                isNoInternet = false,
+                isLoadingError = false,
             )
         }
 
@@ -49,19 +49,19 @@ class WordMeNavGraphTest {
     }
 
     @Test
-    fun startDestination_isNoInternetScreen_whenNoInternet() {
+    fun startDestination_isLoadingErrorScreen_whenLoadingError() {
         composeTestRule.setContent {
             navController = rememberNavController()
             WordMeNavHost(
                 navController = navController,
-                isNoInternet = true,
+                isLoadingError = true,
             )
         }
 
         composeTestRule.waitForIdle()
 
         composeTestRule
-            .onNodeWithText("Интернет куда-то пропал")
+            .onNodeWithText("Что-то пошло не\u00A0так")
             .assertIsDisplayed()
     }
 
@@ -71,7 +71,7 @@ class WordMeNavGraphTest {
             navController = rememberNavController()
             WordMeNavHost(
                 navController = navController,
-                isNoInternet = false,
+                isLoadingError = false,
             )
         }
 
@@ -97,7 +97,7 @@ class WordMeNavGraphTest {
             navController = rememberNavController()
             WordMeNavHost(
                 navController = navController,
-                isNoInternet = false,
+                isLoadingError = false,
             )
         }
 
@@ -123,7 +123,7 @@ class WordMeNavGraphTest {
             navController = rememberNavController()
             WordMeNavHost(
                 navController = navController,
-                isNoInternet = false,
+                isLoadingError = false,
             )
         }
 
@@ -141,12 +141,12 @@ class WordMeNavGraphTest {
     }
 
     @Test
-    fun navigateToGameScreen_fromNoInternetScreen() {
+    fun navigateToGameScreen_fromLoadingErrorScreen() {
         composeTestRule.setContent {
             navController = rememberNavController()
             WordMeNavHost(
                 navController = navController,
-                isNoInternet = true,
+                isLoadingError = true,
             )
         }
 

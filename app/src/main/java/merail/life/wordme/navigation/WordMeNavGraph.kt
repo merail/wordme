@@ -4,8 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
-import merail.life.connection.NoInternetRoute
-import merail.life.connection.noInternetScreen
+import merail.life.connection.LoadingErrorRoute
+import merail.life.connection.loadingErrorScreen
 import merail.life.game.impl.GameRoute
 import merail.life.game.impl.gameScreen
 import merail.life.game.impl.navigateToGame
@@ -17,19 +17,19 @@ import merail.life.stats.statsScreen
 @Composable
 fun WordMeNavHost(
     navController: NavHostController,
-    isNoInternet: Boolean,
+    isLoadingError: Boolean,
     modifier: Modifier = Modifier,
 ) {
     NavHost(
         navController = navController,
-        startDestination = if (isNoInternet) {
-            NoInternetRoute
+        startDestination = if (isLoadingError) {
+            LoadingErrorRoute
         } else {
             GameRoute
         },
         modifier = modifier,
     ) {
-        noInternetScreen(
+        loadingErrorScreen(
             navigateToGame = navController::navigateToGame,
         )
 

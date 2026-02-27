@@ -35,7 +35,7 @@ class ResultScreenTest {
             navController = rememberNavController()
             WordMeNavHost(
                 navController = navController,
-                isNoInternet = false,
+                isLoadingError = false,
             )
         }
 
@@ -77,7 +77,7 @@ class ResultScreenTest {
             navController = rememberNavController()
             WordMeNavHost(
                 navController = navController,
-                isNoInternet = false,
+                isLoadingError = false,
             )
         }
 

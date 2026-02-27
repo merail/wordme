@@ -6,25 +6,25 @@ import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.compose.composable
 import kotlinx.serialization.Serializable
 import merail.life.core.NavigationRoute
-import merail.life.connection.view.NoInternetScreen
+import merail.life.connection.view.LoadingErrorScreen
 
 @Serializable
-data object NoInternetRoute : NavigationRoute
+data object LoadingErrorRoute : NavigationRoute
 
-fun NavController.navigateToNoInternet(
+fun NavController.navigateToLoadingError(
     navOptions: NavOptionsBuilder.() -> Unit = {},
 ) {
     navigate(
-        route = NoInternetRoute,
+        route = LoadingErrorRoute,
         builder = navOptions,
     )
 }
 
-fun NavGraphBuilder.noInternetScreen(
+fun NavGraphBuilder.loadingErrorScreen(
     navigateToGame: () -> Unit,
 ) {
-    composable<NoInternetRoute> {
-        NoInternetScreen(
+    composable<LoadingErrorRoute> {
+        LoadingErrorScreen(
             onReconnect = navigateToGame,
         )
     }

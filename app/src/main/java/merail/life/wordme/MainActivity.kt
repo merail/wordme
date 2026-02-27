@@ -40,7 +40,7 @@ class MainActivity : ComponentActivity() {
 
                     WordMeNavHost(
                         navController = rememberNavController(),
-                        isNoInternet = state is MainState.NoInternetConnection,
+                        isLoadingError = state is MainState.LoadingError,
                     )
                 }
             }

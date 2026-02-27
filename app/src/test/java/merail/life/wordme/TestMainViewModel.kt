@@ -18,7 +18,6 @@ import merail.life.config.api.IConfigRepository
 import merail.life.core.log.IWordMeLogger
 import merail.life.server.api.IServerRepository
 import merail.life.domain.WordModel
-import merail.life.domain.exceptions.NoInternetConnectionException
 import merail.life.game.api.IGameRepository
 import merail.life.store.api.IStoreRepository
 import merail.life.time.api.ITimeRepository
@@ -90,8 +89,8 @@ class MainViewModelTest {
     }
 
     @Test
-    fun `init failure - no internet - sets mainState to NoInternetConnection`() = runTest(testDispatcher) {
-        coEvery { configRepository.authAnonymously() } throws NoInternetConnectionException()
+    fun `init failure - sets mainState to LoadingError`() = runTest(testDispatcher) {
+        coEvery { configRepository.authAnonymously() } throws RuntimeException()
 
         viewModel = MainViewModel(
             configRepository = configRepository,
@@ -104,7 +103,7 @@ class MainViewModelTest {
 
         advanceUntilIdle()
 
-        assertEquals(MainState.NoInternetConnection, viewModel.mainState.value)
+        assertEquals(MainState.LoadingError, viewModel.mainState.value)
     }
 
     @Test

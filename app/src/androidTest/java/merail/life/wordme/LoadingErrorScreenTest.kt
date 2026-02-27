@@ -16,7 +16,7 @@ import org.junit.Rule
 import org.junit.Test
 
 @HiltAndroidTest
-class NoInternetScreenTest {
+class LoadingErrorScreenTest {
 
     @get:Rule(order = 0)
     val hiltRule = HiltAndroidRule(this)
@@ -32,46 +32,46 @@ class NoInternetScreenTest {
     }
 
     @Test
-    fun noInternetScreen_displaysTitle() {
+    fun loadingErrorScreen_displaysTitle() {
         composeTestRule.setContent {
             navController = rememberNavController()
             WordMeNavHost(
                 navController = navController,
-                isNoInternet = true,
+                isLoadingError = true,
             )
         }
 
         composeTestRule.waitForIdle()
 
         composeTestRule
-            .onNodeWithText("Интернет куда-то пропал")
+            .onNodeWithText("Что-то пошло не\u00A0так")
             .assertIsDisplayed()
     }
 
     @Test
-    fun noInternetScreen_displaysSubtitle() {
+    fun loadingErrorScreen_displaysSubtitle() {
         composeTestRule.setContent {
             navController = rememberNavController()
             WordMeNavHost(
                 navController = navController,
-                isNoInternet = true,
+                isLoadingError = true,
             )
         }
 
         composeTestRule.waitForIdle()
 
         composeTestRule
-            .onNodeWithText("Проверьте подключение и обновите экран")
+            .onNodeWithText("Попробуйте обновить экран")
             .assertIsDisplayed()
     }
 
     @Test
-    fun noInternetScreen_displaysReconnectButton() {
+    fun loadingErrorScreen_displaysReconnectButton() {
         composeTestRule.setContent {
             navController = rememberNavController()
             WordMeNavHost(
                 navController = navController,
-                isNoInternet = true,
+                isLoadingError = true,
             )
         }
 
@@ -83,12 +83,12 @@ class NoInternetScreenTest {
     }
 
     @Test
-    fun noInternetScreen_reconnectButtonIsClickable() {
+    fun loadingErrorScreen_reconnectButtonIsClickable() {
         composeTestRule.setContent {
             navController = rememberNavController()
             WordMeNavHost(
                 navController = navController,
-                isNoInternet = true,
+                isLoadingError = true,
             )
         }
 

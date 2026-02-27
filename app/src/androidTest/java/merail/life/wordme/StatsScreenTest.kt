@@ -35,7 +35,7 @@ class StatsScreenTest {
             navController = rememberNavController()
             WordMeNavHost(
                 navController = navController,
-                isNoInternet = false,
+                isLoadingError = false,
             )
         }
 

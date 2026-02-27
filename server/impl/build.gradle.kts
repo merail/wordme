@@ -22,6 +22,12 @@ android {
             name = "DOMAIN_URL",
             value = "\"${properties.getProperty("domainUrl")}\"",
         )
+
+        buildConfigField(
+            type = "String",
+            name = "ACCESS_TOKEN",
+            value = "\"${properties.getProperty("accessToken")}\"",
+        )
     }
 }
 
@@ -33,6 +39,7 @@ dependencies {
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.okhttp)
     implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.client.logging)
     implementation(libs.ktor.serialization.kotlinx.json)
 
     implementation(libs.hilt.android)

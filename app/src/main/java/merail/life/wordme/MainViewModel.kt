@@ -11,7 +11,6 @@ import merail.life.config.api.IConfigRepository
 import merail.life.core.extensions.suspendableRunCatching
 import merail.life.core.log.IWordMeLogger
 import merail.life.server.api.IServerRepository
-import merail.life.domain.exceptions.NoInternetConnectionException
 import merail.life.game.api.IGameRepository
 import merail.life.store.api.IStoreRepository
 import merail.life.time.api.ITimeRepository
@@ -66,11 +65,9 @@ internal class MainViewModel @Inject constructor(
 
                 _mainState.value = MainState.Success
             }.onFailure {
-                logger.w(TAG, it.message.orEmpty(), it)
+                logger.w(TAG, "Initial loading. Failure", it)
 
-                if (it is NoInternetConnectionException) {
-                    _mainState.value = MainState.NoInternetConnection
-                }
+                _mainState.value = MainState.LoadingError
             }
         }
     }

@@ -6,8 +6,7 @@ import com.google.firebase.auth.FirebaseAuth
 import io.mockk.*
 import kotlinx.coroutines.test.runTest
 import merail.life.config.impl.repository.ConfigRepository
-import merail.life.domain.exceptions.NoInternetConnectionException
-import merail.life.domain.exceptions.TestFirebaseException
+
 import org.junit.Before
 import org.junit.Test
 
@@ -32,11 +31,11 @@ class TestConfigRepository {
         coVerify { auth.signInAnonymously() }
     }
 
-    @Test(expected = NoInternetConnectionException::class)
-    fun `authAnonymously throws NoInternetConnectionException on Firebase error`() = runTest {
+    @Test(expected = RuntimeException::class)
+    fun `authAnonymously throws exception on Firebase error`() = runTest {
         every {
             auth.signInAnonymously()
-        } throws TestFirebaseException()
+        } throws RuntimeException()
 
         repository.authAnonymously()
     }
