@@ -7,8 +7,6 @@ plugins {
 }
 
 android {
-    namespace = "merail.life.stats"
-
     buildFeatures {
         compose = true
     }

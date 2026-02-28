@@ -7,8 +7,6 @@ plugins {
 }
 
 android {
-    namespace = "merail.life.game.impl"
-
     buildFeatures {
         compose = true
     }

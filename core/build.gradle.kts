@@ -4,10 +4,6 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
-android {
-    namespace = "merail.life.core"
-}
-
 dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

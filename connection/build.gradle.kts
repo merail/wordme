@@ -7,8 +7,6 @@ plugins {
 }
 
 android {
-    namespace = "merail.life.connection"
-
     buildFeatures {
         compose = true
     }

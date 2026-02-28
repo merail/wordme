@@ -7,10 +7,6 @@ plugins {
     alias(libs.plugins.protobuf)
 }
 
-android {
-    namespace = "merail.life.store.impl"
-}
-
 dependencies {
     implementation(libs.androidx.core.ktx)
 

@@ -8,12 +8,18 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinAndroidProjectExtension
 
 class LibraryConventionPlugin : Plugin<Project> {
 
+    companion object {
+        private const val NAMESPACE_PREFIX = "merail.life"
+    }
+
     override fun apply(target: Project) {
         with(target) {
             pluginManager.apply("com.android.library")
             pluginManager.apply("org.jetbrains.kotlin.android")
 
             extensions.configure<LibraryExtension> {
+
+                namespace = "$NAMESPACE_PREFIX.${project.path.removePrefix(":").replace(":", ".")}"
                 compileSdk = 36
 
                 defaultConfig {

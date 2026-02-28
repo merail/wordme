@@ -5,8 +5,6 @@ plugins {
 }
 
 android {
-    namespace = "merail.life.time.api"
-
     buildFeatures {
         buildConfig = true
     }

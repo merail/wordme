@@ -45,8 +45,6 @@ dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 
-    implementation(libs.android.database.sqlcipher)
-
     implementation(projects.domain)
     implementation(projects.server.api)
 }

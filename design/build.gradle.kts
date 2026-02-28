@@ -4,8 +4,6 @@ plugins {
 }
 
 android {
-    namespace = "merail.life.design"
-
     buildFeatures {
         compose = true
     }

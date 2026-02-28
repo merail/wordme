@@ -4,10 +4,6 @@ plugins {
     alias(libs.plugins.hilt.gradle)
 }
 
-android {
-    namespace = "merail.life.config.impl"
-}
-
 dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
