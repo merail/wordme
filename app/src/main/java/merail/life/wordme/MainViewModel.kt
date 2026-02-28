@@ -1,62 +1,51 @@
 package merail.life.wordme
 
-import android.util.Log
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.crashlytics.FirebaseCrashlytics
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import merail.life.config.api.IConfigRepository
 import merail.life.core.extensions.suspendableRunCatching
-import merail.life.database.api.IDatabaseRepository
-import merail.life.domain.constants.IS_TEST_ENVIRONMENT
-import merail.life.domain.exceptions.NoInternetConnectionException
+import merail.life.core.log.IWordMeLogger
+import merail.life.server.api.IServerRepository
 import merail.life.game.api.IGameRepository
 import merail.life.store.api.IStoreRepository
 import merail.life.time.api.ITimeRepository
+import merail.life.wordme.state.MainState
 import javax.inject.Inject
 
 @HiltViewModel
 internal class MainViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle,
     private val configRepository: IConfigRepository,
-    private val databaseRepository: IDatabaseRepository,
+    private val serverRepository: IServerRepository,
     private val storeRepository: IStoreRepository,
     private val timeRepository: ITimeRepository,
     private val gameRepository: IGameRepository,
+    private val logger: IWordMeLogger,
 ): ViewModel() {
 
     companion object {
         private const val TAG = "MainViewModel"
     }
 
-    var mainState = MutableStateFlow<MainState>(MainState.Loading)
-        private set
-
-    private val isTestEnvironment = savedStateHandle.get<Boolean>(IS_TEST_ENVIRONMENT) == true
+    private val _mainState = MutableStateFlow<MainState>(MainState.Loading)
+    val mainState: StateFlow<MainState> = _mainState
 
     init {
         viewModelScope.launch {
             suspendableRunCatching {
                 configRepository.authAnonymously()
 
-                configRepository.fetchInitialValues()
-
-                databaseRepository.initIdsDatabase(
-                    password = configRepository.getIdsDatabasePassword().first(),
-                )
-
                 val daysSinceStartCount = timeRepository.getDaysSinceStartCount().first()
-                val dayWordId = databaseRepository.getDayWordId(daysSinceStartCount + 1)
 
                 val lastSinceStartDaysCount = storeRepository.getDaysSinceStartCount().first()
 
                 gameRepository.setDayWord(
-                    dayWord = databaseRepository.getDayWord(
-                        id = dayWordId.value,
+                    dayWord = serverRepository.getDayWord(
+                        id = daysSinceStartCount + 1,
                     ),
                 )
 
@@ -74,17 +63,11 @@ internal class MainViewModel @Inject constructor(
                     storeRepository.resetVictoriesRowCount()
                 }
 
-                mainState.value = MainState.Success
+                _mainState.value = MainState.Success
             }.onFailure {
-                if (isTestEnvironment.not()) {
-                    Log.w(TAG, it)
-                }
+                logger.w(TAG, "Initial loading. Failure", it)
 
-                if (it is NoInternetConnectionException) {
-                    mainState.value = MainState.NoInternetConnection
-                } else {
-                    FirebaseCrashlytics.getInstance().recordException(it)
-                }
+                _mainState.value = MainState.LoadingError
             }
         }
     }

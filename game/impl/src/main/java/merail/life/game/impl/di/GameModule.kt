@@ -5,7 +5,7 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import merail.life.game.api.IGameRepository
-import merail.life.game.impl.GameRepository
+import merail.life.game.impl.repository.GameRepository
 import javax.inject.Singleton
 
 @Module

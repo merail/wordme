@@ -3,7 +3,6 @@ package merail.life.stats.view
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,26 +15,24 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
 import merail.life.design.WordMeTheme
+import merail.life.design.components.CrossIconButton
 import merail.life.stats.StatsViewModel
 import merail.life.stats.R
 
@@ -45,6 +42,12 @@ internal fun StatsScreen(
     onDismiss: () -> Unit,
     viewModel: StatsViewModel = hiltViewModel<StatsViewModel>(),
 ) {
+    val victoriesCount by viewModel.victoriesCount.collectAsState()
+    val victoriesPercent by viewModel.victoriesPercent.collectAsState()
+    val victoriesRowCount by viewModel.victoriesRowCount.collectAsState()
+    val victoriesRowMaxCount by viewModel.victoriesRowMaxCount.collectAsState()
+    val attemptsRatio by viewModel.attemptsRatio.collectAsState()
+
     val coroutineScope = rememberCoroutineScope()
     val bottomSheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true,
@@ -68,25 +71,14 @@ internal fun StatsScreen(
                 .fillMaxHeight(0.9f)
                 .padding(16.dp),
         ) {
-            Icon(
-                imageVector = ImageVector.vectorResource(merail.life.design.R.drawable.ic_cross),
-                tint = Color.Unspecified,
-                contentDescription = null,
-                modifier = Modifier
-                    .align(Alignment.End)
-                    .clickable(
-                        interactionSource = remember {
-                            MutableInteractionSource()
-                        },
-                        indication = ripple(
-                            bounded = false,
-                        ),
-                    ) {
-                        coroutineScope.launch {
-                            bottomSheetState.hide()
-                            onDismiss()
-                        }
-                    },
+            CrossIconButton(
+                onClick = {
+                    coroutineScope.launch {
+                        bottomSheetState.hide()
+                        onDismiss()
+                    }
+                },
+                modifier = Modifier.align(Alignment.End),
             )
 
             Text(
@@ -110,7 +102,7 @@ internal fun StatsScreen(
             Row {
                 InfoBlock(
                     label = stringResource(R.string.stats_victories_count_label),
-                    value = viewModel.victoriesCount.orEmpty(),
+                    value = victoriesCount.orEmpty(),
                     padding = PaddingValues(
                         end = 8.dp,
                     ),
@@ -118,7 +110,7 @@ internal fun StatsScreen(
 
                 InfoBlock(
                     label = stringResource(R.string.stats_successful_games_percent_label),
-                    value = viewModel.victoriesPercent.orEmpty(),
+                    value = victoriesPercent.orEmpty(),
                     padding = PaddingValues(
                         start = 8.dp,
                     ),
@@ -133,7 +125,7 @@ internal fun StatsScreen(
             ) {
                 InfoBlock(
                     label = stringResource(R.string.stats_victories_row_count_label),
-                    value = viewModel.victoriesRowCount.orEmpty(),
+                    value = victoriesRowCount.orEmpty(),
                     padding = PaddingValues(
                         end = 8.dp,
                     ),
@@ -141,7 +133,7 @@ internal fun StatsScreen(
 
                 InfoBlock(
                     label = stringResource(R.string.stats_victories_row_max_count_label),
-                    value = viewModel.victoriesRowMaxCount.orEmpty(),
+                    value = victoriesRowMaxCount.orEmpty(),
                     padding = PaddingValues(
                         start = 8.dp,
                     ),
@@ -157,7 +149,7 @@ internal fun StatsScreen(
             ) {
                 InfoBlock(
                     label = stringResource(R.string.stats_average_attempts_count_label),
-                    value = viewModel.attemptsRatio.orEmpty(),
+                    value = attemptsRatio.orEmpty(),
                     padding = PaddingValues(0.dp),
                 )
             }

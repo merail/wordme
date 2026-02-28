@@ -1,28 +1,10 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
 
 plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.library.plugin)
 }
 
 android {
-    namespace = "merail.life.time.api"
-    compileSdk = 35
-
-    defaultConfig {
-        minSdk = 30
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    kotlinOptions {
-        jvmTarget = JvmTarget.JVM_17.target
-    }
-
     buildFeatures {
         buildConfig = true
     }

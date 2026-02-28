@@ -1,6 +1,5 @@
 package merail.life.game.impl
 
-import androidx.lifecycle.SavedStateHandle
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -11,19 +10,26 @@ import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.test.*
-import merail.life.database.api.IDatabaseRepository
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import merail.life.core.log.IWordMeLogger
+import merail.life.server.api.IServerRepository
 import merail.life.domain.KeyCellModel
 import merail.life.domain.KeyStateModel
-import merail.life.domain.WordIdModel
 import merail.life.domain.WordModel
-import merail.life.domain.constants.IS_TEST_ENVIRONMENT
 import merail.life.game.api.IGameRepository
 import merail.life.game.impl.model.Key
 import merail.life.game.impl.model.KeyState
+import merail.life.game.impl.useCases.CheckWordExistenceUseCase
+import merail.life.game.impl.useCases.GetDayWordUseCase
 import merail.life.game.impl.state.CheckWordKeyState
 import merail.life.game.impl.state.DeleteKeyState
+import merail.life.game.impl.state.GameErrorState
 import merail.life.game.impl.state.GameResultState
 import merail.life.game.impl.state.WordCheckState
 import merail.life.game.impl.utils.defaultKeyButtons
@@ -39,21 +45,25 @@ import org.junit.Test
 class TestGameViewModel {
 
     private lateinit var viewModel: GameViewModel
-    
-    private val savedStateHandle = SavedStateHandle().apply {
-        set<Boolean>(IS_TEST_ENVIRONMENT, true)
-    }
 
-    private val databaseRepository: IDatabaseRepository = mockk()
+    private val serverRepository: IServerRepository = mockk()
     private val storeRepository: IStoreRepository = mockk()
     private val timeRepository: ITimeRepository  = mockk()
     private val gameRepository: IGameRepository = mockk()
+    private val logger: IWordMeLogger = mockk(relaxed = true)
+
+    private val getDayWordUseCase = GetDayWordUseCase(serverRepository, logger)
+    private val checkWordExistenceUseCase = CheckWordExistenceUseCase(serverRepository, logger)
 
     private val testDispatcher = StandardTestDispatcher()
 
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
+
+        coEvery { gameRepository.getDayWord() } returns flowOf(WordModel("дубль"))
+        coEvery { gameRepository.getKeyForms() } returns flowOf(emptyList())
+        coEvery { timeRepository.getTimeUntilNextDay() } returns flowOf(Pair("23:59:59", false))
     }
 
     @After
@@ -63,145 +73,150 @@ class TestGameViewModel {
 
     @Test
     fun `initial state is game in process`() = runTest(testDispatcher) {
-        coEvery { gameRepository.getDayWord() } returns flowOf(WordModel("дубль"))
         val keyCells = mockGameInProcessKeyFormsState()
 
         viewModel = GameViewModel(
-            savedStateHandle = savedStateHandle,
-            databaseRepository = databaseRepository,
+            getDayWordUseCase = getDayWordUseCase,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
         )
 
-        viewModel.onLoadValuesStart()
-
         advanceUntilIdle()
 
-        assertEquals(keyCells, viewModel.keyForms.toLogicModel())
+        assertEquals(keyCells, viewModel.keyForms.value.toLogicModel())
         assertEquals(Pair(1, 0), viewModel.currentIndex)
         assertEquals(GameResultState.Process, viewModel.gameResultState.value)
     }
 
     @Test
     fun `initial state is defeat`() = runTest(testDispatcher) {
-        coEvery { gameRepository.getDayWord() } returns flowOf(WordModel("дубль"))
         val keyCells = mockDefeatKeyFormsState()
 
         viewModel = GameViewModel(
-            savedStateHandle = savedStateHandle,
-            databaseRepository = databaseRepository,
+            getDayWordUseCase = getDayWordUseCase,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
         )
 
-        viewModel.onLoadValuesStart()
-
         advanceUntilIdle()
 
-        assertEquals(keyCells, viewModel.keyForms.toLogicModel())
+        assertEquals(keyCells, viewModel.keyForms.value.toLogicModel())
         assertEquals(Pair(6, 0), viewModel.currentIndex)
         assertEquals(GameResultState.Defeat, viewModel.gameResultState.value)
     }
 
     @Test
     fun `initial state is victory`() = runTest(testDispatcher) {
-        coEvery { gameRepository.getDayWord() } returns flowOf(WordModel("дубль"))
         val keyCells = mockVictoryKeyFormsState()
 
         viewModel = GameViewModel(
-            savedStateHandle = savedStateHandle,
-            databaseRepository = databaseRepository,
+            getDayWordUseCase = getDayWordUseCase,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
         )
 
-        viewModel.onLoadValuesStart()
-
         advanceUntilIdle()
 
-        assertEquals(keyCells, viewModel.keyForms.toLogicModel())
+        assertEquals(keyCells, viewModel.keyForms.value.toLogicModel())
         assertEquals(Pair(1, 0), viewModel.currentIndex)
         assertEquals(GameResultState.Victory, viewModel.gameResultState.value)
     }
 
     @Test
-    fun `startNextDayTimer progresses to next day and updates state`() = runTest {
-        coEvery { timeRepository.getTimeUntilNextDay() } returnsMany listOf(
-            flowOf(Pair("00:00:01", false)),
-            flowOf(Pair("00:00:00", true)),
-            flowOf(Pair("23:59:59", false)),
-        )
+    fun `startNextDayTimer progresses to next day and updates state`() = runTest(testDispatcher) {
+        val timeFlow = MutableSharedFlow<Pair<String, Boolean>>(extraBufferCapacity = 1)
+        coEvery { timeRepository.getTimeUntilNextDay() } returns timeFlow
         coEvery { timeRepository.getDaysSinceStartCount() } returns flowOf(1)
-        coEvery { databaseRepository.getDayWordId(2) } returns WordIdModel(42)
-        coEvery { databaseRepository.getDayWord(42) } returns WordModel("аббат")
+        coEvery { serverRepository.getDayWord(2) } returns WordModel("аббат")
         coEvery { storeRepository.removeKeyForms() } just Runs
         coEvery { storeRepository.saveDaysSinceStartCount(any()) } just Runs
 
         viewModel = GameViewModel(
-            savedStateHandle = savedStateHandle,
-            databaseRepository = databaseRepository,
+            getDayWordUseCase = getDayWordUseCase,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
         )
 
-        timeRepository.getTimeUntilNextDay().collect { (time, isNextDay) ->
-            viewModel.onSecondCount(
-                time = time,
-                isNextDay = isNextDay,
-            )
-        }
+        advanceUntilIdle()
 
-        advanceTimeBy(1000L)
+        timeFlow.tryEmit(Pair("00:00:01", false))
+        advanceUntilIdle()
 
-        assertFalse(viewModel.isNextDay)
+        assertFalse(viewModel.isNextDay.value)
 
-        timeRepository.getTimeUntilNextDay().collect { (time, isNextDay) ->
-            viewModel.onSecondCount(
-                time = time,
-                isNextDay = isNextDay,
-            )
-        }
-
-        advanceTimeBy(1000L)
+        timeFlow.tryEmit(Pair("00:00:00", true))
+        advanceUntilIdle()
 
         assertEquals(WordModel("аббат"), viewModel.dayWord)
-        assertEquals(viewModel.keyForms.toLogicModel(), emptyKeyFields.toLogicModel())
-        assertEquals(viewModel.keyButtons.toLogicModel(), defaultKeyButtons.toLogicModel())
-        assertTrue(viewModel.isNextDay)
+        assertEquals(viewModel.keyForms.value.toLogicModel(), emptyKeyFields.toLogicModel())
+        assertEquals(viewModel.keyButtons.value.toLogicModel(), defaultKeyButtons.toLogicModel())
+        assertTrue(viewModel.isNextDay.value)
+        assertEquals(DeleteKeyState.Disabled, viewModel.deleteKeyState.value)
         assertEquals(CheckWordKeyState.Disabled, viewModel.checkWordKeyState.value)
         assertEquals(WordCheckState.None, viewModel.wordCheckState.value)
         assertEquals(GameResultState.Process, viewModel.gameResultState.value)
         assertEquals(Pair(0, 0), viewModel.currentIndex)
-        assertFalse(viewModel.isResultBoardVisible)
+        assertFalse(viewModel.isResultBoardVisible.value)
 
-        timeRepository.getTimeUntilNextDay().collect { (time, isNextDay) ->
-            viewModel.onSecondCount(
-                time = time,
-                isNextDay = isNextDay,
-            )
-        }
-
-        advanceTimeBy(1000L)
+        timeFlow.tryEmit(Pair("23:59:59", false))
+        advanceUntilIdle()
 
         coVerify { storeRepository.removeKeyForms() }
-        coVerify { databaseRepository.getDayWordId(2) }
-        coVerify { databaseRepository.getDayWord(42) }
-        assertFalse(viewModel.isNextDay)
+        coVerify { serverRepository.getDayWord(2) }
+        assertFalse(viewModel.isNextDay.value)
+    }
+
+    @Test
+    fun `getDayWord fails on next day sets DayWordGettingError and resets state`() = runTest(testDispatcher) {
+        val timeFlow = MutableSharedFlow<Pair<String, Boolean>>(extraBufferCapacity = 1)
+        coEvery { timeRepository.getTimeUntilNextDay() } returns timeFlow
+        coEvery { timeRepository.getDaysSinceStartCount() } returns flowOf(1)
+        coEvery { serverRepository.getDayWord(2) } throws RuntimeException("Network error")
+        coEvery { storeRepository.removeKeyForms() } just Runs
+        coEvery { storeRepository.saveDaysSinceStartCount(any()) } just Runs
+
+        viewModel = GameViewModel(
+            getDayWordUseCase = getDayWordUseCase,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
+            storeRepository = storeRepository,
+            timeRepository = timeRepository,
+            gameRepository = gameRepository,
+        )
+
+        advanceUntilIdle()
+
+        timeFlow.tryEmit(Pair("00:00:00", true))
+        advanceUntilIdle()
+
+        assertEquals(GameErrorState.DayWordGettingError, viewModel.gameErrorState.value)
+        assertEquals(emptyKeyFields.toLogicModel(), viewModel.keyForms.value.toLogicModel())
+        assertEquals(defaultKeyButtons.toLogicModel(), viewModel.keyButtons.value.toLogicModel())
+        assertEquals(DeleteKeyState.Disabled, viewModel.deleteKeyState.value)
+        assertEquals(CheckWordKeyState.Disabled, viewModel.checkWordKeyState.value)
+        assertEquals(WordCheckState.None, viewModel.wordCheckState.value)
+        assertEquals(Pair(0, 0), viewModel.currentIndex)
+        assertFalse(viewModel.isResultBoardVisible.value)
     }
 
     @Test
     fun `disableControlKeys disables keys correctly`() = runTest(testDispatcher) {
         viewModel = GameViewModel(
-            savedStateHandle = savedStateHandle,
-            databaseRepository = databaseRepository,
+            getDayWordUseCase = getDayWordUseCase,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
         )
+
+        advanceUntilIdle()
 
         viewModel.disableControlKeys()
 
@@ -212,12 +227,14 @@ class TestGameViewModel {
     @Test
     fun `handleKeyClick adds and removes keys correctly`() = runTest(testDispatcher) {
         viewModel = GameViewModel(
-            savedStateHandle = savedStateHandle,
-            databaseRepository = databaseRepository,
+            getDayWordUseCase = getDayWordUseCase,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
         )
+
+        advanceUntilIdle()
 
         viewModel.handleKeyClick(Key.А)
         viewModel.handleKeyClick(Key.Б)
@@ -228,15 +245,17 @@ class TestGameViewModel {
 
     @Test
     fun `checkWord disables check when word is invalid`() = runTest(testDispatcher) {
-        coEvery { databaseRepository.isWordExist("ааааа") } returns false
+        coEvery { serverRepository.isWordExist("ааааа") } returns false
 
         viewModel = GameViewModel(
-            savedStateHandle = savedStateHandle,
-            databaseRepository = databaseRepository,
+            getDayWordUseCase = getDayWordUseCase,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
         )
+
+        advanceUntilIdle()
 
         repeat(5) {
             viewModel.handleKeyClick(Key.А)
@@ -252,20 +271,16 @@ class TestGameViewModel {
 
     @Test
     fun `checkWord sets ExistingWord state and game is not over`() = runTest(testDispatcher) {
-        coEvery { gameRepository.getDayWord() } returns flowOf(WordModel("дубль"))
-        coEvery { databaseRepository.isWordExist("ааааа") } returns true
-        coEvery { gameRepository.getKeyForms() } returns flowOf(emptyList())
+        coEvery { serverRepository.isWordExist("ааааа") } returns true
         coEvery { storeRepository.saveKeyForms(any()) } just Runs
 
         viewModel = GameViewModel(
-            savedStateHandle = savedStateHandle,
-            databaseRepository = databaseRepository,
+            getDayWordUseCase = getDayWordUseCase,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
         )
-
-        viewModel.onLoadValuesStart()
 
         advanceUntilIdle()
 
@@ -282,21 +297,17 @@ class TestGameViewModel {
 
     @Test
     fun `checkWord sets ExistingWord state and game is over`() = runTest(testDispatcher) {
-        coEvery { gameRepository.getDayWord() } returns flowOf(WordModel("дубль"))
-        coEvery { databaseRepository.isWordExist("баран") } returns true
-        coEvery { gameRepository.getKeyForms() } returns flowOf(emptyList())
+        coEvery { serverRepository.isWordExist("баран") } returns true
         coEvery { storeRepository.saveKeyForms(any()) } just Runs
         coEvery { storeRepository.updateStatsOnDefeat() } just Runs
 
         viewModel = GameViewModel(
-            savedStateHandle = savedStateHandle,
-            databaseRepository = databaseRepository,
+            getDayWordUseCase = getDayWordUseCase,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
         )
-
-        viewModel.onLoadValuesStart()
 
         advanceUntilIdle()
 
@@ -316,28 +327,24 @@ class TestGameViewModel {
 
         assertEquals(WordCheckState.ExistingWord(5), viewModel.wordCheckState.value)
         assertEquals(GameResultState.Defeat, viewModel.gameResultState.value)
-        assertEquals(viewModel.keyForms.toLogicModel()[5], oneCorrectKeyCells)
+        assertEquals(viewModel.keyForms.value.toLogicModel()[5], oneCorrectKeyCells)
     }
 
     @Test
     fun `checkWord sets Victory state correctly`() = runTest(testDispatcher) {
-        coEvery { gameRepository.getDayWord() } returns flowOf(WordModel("дубль"))
-        coEvery { databaseRepository.isWordExist("дубль") } returns true
-        coEvery { gameRepository.getKeyForms() } returns flowOf(emptyList())
+        coEvery { serverRepository.isWordExist("дубль") } returns true
         coEvery { timeRepository.getDaysSinceStartCount() } returns flowOf(1)
         coEvery { storeRepository.saveKeyForms(any()) } just Runs
         coEvery { storeRepository.saveLastVictoryDay(any()) } just Runs
         coEvery { storeRepository.updateStatsOnVictory(any()) } just Runs
 
         viewModel = GameViewModel(
-            savedStateHandle = savedStateHandle,
-            databaseRepository = databaseRepository,
+            getDayWordUseCase = getDayWordUseCase,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
         )
-
-        viewModel.onLoadValuesStart()
 
         advanceUntilIdle()
 
@@ -351,88 +358,147 @@ class TestGameViewModel {
 
         assertEquals(GameResultState.Victory, viewModel.gameResultState.value)
         assertEquals(WordCheckState.CorrectWord(0), viewModel.wordCheckState.value)
-        assertEquals(viewModel.keyForms.toLogicModel()[0], correctKeyCells)
+        assertEquals(viewModel.keyForms.value.toLogicModel()[0], correctKeyCells)
     }
 
     @Test
     fun `onFlipAnimationEnd triggers defeat correctly`() = runTest(testDispatcher) {
-        coEvery { gameRepository.getDayWord() } returns flowOf(WordModel("дубль"))
         mockDefeatKeyFormsState()
 
         viewModel = GameViewModel(
-            savedStateHandle = savedStateHandle,
-            databaseRepository = databaseRepository,
+            getDayWordUseCase = getDayWordUseCase,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
         )
 
-        viewModel.onLoadValuesStart()
-
         advanceUntilIdle()
 
-        val keyButtons = defaultKeyButtons.apply {
-            this[2][8] = this[2][8].copy(
-                state = KeyState.PRESENT,
-            )
-            this[1][3] = this[1][3].copy(
-                state = KeyState.ABSENT,
-            )
-            this[1][5] = this[1][5].copy(
-                state = KeyState.ABSENT,
-            )
-            this[0][5] = this[0][5].copy(
-                state = KeyState.ABSENT,
-            )
+        val keyButtons = defaultKeyButtons.mapIndexed { r, row ->
+            row.mapIndexed { c, cell ->
+                when {
+                    r == 2 && c == 8 -> cell.copy(
+                        state = KeyState.PRESENT,
+                    )
+                    r == 1 && c == 3 -> cell.copy(
+                        state = KeyState.ABSENT,
+                    )
+                    r == 1 && c == 5 -> cell.copy(
+                        state = KeyState.ABSENT,
+                    )
+                    r == 0 && c == 5 -> cell.copy(
+                        state = KeyState.ABSENT,
+                    )
+                    else -> cell
+                }
+            }
         }
 
         viewModel.onFlipAnimationEnd { victory, rowIndex ->
             assertFalse(victory)
             assertEquals(6, rowIndex)
-            assertEquals(keyButtons.toLogicModel(), viewModel.keyButtons.toLogicModel())
+            assertEquals(keyButtons.toLogicModel(), viewModel.keyButtons.value.toLogicModel())
         }
     }
 
     @Test
     fun `onFlipAnimationEnd triggers victory correctly`() = runTest(testDispatcher) {
-        coEvery { gameRepository.getDayWord() } returns flowOf(WordModel("дубль"))
         mockVictoryKeyFormsState()
 
         viewModel = GameViewModel(
-            savedStateHandle = savedStateHandle,
-            databaseRepository = databaseRepository,
+            getDayWordUseCase = getDayWordUseCase,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
         )
 
-        viewModel.onLoadValuesStart()
-
         advanceUntilIdle()
 
-        val keyButtons = defaultKeyButtons.apply {
-            this[1][8] = this[1][8].copy(
-                state = KeyState.CORRECT,
-            )
-            this[0][2] = this[0][2].copy(
-                state = KeyState.CORRECT,
-            )
-            this[2][8] = this[2][8].copy(
-                state = KeyState.CORRECT,
-            )
-            this[1][7] = this[1][7].copy(
-                state = KeyState.CORRECT,
-            )
-            this[2][7] = this[2][7].copy(
-                state = KeyState.CORRECT,
-            )
+        val keyButtons = defaultKeyButtons.mapIndexed { r, row ->
+            row.mapIndexed { c, cell ->
+                when {
+                    r == 1 && c == 8 -> cell.copy(
+                        state = KeyState.CORRECT,
+                    )
+                    r == 0 && c == 2 -> cell.copy(
+                        state = KeyState.CORRECT,
+                    )
+                    r == 2 && c == 8 -> cell.copy(
+                        state = KeyState.CORRECT,
+                    )
+                    r == 1 && c == 7 -> cell.copy(
+                        state = KeyState.CORRECT,
+                    )
+                    r == 2 && c == 7 -> cell.copy(
+                        state = KeyState.CORRECT,
+                    )
+                    else -> cell
+                }
+            }
         }
 
         viewModel.onFlipAnimationEnd { victory, rowIndex ->
             assertTrue(victory)
             assertEquals(1, rowIndex)
-            assertEquals(keyButtons.toLogicModel(), viewModel.keyButtons.toLogicModel())
+            assertEquals(keyButtons.toLogicModel(), viewModel.keyButtons.value.toLogicModel())
         }
+    }
+
+    @Test
+    fun `isWordExist throws sets error visible and resets checkWordKeyState`() = runTest(testDispatcher) {
+        coEvery { serverRepository.isWordExist("ааааа") } throws RuntimeException("Network error")
+
+        viewModel = GameViewModel(
+            getDayWordUseCase = getDayWordUseCase,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
+            storeRepository = storeRepository,
+            timeRepository = timeRepository,
+            gameRepository = gameRepository,
+        )
+
+        advanceUntilIdle()
+
+        repeat(5) {
+            viewModel.handleKeyClick(Key.А)
+        }
+
+        viewModel.handleKeyClick(Key.OK)
+
+        advanceUntilIdle()
+
+        assertEquals(GameErrorState.WordExistingCheckError, viewModel.gameErrorState.value)
+        assertEquals(CheckWordKeyState.Enabled, viewModel.checkWordKeyState.value)
+    }
+
+    @Test
+    fun `dismissError sets isErrorVisible to false`() = runTest(testDispatcher) {
+        coEvery { serverRepository.isWordExist("ааааа") } throws RuntimeException("Network error")
+
+        viewModel = GameViewModel(
+            getDayWordUseCase = getDayWordUseCase,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
+            storeRepository = storeRepository,
+            timeRepository = timeRepository,
+            gameRepository = gameRepository,
+        )
+
+        advanceUntilIdle()
+
+        repeat(5) {
+            viewModel.handleKeyClick(Key.А)
+        }
+
+        viewModel.handleKeyClick(Key.OK)
+
+        advanceUntilIdle()
+
+        assertEquals(GameErrorState.WordExistingCheckError, viewModel.gameErrorState.value)
+
+        viewModel.dismissError()
+
+        assertEquals(GameErrorState.Hidden, viewModel.gameErrorState.value)
     }
 
     private val allAbsentKeyCells = listOf(
@@ -505,7 +571,7 @@ class TestGameViewModel {
     )
 
     private fun mockGameInProcessKeyFormsState():  List<List<KeyCellModel>> {
-        val keyCells = buildList {
+        val keyCells = buildList<List<KeyCellModel>> {
             add(allAbsentKeyCells)
             repeat(ROWS_COUNT - 1) {
                 add(emptyList())
@@ -530,7 +596,7 @@ class TestGameViewModel {
     }
 
     private fun mockVictoryKeyFormsState(): List<List<KeyCellModel>> {
-        val keyCells = buildList {
+        val keyCells = buildList<List<KeyCellModel>> {
             add(correctKeyCells)
             repeat(ROWS_COUNT - 1) {
                 add(emptyList())

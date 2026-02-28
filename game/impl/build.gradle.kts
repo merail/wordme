@@ -1,32 +1,12 @@
-import org.gradle.kotlin.dsl.android
-import org.gradle.kotlin.dsl.test
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.library.plugin)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt.gradle)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.jetbrains.kotlin.serialization)
 }
 
 android {
-    namespace = "merail.life.game.impl"
-    compileSdk = 35
-
-    defaultConfig {
-        minSdk = 30
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    kotlinOptions {
-        jvmTarget = JvmTarget.JVM_17.target
-    }
-
     buildFeatures {
         compose = true
     }
@@ -50,11 +30,14 @@ dependencies {
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
 
-    implementation(project(":design"))
-    implementation(project(":core"))
-    implementation(project(":domain"))
-    implementation(project(":database:api"))
-    implementation(project(":store:api"))
-    implementation(project(":time:api"))
-    implementation(project(":game:api"))
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.kotlinx.serialization.json)
+
+    implementation(projects.design)
+    implementation(projects.core)
+    implementation(projects.domain)
+    implementation(projects.server.api)
+    implementation(projects.store.api)
+    implementation(projects.time.api)
+    implementation(projects.game.api)
 }

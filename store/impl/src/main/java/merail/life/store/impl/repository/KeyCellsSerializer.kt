@@ -15,7 +15,7 @@ internal class KeyCellsSerializer @Inject constructor() : Serializer<KeyCells> {
         try {
             KeyCells.parseFrom(input)
         } catch (exception: InvalidProtocolBufferException) {
-            throw CorruptionException("Cannot read proto.", exception)
+            defaultValue
         }
 
     override suspend fun writeTo(t: KeyCells, output: OutputStream) {

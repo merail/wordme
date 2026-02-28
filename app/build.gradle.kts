@@ -15,15 +15,15 @@ plugins {
 android {
     namespace = "merail.life.wordme"
 
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "merail.life.wordme"
         minSdk = 30
-        targetSdk = 35
+        targetSdk = 36
         versionCode = (project.findProperty("VERSION_CODE") as String?)?.toIntOrNull() ?: 1
         versionName = project.findProperty("VERSION_NAME") as String? ?: "1.0"
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "merail.life.wordme.HiltTestRunner"
     }
 
     signingConfigs {
@@ -49,6 +49,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = true
+            isShrinkResources = true
 
             signingConfig = signingConfigs.getByName("release")
 
@@ -73,9 +74,9 @@ android {
     }
 }
 
-afterEvaluate {
-    tasks.named("assembleRelease") {
-        dependsOn("testReleaseUnitTest")
+baselineProfile {
+    filter {
+        include("merail.life.wordme.**")
     }
 }
 
@@ -89,7 +90,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.profileinstaller)
-    "baselineProfile"(project(":profiling"))
+    baselineProfile(projects.profiling)
 
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
@@ -98,10 +99,12 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockk)
 
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.androidx.runner)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
+    androidTestImplementation(libs.androidx.uiautomator)
+    androidTestImplementation(libs.hilt.android.testing)
+    androidTestImplementation(libs.androidx.navigation.testing)
 
     implementation(platform(libs.google.firebase.bom))
     implementation(libs.firebase.crashlytics)
@@ -116,21 +119,20 @@ dependencies {
 
     implementation(libs.play.services.time)
 
-    implementation(project(":core"))
-    implementation(project(":design"))
-    implementation(project(":domain"))
-    implementation(project(":navigation:graph"))
-    implementation(project(":game:api"))
-    implementation(project(":game:impl"))
-    implementation(project(":database:api"))
-    implementation(project(":database:impl"))
-    implementation(project(":store:api"))
-    implementation(project(":store:impl"))
-    implementation(project(":result"))
-    implementation(project(":stats"))
-    implementation(project(":time:api"))
-    implementation(project(":time:impl"))
-    implementation(project(":config:api"))
-    implementation(project(":config:impl"))
-    implementation(project(":connection"))
+    implementation(projects.core)
+    implementation(projects.design)
+    implementation(projects.domain)
+    implementation(projects.game.api)
+    implementation(projects.game.impl)
+    implementation(projects.server.api)
+    implementation(projects.server.impl)
+    implementation(projects.store.api)
+    implementation(projects.store.impl)
+    implementation(projects.result)
+    implementation(projects.stats)
+    implementation(projects.time.api)
+    implementation(projects.time.impl)
+    implementation(projects.config.api)
+    implementation(projects.config.impl)
+    implementation(projects.connection)
 }

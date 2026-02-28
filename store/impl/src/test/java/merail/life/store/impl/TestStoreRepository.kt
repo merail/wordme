@@ -114,7 +114,7 @@ class TestStoreRepository {
 }
 
 class FakePreferencesDataStore : DataStore<Preferences> {
-    private val backingFlow = MutableStateFlow<Preferences>(preferencesOf())
+    private val backingFlow = MutableStateFlow(preferencesOf())
     override val data: Flow<Preferences> = backingFlow
 
     override suspend fun updateData(transform: suspend (Preferences) -> Preferences): Preferences {

@@ -1,4 +1,7 @@
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
 pluginManagement {
+    includeBuild("plugin")
     repositories {
         google {
             content {
@@ -23,15 +26,12 @@ rootProject.name = "WordMe"
 include(":app")
 include(":core")
 include(":design")
-include(":navigation")
-include(":navigation:graph")
-include(":navigation:domain")
 include(":game")
 include(":game:api")
 include(":game:impl")
-include(":database")
-include(":database:api")
-include(":database:impl")
+include(":server")
+include(":server:api")
+include(":server:impl")
 include(":store")
 include(":store:api")
 include(":store:impl")

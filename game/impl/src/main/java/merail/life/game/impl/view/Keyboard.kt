@@ -20,7 +20,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,8 +48,8 @@ import merail.life.game.impl.utils.isValid
 @Composable
 internal fun Keyboard(
     keyButtons: KeyCellsList,
-    checkWordKeyState: MutableState<CheckWordKeyState>,
-    deleteKeyState: MutableState<DeleteKeyState>,
+    checkWordKeyState: CheckWordKeyState,
+    deleteKeyState: DeleteKeyState,
     keyboardHeight: MutableState<Int>,
     onKeyButtonClick: (Key) -> Unit,
 ) {
@@ -90,8 +89,8 @@ internal fun Keyboard(
 @Composable
 internal fun RowScope.KeyButton(
     keyButton: KeyCell,
-    checkWordKeyState: MutableState<CheckWordKeyState>,
-    deleteKeyState: MutableState<DeleteKeyState>,
+    checkWordKeyState: CheckWordKeyState,
+    deleteKeyState: DeleteKeyState,
     onKeyClick: (Key) -> Unit,
 ) {
     val screenWidthDp = LocalConfiguration.current.screenWidthDp.dp
@@ -101,20 +100,18 @@ internal fun RowScope.KeyButton(
     }
 
     Button(
-        onClick = remember {
-            {
-                onKeyClick(keyButton.key)
-            }
+        onClick = {
+            onKeyClick(keyButton.key)
         },
         colors = ButtonDefaults.buttonColors(
             containerColor = when(keyButton.key) {
-                Key.OK -> when (checkWordKeyState.value) {
+                Key.OK -> when (checkWordKeyState) {
                     is CheckWordKeyState.Disabled -> WordMeTheme.colors.elementDisabled
                     is CheckWordKeyState.Loading,
                     is CheckWordKeyState.Enabled,
                         -> WordMeTheme.colors.elementPositive
                 }
-                Key.DEL -> if (deleteKeyState.value is DeleteKeyState.Enabled) {
+                Key.DEL -> if (deleteKeyState is DeleteKeyState.Enabled) {
                     WordMeTheme.colors.elementInversePrimary
                 } else {
                     WordMeTheme.colors.elementDisabled
@@ -156,7 +153,7 @@ internal fun RowScope.KeyButton(
             Key.DEL -> Image(
                 imageVector = ImageVector.vectorResource(R.drawable.ic_delete_key),
                 colorFilter = ColorFilter.tint(
-                    color = if (deleteKeyState.value is DeleteKeyState.Enabled) {
+                    color = if (deleteKeyState is DeleteKeyState.Enabled) {
                         WordMeTheme.colors.elementPrimary
                     } else {
                         WordMeTheme.colors.elementInversePrimary
@@ -164,7 +161,7 @@ internal fun RowScope.KeyButton(
                 ),
                 contentDescription = null,
             )
-            Key.OK -> if (checkWordKeyState.value is CheckWordKeyState.Loading) {
+            Key.OK -> if (checkWordKeyState is CheckWordKeyState.Loading) {
                 CircularProgressIndicator(
                     strokeWidth = 1.dp,
                     color = WordMeTheme.colors.elementPrimary,
@@ -175,13 +172,13 @@ internal fun RowScope.KeyButton(
                 Image(
                     imageVector = ImageVector.vectorResource(R.drawable.ic_check_word),
                     colorFilter = ColorFilter.tint(
-                        color = if (checkWordKeyState.value is CheckWordKeyState.Enabled) {
+                        color = if (checkWordKeyState is CheckWordKeyState.Enabled) {
                             WordMeTheme.colors.elementPrimary
                         } else {
                             WordMeTheme.colors.elementInversePrimary
                         },
                     ),
-                    contentDescription = null,
+                    contentDescription = "check word icon",
                 )
             }
             else -> Text(
@@ -203,12 +200,8 @@ internal fun RowScope.KeyButton(
 private fun KeyboardPreview() {
     Keyboard(
         keyButtons = defaultKeyButtons,
-        checkWordKeyState = remember {
-            mutableStateOf(CheckWordKeyState.Disabled)
-        },
-        deleteKeyState = remember {
-            mutableStateOf(DeleteKeyState.Disabled)
-        },
+        checkWordKeyState = CheckWordKeyState.Disabled,
+        deleteKeyState = DeleteKeyState.Disabled,
         keyboardHeight = remember {
             mutableIntStateOf(0)
         },

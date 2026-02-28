@@ -1,30 +1,12 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.library.plugin)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt.gradle)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.jetbrains.kotlin.serialization)
 }
 
 android {
-    namespace = "merail.life.stats"
-    compileSdk = 35
-
-    defaultConfig {
-        minSdk = 30
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    kotlinOptions {
-        jvmTarget = JvmTarget.JVM_17.target
-    }
-
     buildFeatures {
         compose = true
     }
@@ -46,10 +28,10 @@ dependencies {
     implementation(libs.androidx.hilt.navigation.compose)
 
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.kotlinx.serialization.json)
 
-    implementation(project(":design"))
-    implementation(project(":core"))
-    implementation(project(":domain"))
-    implementation(project(":navigation:domain"))
-    implementation(project(":store:api"))
+    implementation(projects.design)
+    implementation(projects.core)
+    implementation(projects.domain)
+    implementation(projects.store.api)
 }

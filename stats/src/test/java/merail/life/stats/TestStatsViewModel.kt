@@ -48,10 +48,10 @@ class TestStatsViewModel {
 
         advanceUntilIdle()
 
-        assertEquals("80%", viewModel.victoriesPercent)
-        assertEquals("3.0", viewModel.attemptsRatio)
-        assertEquals("8", viewModel.victoriesCount)
-        assertEquals("3", viewModel.victoriesRowCount)
-        assertEquals("5", viewModel.victoriesRowMaxCount)
+        assertEquals("80%", viewModel.victoriesPercent.value)
+        assertEquals("3.0", viewModel.attemptsRatio.value)
+        assertEquals("8", viewModel.victoriesCount.value)
+        assertEquals("3", viewModel.victoriesRowCount.value)
+        assertEquals("5", viewModel.victoriesRowMaxCount.value)
     }
 }

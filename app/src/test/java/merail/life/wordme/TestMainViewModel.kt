@@ -1,21 +1,27 @@
 package merail.life.wordme
 
-import androidx.lifecycle.SavedStateHandle
-import io.mockk.*
+import io.mockk.Runs
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.just
+import io.mockk.mockk
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.test.*
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
 import merail.life.config.api.IConfigRepository
-import merail.life.database.api.IDatabaseRepository
-import merail.life.domain.WordIdModel
+import merail.life.core.log.IWordMeLogger
+import merail.life.server.api.IServerRepository
 import merail.life.domain.WordModel
-import merail.life.domain.constants.IS_TEST_ENVIRONMENT
-import merail.life.domain.exceptions.NoInternetConnectionException
 import merail.life.game.api.IGameRepository
 import merail.life.store.api.IStoreRepository
 import merail.life.time.api.ITimeRepository
+import merail.life.wordme.state.MainState
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -24,15 +30,13 @@ import org.junit.Test
 class MainViewModelTest {
 
     private val configRepository: IConfigRepository = mockk()
-    private val databaseRepository: IDatabaseRepository = mockk()
+    private val serverRepository: IServerRepository = mockk()
     private val storeRepository: IStoreRepository = mockk()
     private val timeRepository: ITimeRepository = mockk()
     private val gameRepository: IGameRepository = mockk()
+    private val logger: IWordMeLogger = mockk(relaxed = true)
 
     private lateinit var viewModel: MainViewModel
-    private val savedStateHandle = SavedStateHandle().apply {
-        set<Boolean>(IS_TEST_ENVIRONMENT, true)
-    }
 
     private val testDispatcher = StandardTestDispatcher()
 
@@ -42,15 +46,7 @@ class MainViewModelTest {
 
         coEvery { configRepository.authAnonymously() } just Runs
 
-        coEvery { configRepository.fetchInitialValues() } just Runs
-
-        coEvery { configRepository.getIdsDatabasePassword() } returns flowOf("test-password")
-
-        every { databaseRepository.initIdsDatabase("test-password") } just Runs
-
         coEvery { timeRepository.getDaysSinceStartCount() } returns flowOf(1)
-
-        coEvery { databaseRepository.getDayWordId(any()) } returns WordIdModel(42)
 
         coEvery { storeRepository.getDaysSinceStartCount() } returns flowOf(0)
 
@@ -58,7 +54,7 @@ class MainViewModelTest {
 
         coEvery { gameRepository.setKeyForms(any()) } just Runs
 
-        coEvery { databaseRepository.getDayWord(any()) } returns WordModel("дубль")
+        coEvery { serverRepository.getDayWord(any()) } returns WordModel("дубль")
 
         coEvery { storeRepository.loadKeyForms() } returns flowOf(emptyList())
 
@@ -79,12 +75,12 @@ class MainViewModelTest {
     @Test
     fun `init success - sets mainState to Success`() = runTest(testDispatcher) {
         viewModel = MainViewModel(
-            savedStateHandle = savedStateHandle,
             configRepository = configRepository,
-            databaseRepository = databaseRepository,
+            serverRepository = serverRepository,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
+            logger = logger,
         )
 
         advanceUntilIdle()
@@ -93,21 +89,21 @@ class MainViewModelTest {
     }
 
     @Test
-    fun `init failure - no internet - sets mainState to NoInternetConnection`() = runTest(testDispatcher) {
-        coEvery { configRepository.fetchInitialValues() } throws NoInternetConnectionException()
+    fun `init failure - sets mainState to LoadingError`() = runTest(testDispatcher) {
+        coEvery { configRepository.authAnonymously() } throws RuntimeException()
 
         viewModel = MainViewModel(
-            savedStateHandle = savedStateHandle,
             configRepository = configRepository,
-            databaseRepository = databaseRepository,
+            serverRepository = serverRepository,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
+            logger = logger,
         )
 
         advanceUntilIdle()
 
-        assertEquals(MainState.NoInternetConnection, viewModel.mainState.value)
+        assertEquals(MainState.LoadingError, viewModel.mainState.value)
     }
 
     @Test
@@ -117,12 +113,12 @@ class MainViewModelTest {
         coEvery { storeRepository.loadKeyForms() } returns flowOf(listOf(mockk()))
 
         viewModel = MainViewModel(
-            savedStateHandle = savedStateHandle,
             configRepository = configRepository,
-            databaseRepository = databaseRepository,
+            serverRepository = serverRepository,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
+            logger = logger,
         )
 
         advanceUntilIdle()
@@ -137,12 +133,12 @@ class MainViewModelTest {
         coEvery { timeRepository.getDaysSinceStartCount() } returns flowOf(1)
 
         viewModel = MainViewModel(
-            savedStateHandle = savedStateHandle,
             configRepository = configRepository,
-            databaseRepository = databaseRepository,
+            serverRepository = serverRepository,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
+            logger = logger,
         )
 
         advanceUntilIdle()
@@ -159,12 +155,12 @@ class MainViewModelTest {
         coEvery { storeRepository.getLastVictoryDay() } returns flowOf(1)
 
         viewModel = MainViewModel(
-            savedStateHandle = savedStateHandle,
             configRepository = configRepository,
-            databaseRepository = databaseRepository,
+            serverRepository = serverRepository,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
+            logger = logger,
         )
 
         advanceUntilIdle()
@@ -179,12 +175,12 @@ class MainViewModelTest {
         coEvery { storeRepository.getLastVictoryDay() } returns flowOf(1)
 
         viewModel = MainViewModel(
-            savedStateHandle = savedStateHandle,
             configRepository = configRepository,
-            databaseRepository = databaseRepository,
+            serverRepository = serverRepository,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
+            logger = logger,
         )
 
         advanceUntilIdle()

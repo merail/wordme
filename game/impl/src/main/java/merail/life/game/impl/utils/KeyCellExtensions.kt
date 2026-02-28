@@ -1,8 +1,5 @@
 package merail.life.game.impl.utils
 
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.compose.runtime.toMutableStateList
 import merail.life.domain.KeyCellModel
 import merail.life.domain.KeyStateModel
 import merail.life.game.impl.ROWS_COUNT
@@ -10,10 +7,10 @@ import merail.life.game.impl.model.Key
 import merail.life.game.impl.model.KeyCell
 import merail.life.game.impl.model.KeyState
 
-internal typealias KeyCellsList = SnapshotStateList<SnapshotStateList<KeyCell>>
+internal typealias KeyCellsList = List<List<KeyCell>>
 
-internal val emptyKeyField: SnapshotStateList<KeyCell>
-    get() = mutableStateListOf(
+internal val emptyKeyField: List<KeyCell>
+    get() = listOf(
         KeyCell(Key.EMPTY),
         KeyCell(Key.EMPTY),
         KeyCell(Key.EMPTY),
@@ -22,7 +19,7 @@ internal val emptyKeyField: SnapshotStateList<KeyCell>
     )
 
 internal val emptyKeyFields: KeyCellsList
-    get() = mutableStateListOf(
+    get() = listOf(
         emptyKeyField,
         emptyKeyField,
         emptyKeyField,
@@ -32,31 +29,27 @@ internal val emptyKeyFields: KeyCellsList
     )
 
 internal val defaultKeyButtons: KeyCellsList
-    get() = mutableStateListOf(
-        mutableStateListOf(KeyCell(Key.Й), KeyCell(Key.Ц), KeyCell(Key.У), KeyCell(Key.К), KeyCell(Key.Е),
+    get() = listOf(
+        listOf(KeyCell(Key.Й), KeyCell(Key.Ц), KeyCell(Key.У), KeyCell(Key.К), KeyCell(Key.Е),
             KeyCell(Key.Н), KeyCell(Key.Г), KeyCell(Key.Ш), KeyCell(Key.Щ), KeyCell(Key.З), KeyCell(Key.Х),
             KeyCell(Key.Ъ)),
-        mutableStateListOf(KeyCell(Key.Ф), KeyCell(Key.Ы), KeyCell(Key.В), KeyCell(Key.А), KeyCell(Key.П),
+        listOf(KeyCell(Key.Ф), KeyCell(Key.Ы), KeyCell(Key.В), KeyCell(Key.А), KeyCell(Key.П),
             KeyCell(Key.Р), KeyCell(Key.О), KeyCell(Key.Л), KeyCell(Key.Д), KeyCell(Key.Ж), KeyCell(Key.Э)),
-        mutableStateListOf(KeyCell(Key.DEL), KeyCell(Key.Я), KeyCell(Key.Ч), KeyCell(Key.С), KeyCell(Key.М),
+        listOf(KeyCell(Key.DEL), KeyCell(Key.Я), KeyCell(Key.Ч), KeyCell(Key.С), KeyCell(Key.М),
             KeyCell(Key.И), KeyCell(Key.Т), KeyCell(Key.Ь), KeyCell(Key.Б), KeyCell( Key.Ю), KeyCell(Key.OK)),
-    )
+        )
 
-internal fun List<List<KeyCellModel>>.toUiModel() = KeyCellsList().apply {
-    this@toUiModel.forEach { keyCellModel ->
-        add(
-            element = keyCellModel.map { entry ->
-                KeyCell(
-                    key = Key.getKeyFromValue(entry.value),
-                    state = entry.state.toUiModel(),
-                )
-            }.toMutableStateList(),
+internal fun List<List<KeyCellModel>>.toUiModel() = map { keyCellModel ->
+    keyCellModel.map { entry ->
+        KeyCell(
+            key = Key.getKeyFromValue(entry.value),
+            state = entry.state.toUiModel(),
         )
     }
 }
 
 internal fun KeyCellsList.toLogicModel() = map {
-    it.toList().map { keyCell ->
+    it.map { keyCell ->
         KeyCellModel(
             value = keyCell.key.value,
             state = keyCell.state.toLogicModel(),
@@ -110,7 +103,7 @@ internal val KeyCellsList.lastFilledRow: Int
         }
     }
 
-internal fun SnapshotStateList<KeyCell>.toStringWord(): String {
+internal fun List<KeyCell>.toStringWord(): String {
     var enteredWord = ""
     forEach {
         enteredWord += it.key.value.lowercase()

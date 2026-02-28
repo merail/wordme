@@ -8,7 +8,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
-import merail.life.config.api.IConfigRepository
+import merail.life.server.api.IServerRepository
 import merail.life.time.api.ITimeRepository
 import merail.life.time.api.ITimeSource
 import merail.life.time.impl.repository.TimeRepository
@@ -17,10 +17,9 @@ import org.junit.Before
 import org.junit.Test
 import java.time.*
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class TestTimeRepository {
 
-    private lateinit var configRepository: IConfigRepository
+    private lateinit var serverRepository: IServerRepository
     private lateinit var timeSource: ITimeSource
     private lateinit var repository: TimeRepository
 
@@ -28,11 +27,11 @@ class TestTimeRepository {
 
     @Before
     fun setUp() {
-        configRepository = mockk()
+        serverRepository = mockk()
         timeSource = mockk()
         repository = TimeRepository(
             appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default),
-            configRepository = configRepository,
+            serverRepository = serverRepository,
             timeSource = timeSource,
         )
     }
@@ -43,7 +42,7 @@ class TestTimeRepository {
         val millis = now.atZone(zone).toInstant().toEpochMilli()
         every { timeSource.getCurrentUnixEpochMillis() } returns flowOf(millis)
 
-        every { configRepository.getGameCountdownStartDate() } returns flowOf("29.06.2025")
+        coEvery { serverRepository.getGameCountdownStartDate() } returns "29.06.2025"
 
         ITimeRepository.debugDaysSinceStartCount = 0
 
