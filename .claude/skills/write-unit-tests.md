@@ -87,3 +87,5 @@ Example: `/write-unit-tests server/impl/src/main/java/merail/life/server/impl/re
 - Use `mockk(relaxed = true)` only for loggers and similar non-critical deps
 - Use `runTest` for coroutine tests, `runTest(testDispatcher)` for ViewModel tests
 - Named parameters when constructing the class under test
+- For error/exception test cases, use `RuntimeException()` — no domain-specific exceptions exist in this project
+- ViewModel loading failure state is `MainState.LoadingError` (not `NoInternetConnection` — that was removed)

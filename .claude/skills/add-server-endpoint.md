@@ -17,7 +17,7 @@ Example: `/add-server-endpoint getStats userId:Int StatsModel`
 
 2. Add the new method to `IServerRepository` interface in `:server:api`
 
-3. Add the raw HTTP call to `ServerApi` — use `serverHttpClient.httpClient.get("<route>")` with `parameter()` for query params, `.body()` for deserialization
+3. Add the raw HTTP call to `ServerApi` — use `serverHttpClient.httpClient.get("<route>")` with `parameter()` for query params, `.body()` for deserialization. Non-2xx responses automatically throw `ResponseException` (client has `expectSuccess = true`) — no manual status checking needed
 
 4. Add the implementation in `ServerRepository` — wrap in `withContext(Dispatchers.IO)`, convert raw response to domain model
 

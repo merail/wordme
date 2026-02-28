@@ -97,5 +97,5 @@ lint/tmp/
 # App Specific cases
 app/release/output.json
 
-# File with words order
-database/impl/src/main/assets/ids_database.db
+# Backup files
+*.ab

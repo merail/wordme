@@ -49,6 +49,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = true
+            isShrinkResources = true
 
             signingConfig = signingConfigs.getByName("release")
 
@@ -70,6 +71,12 @@ android {
 
     buildFeatures {
         compose = true
+    }
+}
+
+baselineProfile {
+    filter {
+        include("merail.life.wordme.**")
     }
 }
 

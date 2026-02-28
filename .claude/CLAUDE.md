@@ -38,8 +38,8 @@ All impl modules are only depended on by `:app`. API modules define repository i
 |--------|------|
 | `:app` | Composition root, navigation, Firebase setup, Hilt entry point |
 | `:core` | Shared utilities, Hilt qualifiers, logging, extensions |
-| `:design` | Compose Material 3 theme, shared UI components |
-| `:domain` | Pure data models and exceptions (no Android dependencies) |
+| `:design` | Compose Material 3 theme, shared UI components; `components/` package for reusable composables (e.g. `CrossIconButton`) |
+| `:domain` | Pure data models (no Android dependencies) |
 | `:game:api/impl` | Game logic, keyboard UI, result board |
 | `:server:api/impl` | Backend API client (Ktor) — day word fetching, word validation |
 | `:store:api/impl` | DataStore preferences with Protobuf |
@@ -47,12 +47,14 @@ All impl modules are only depended on by `:app`. API modules define repository i
 | `:config:api/impl` | Firebase Auth and Firestore remote configuration |
 | `:result` | Victory/result screen |
 | `:stats` | Statistics/history screen |
-| `:connection` | Network connectivity state management |
+| `:connection` | Loading error screen — shown on any initial loading failure (no internet, 403, etc.) |
 | `:profiling` | Baseline profile generation |
 
 ### Server Module Layering
 
 `:server:impl` has a three-layer structure: `ServerHttpClient` (Ktor client config with retries/timeouts) → `ServerApi` (raw HTTP calls) → `ServerRepository` (implements `IServerRepository`, wraps responses into domain models). All classes are `internal`, only `IServerRepository` from `:server:api` is exposed.
+
+`ServerHttpClient` has `expectSuccess = true` — non-2xx responses (403, 404, etc.) automatically throw `ResponseException` instead of returning the body. Also sends `X-WordMe-Token` header from `BuildConfig.ACCESS_TOKEN`.
 
 ### Patterns
 
@@ -74,6 +76,7 @@ All impl modules are only depended on by `:app`. API modules define repository i
 
 The project requires `local.properties` with:
 - `domainUrl` — backend server host (e.g. `wordme.duckdns.org`), used in `BuildConfig.DOMAIN_URL` in `:server:impl`
+- `accessToken` — token for `X-WordMe-Token` header, used in `BuildConfig.ACCESS_TOKEN` in `:server:impl`
 - `reduceTimeUntilNextDay` — debug flag for testing daily reset logic
 - Release signing properties (`releaseKeystorePassword`, `releaseKeystoreAlias`, `releaseKeyPassword`) for local release builds
 - A `google-services.json` in the `:app` module for Firebase

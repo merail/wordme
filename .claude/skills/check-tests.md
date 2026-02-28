@@ -30,3 +30,5 @@ Runs unit tests and analyzes failures.
   - Test mocks an old method signature after refactoring
   - ViewModel init block calls changed but test setUp stubs weren't updated
   - Missing `coEvery` stub for a new dependency call
+- Error simulation convention: use `RuntimeException()` — no domain-specific exceptions (`NoInternetConnectionException` etc.) exist
+- `MainState.LoadingError` is the ViewModel failure state for initial loading errors
