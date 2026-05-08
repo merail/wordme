@@ -145,7 +145,7 @@ class MainViewModelTest {
 
         coVerify { storeRepository.removeKeyForms() }
         coVerify { storeRepository.saveDaysSinceStartCount(1) }
-        coVerify(exactly = 0) { gameRepository.setKeyForms(any()) }
+        coVerify { gameRepository.setKeyForms(emptyList()) }
     }
 
     @Test

@@ -56,6 +56,7 @@ internal class MainViewModel @Inject constructor(
                 } else {
                     storeRepository.saveDaysSinceStartCount(daysSinceStartCount)
                     storeRepository.removeKeyForms()
+                    gameRepository.setKeyForms(emptyList())
                 }
 
                 val lastVictoryDay = storeRepository.getLastVictoryDay().first()

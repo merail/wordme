@@ -135,16 +135,23 @@ internal class GameViewModel @Inject constructor(
             storeRepository.removeKeyForms()
             val daysSinceStartCount = timeRepository.getDaysSinceStartCount().first()
             storeRepository.saveDaysSinceStartCount(daysSinceStartCount)
+            val lastVictoryDay = storeRepository.getLastVictoryDay().first()
+            if (daysSinceStartCount - lastVictoryDay > 1) {
+                storeRepository.resetVictoriesRowCount()
+            }
             getDayWordUseCase(daysSinceStartCount + 1).onFailure {
                 _gameErrorState.value = GameErrorState.DayWordGettingError
+                gameRepository.setKeyForms(emptyList())
                 _keyForms.value = emptyKeyFields
                 _keyButtons.value = defaultKeyButtons
                 disableControlKeys()
                 _wordCheckState.value = WordCheckState.None
+                _gameResultState.value = GameResultState.Process
                 currentIndex = Pair(0, 0)
                 _isResultBoardVisible.value = false
             }.onSuccess {
                 dayWord = it
+                gameRepository.setKeyForms(emptyList())
                 _keyForms.value = emptyKeyFields
                 _keyButtons.value = defaultKeyButtons
                 disableControlKeys()
@@ -318,8 +325,7 @@ internal class GameViewModel @Inject constructor(
         _wordCheckState.value = WordCheckState.CorrectWord(rowIndex)
         disableControlKeys()
         _gameResultState.value = GameResultState.Victory
-        saveLastVictoryDay()
-        saveStats(true)
+        saveVictoryData()
     }
 
     private fun onCorrectWord(
@@ -346,7 +352,7 @@ internal class GameViewModel @Inject constructor(
 
     private fun onDefeat() {
         _gameResultState.value = GameResultState.Defeat
-        saveStats(false)
+        saveDefeatData()
     }
 
     private fun setKeyFormsOnCorrectWord(
@@ -414,19 +420,17 @@ internal class GameViewModel @Inject constructor(
         storeRepository.saveKeyForms(_keyForms.value.toLogicModel())
     }
 
-    private fun saveLastVictoryDay() = viewModelScope.launch {
-        val daysSinceStartCount = timeRepository.getDaysSinceStartCount().first()
-        storeRepository.saveLastVictoryDay(daysSinceStartCount)
+    private fun saveVictoryData() {
+        val attemptsCount = currentIndex.first
+        viewModelScope.launch {
+            val daysSinceStartCount = timeRepository.getDaysSinceStartCount().first()
+            storeRepository.saveLastVictoryDay(daysSinceStartCount)
+            storeRepository.updateStatsOnVictory(attemptsCount = attemptsCount)
+        }
     }
 
-    private fun saveStats(isVictory: Boolean) = viewModelScope.launch {
-        if (isVictory) {
-            storeRepository.updateStatsOnVictory(
-                attemptsCount = currentIndex.first,
-            )
-        } else {
-            storeRepository.updateStatsOnDefeat()
-        }
+    private fun saveDefeatData() = viewModelScope.launch {
+        storeRepository.updateStatsOnDefeat()
     }
 
     private fun updateKeyFormCell(row: Int, col: Int, transform: (KeyCell) -> KeyCell) {

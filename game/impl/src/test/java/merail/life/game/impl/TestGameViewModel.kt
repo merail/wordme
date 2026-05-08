@@ -8,9 +8,11 @@ import io.mockk.mockk
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -63,7 +65,9 @@ class TestGameViewModel {
 
         coEvery { gameRepository.getDayWord() } returns flowOf(WordModel("дубль"))
         coEvery { gameRepository.getKeyForms() } returns flowOf(emptyList())
+        coEvery { gameRepository.setKeyForms(any()) } just Runs
         coEvery { timeRepository.getTimeUntilNextDay() } returns flowOf(Pair("23:59:59", false))
+        coEvery { storeRepository.getLastVictoryDay() } returns flowOf(0)
     }
 
     @After
@@ -499,6 +503,41 @@ class TestGameViewModel {
         viewModel.dismissError()
 
         assertEquals(GameErrorState.Hidden, viewModel.gameErrorState.value)
+    }
+
+    @Test
+    fun `on victory, updateStatsOnVictory is not called before saveLastVictoryDay`() = runTest(testDispatcher) {
+        val callOrder = mutableListOf<String>()
+        val timeDeferred = CompletableDeferred<Int>()
+
+        coEvery { serverRepository.isWordExist("дубль") } returns true
+        coEvery { storeRepository.saveKeyForms(any()) } just Runs
+        coEvery { storeRepository.saveLastVictoryDay(any()) } answers { callOrder += "saveLastVictoryDay" }
+        coEvery { storeRepository.updateStatsOnVictory(any()) } answers { callOrder += "updateStatsOnVictory" }
+        coEvery { timeRepository.getDaysSinceStartCount() } returns flow { emit(timeDeferred.await()) }
+
+        viewModel = GameViewModel(
+            getDayWordUseCase = getDayWordUseCase,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
+            storeRepository = storeRepository,
+            timeRepository = timeRepository,
+            gameRepository = gameRepository,
+        )
+        advanceUntilIdle()
+
+        "ДУБЛЬ".forEach { viewModel.handleKeyClick(Key.valueOf(it.toString())) }
+        viewModel.handleKeyClick(Key.OK)
+        advanceUntilIdle()
+
+        assertFalse(
+            "updateStatsOnVictory вызван до сохранения lastVictoryDay",
+            callOrder.contains("updateStatsOnVictory"),
+        )
+
+        timeDeferred.complete(1)
+        advanceUntilIdle()
+
+        assertEquals(listOf("saveLastVictoryDay", "updateStatsOnVictory"), callOrder)
     }
 
     private val allAbsentKeyCells = listOf(
