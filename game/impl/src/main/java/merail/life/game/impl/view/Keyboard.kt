@@ -189,7 +189,7 @@ internal fun RowScope.KeyButton(
                     WordMeTheme.colors.textInversePrimary
                 },
                 textAlign = TextAlign.Center,
-                style = WordMeTheme.typography.titleLarge,
+                style = WordMeTheme.gameTypography.titleLarge,
             )
         }
     }

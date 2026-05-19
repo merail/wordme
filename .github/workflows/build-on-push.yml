@@ -26,6 +26,7 @@ jobs:
       - name: Create local.properties
         run: |
           echo "reduceTimeUntilNextDay=${{ secrets.REDUCE_TIME_UNTIL_NEXT_DAY_FLAG }}" >> local.properties
+          echo "useTrustedTimeClient=${{ secrets.USE_TRUSTED_TIME_CLIENT }}" >> local.properties
           echo "domainUrl=${{ secrets.DOMAIN_URL }}" >> local.properties
           echo "accessToken=${{ secrets.ACCESS_TOKEN }}" >> local.properties
 

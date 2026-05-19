@@ -423,7 +423,7 @@ internal class GameViewModel @Inject constructor(
     private fun saveVictoryData() {
         val attemptsCount = currentIndex.first
         viewModelScope.launch {
-            val daysSinceStartCount = timeRepository.getDaysSinceStartCount().first()
+            val daysSinceStartCount = storeRepository.getDaysSinceStartCount().first()
             storeRepository.saveLastVictoryDay(daysSinceStartCount)
             storeRepository.updateStatsOnVictory(attemptsCount = attemptsCount)
         }

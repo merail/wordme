@@ -256,9 +256,9 @@ private fun KeyForm(
             },
             textAlign = TextAlign.Center,
             style = if (contentWidth < KEY_SIZE_THRESHOLD.dp) {
-                WordMeTheme.typography.titleLarge
+                WordMeTheme.gameTypography.titleLarge
             } else {
-                WordMeTheme.typography.displaySmall
+                WordMeTheme.gameTypography.displaySmall
             },
             modifier = Modifier
                 .graphicsLayer {

@@ -3,5 +3,5 @@
     <string name="new_word_time_label">До\u00A0появления нового слова:</string>
     <string name="error_default_message">Ошибка</string>
     <string name="error_word_existing_check_message">Ошибка при проверке слова</string>
-    <string name="error_day_word_getting_message">Новое слово не загрузилось. Перезапустите приложение</string>
+    <string name="error_day_word_getting_message">Новое слово не загрузилось. Перезапусти приложение</string>
 </resources>

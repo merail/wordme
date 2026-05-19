@@ -120,7 +120,7 @@ internal fun ResultScreen(
                 style = WordMeTheme.typography.bodyLarge,
                 modifier = Modifier
                     .padding(
-                        horizontal = 8.dp,
+                        horizontal = 24.dp,
                     ),
             )
 

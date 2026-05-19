@@ -20,12 +20,17 @@ fun WordMeTheme(content: @Composable () -> Unit) {
     }
 
     val typography = remember {
-        Typography
+        UiTypography
+    }
+
+    val gameTypography = remember {
+        GameTypography
     }
 
     CompositionLocalProvider(
         LocalWordMeColors provides colors,
         LocalWordMeTypography provides typography,
+        LocalWordMeGameTypography provides gameTypography,
     ) {
         MaterialTheme(
             colorScheme = colors.materialThemeColors,
@@ -46,6 +51,11 @@ object WordMeTheme {
         @Composable
         @ReadOnlyComposable
         get() = LocalWordMeTypography.current
+
+    val gameTypography: Typography
+        @Composable
+        @ReadOnlyComposable
+        get() = LocalWordMeGameTypography.current
 }
 
 @Composable

@@ -78,6 +78,7 @@ The project requires `local.properties` with:
 - `domainUrl` — backend server host (e.g. `wordme.duckdns.org`), used in `BuildConfig.DOMAIN_URL` in `:server:impl`
 - `accessToken` — token for `X-WordMe-Token` header, used in `BuildConfig.ACCESS_TOKEN` in `:server:impl`
 - `reduceTimeUntilNextDay` — debug flag for testing daily reset logic
+- `useTrustedTimeClient` — set `true` to enable Play Services TrustedTimeClient (anti-cheat); set `false` on emulators where TrustedTimeClient returns stale cached time. Used for both debug and release builds via `BuildConfig.USE_TRUSTED_TIME_CLIENT` in `:time:api`; in CI set via `USE_TRUSTED_TIME_CLIENT` GitHub secret.
 - Release signing properties (`releaseKeystorePassword`, `releaseKeystoreAlias`, `releaseKeyPassword`) for local release builds
 - A `google-services.json` in the `:app` module for Firebase
 

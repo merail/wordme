@@ -4,6 +4,7 @@ import android.app.Application
 import com.google.android.gms.time.TrustedTime
 import dagger.hilt.android.HiltAndroidApp
 import merail.life.core.extensions.isActualGmsVersionInstalled
+import merail.life.time.api.BuildConfig
 import merail.life.time.api.ITimeSource
 import javax.inject.Inject
 
@@ -16,7 +17,7 @@ internal class WordMeApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        if (isActualGmsVersionInstalled) {
+        if (BuildConfig.USE_TRUSTED_TIME_CLIENT && isActualGmsVersionInstalled) {
             initTrustedTimeClient()
         } else {
             timeSource.setTimeTrustedClient(null)
