@@ -137,7 +137,7 @@ internal fun ResultScreen(
                     )
                     .fillMaxWidth()
                     .background(
-                        color = WordMeTheme.colors.elementSecondary,
+                        color = WordMeTheme.colors.elementTertiary,
                         shape = RoundedCornerShape(24.dp),
                     )
                     .padding(16.dp),
@@ -167,7 +167,7 @@ internal fun ResultScreen(
                     )
                     .fillMaxWidth()
                     .background(
-                        color = WordMeTheme.colors.elementSecondary,
+                        color = WordMeTheme.colors.elementTertiary,
                         shape = RoundedCornerShape(24.dp),
                     )
                     .padding(16.dp),

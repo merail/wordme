@@ -4,4 +4,8 @@
     <string name="error_default_message">Ошибка</string>
     <string name="error_word_existing_check_message">Ошибка при проверке слова</string>
     <string name="error_day_word_getting_message">Новое слово не загрузилось. Перезапусти приложение</string>
+    <string name="rules_title">Как играть</string>
+    <string name="rules_correct_description">Буква есть в слове и стоит на своём месте</string>
+    <string name="rules_present_description">Буква есть в слове, но стоит не на этом месте</string>
+    <string name="rules_absent_description">Этой буквы нет в слове</string>
 </resources>

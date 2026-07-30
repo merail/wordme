@@ -10,7 +10,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -65,6 +67,10 @@ internal fun GameScreen(
     val timeUntilNextDay by viewModel.timeUntilNextDay.collectAsState()
     val gameErrorState by viewModel.gameErrorState.collectAsState()
 
+    var showRulesBottomSheet by remember {
+        mutableStateOf(false)
+    }
+
     val keyboardHeight = remember {
         mutableIntStateOf(0)
     }
@@ -87,6 +93,9 @@ internal fun GameScreen(
             verticalArrangement = Arrangement.Bottom,
         ) {
             Toolbar(
+                onRulesClick = {
+                    showRulesBottomSheet = true
+                },
                 onInfoClick = onInfoClick,
             )
 
@@ -159,6 +168,14 @@ internal fun GameScreen(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .zIndex(1f),
+        )
+    }
+
+    if (showRulesBottomSheet) {
+        RulesBottomSheet(
+            onDismiss = {
+                showRulesBottomSheet = false
+            },
         )
     }
 }

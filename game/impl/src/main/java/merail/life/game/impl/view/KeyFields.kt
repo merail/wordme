@@ -109,7 +109,7 @@ internal fun ColumnScope.KeyFields(
 }
 
 @Composable
-private fun KeyForm(
+internal fun KeyForm(
     scope: CoroutineScope,
     row: Int,
     column: Int,

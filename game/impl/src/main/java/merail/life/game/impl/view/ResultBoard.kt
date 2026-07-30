@@ -37,7 +37,7 @@ internal fun ResultBoard(
             )
             .fillMaxWidth()
             .background(
-                color = WordMeTheme.colors.elementDisabled,
+                color = WordMeTheme.colors.elementTertiary,
                 shape = RoundedCornerShape(24.dp),
             )
             .clickable(
