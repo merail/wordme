@@ -337,7 +337,7 @@ class TestGameViewModel {
     @Test
     fun `checkWord sets Victory state correctly`() = runTest(testDispatcher) {
         coEvery { serverRepository.isWordExist("дубль") } returns true
-        coEvery { timeRepository.getDaysSinceStartCount() } returns flowOf(1)
+        coEvery { storeRepository.getDaysSinceStartCount() } returns flowOf(1)
         coEvery { storeRepository.saveKeyForms(any()) } just Runs
         coEvery { storeRepository.saveLastVictoryDay(any()) } just Runs
         coEvery { storeRepository.updateStatsOnVictory(any()) } just Runs
@@ -514,7 +514,7 @@ class TestGameViewModel {
         coEvery { storeRepository.saveKeyForms(any()) } just Runs
         coEvery { storeRepository.saveLastVictoryDay(any()) } answers { callOrder += "saveLastVictoryDay" }
         coEvery { storeRepository.updateStatsOnVictory(any()) } answers { callOrder += "updateStatsOnVictory" }
-        coEvery { timeRepository.getDaysSinceStartCount() } returns flow { emit(timeDeferred.await()) }
+        coEvery { storeRepository.getDaysSinceStartCount() } returns flow { emit(timeDeferred.await()) }
 
         viewModel = GameViewModel(
             getDayWordUseCase = getDayWordUseCase,

@@ -27,7 +27,7 @@ import org.junit.Before
 import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class MainViewModelTest {
+class TestMainViewModel {
 
     private val configRepository: IConfigRepository = mockk()
     private val serverRepository: IServerRepository = mockk()

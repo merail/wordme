@@ -10,7 +10,7 @@ import merail.life.server.impl.repository.ServerApi
 import org.junit.Before
 import org.junit.Test
 
-class ServerRepositoryTest {
+class TestServerRepository {
 
     private lateinit var serverApi: ServerApi
     private lateinit var repository: ServerRepository

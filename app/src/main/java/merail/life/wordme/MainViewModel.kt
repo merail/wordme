@@ -41,7 +41,7 @@ internal class MainViewModel @Inject constructor(
 
                 val daysSinceStartCount = timeRepository.getDaysSinceStartCount().first()
 
-                val lastSinceStartDaysCount = storeRepository.getDaysSinceStartCount().first()
+                val lastDaysSinceStartCount = storeRepository.getDaysSinceStartCount().first()
 
                 gameRepository.setDayWord(
                     dayWord = serverRepository.getDayWord(
@@ -49,7 +49,7 @@ internal class MainViewModel @Inject constructor(
                     ),
                 )
 
-                if (lastSinceStartDaysCount == daysSinceStartCount) {
+                if (lastDaysSinceStartCount == daysSinceStartCount) {
                     gameRepository.setKeyForms(
                         keyForms = storeRepository.loadKeyForms().first(),
                     )

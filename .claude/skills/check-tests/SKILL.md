@@ -1,3 +1,9 @@
+---
+name: check-tests
+description: "Run unit tests (all or for one module), analyze failures and propose fixes. Use when asked to run or check tests, or to verify changes with tests."
+argument-hint: "[module]"
+---
+
 # Check Tests
 
 Runs unit tests and analyzes failures.
