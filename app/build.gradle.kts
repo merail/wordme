@@ -134,6 +134,7 @@ dependencies {
     implementation(projects.store.api)
     implementation(projects.store.impl)
     implementation(projects.result)
+    implementation(projects.rules)
     implementation(projects.stats)
     implementation(projects.time.api)
     implementation(projects.time.impl)

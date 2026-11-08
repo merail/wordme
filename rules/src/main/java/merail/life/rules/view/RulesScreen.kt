@@ -1,4 +1,4 @@
-package merail.life.game.impl.view
+package merail.life.rules.view
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -10,8 +10,11 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -26,15 +29,17 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import merail.life.design.WordMeTheme
 import merail.life.design.components.CrossIconButton
-import merail.life.game.impl.R
-import merail.life.game.impl.model.Key
-import merail.life.game.impl.model.KeyCell
-import merail.life.game.impl.model.KeyState
-import merail.life.game.impl.state.WordCheckState
+import merail.life.design.components.LetterCell
+import merail.life.design.components.LetterCellState
+import merail.life.rules.R
+
+private const val CORRECT_EXAMPLE_WORD = "КУЛАК"
+private const val PRESENT_EXAMPLE_WORD = "СКАЛА"
+private const val ABSENT_EXAMPLE_WORD = "ТЕКСТ"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun RulesBottomSheet(
+internal fun RulesScreen(
     onDismiss: () -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -82,57 +87,85 @@ internal fun RulesBottomSheet(
                     ),
             )
 
-            Spacer(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(20.dp),
-            )
+                    .padding(
+                        top = 20.dp,
+                    )
+                    .verticalScroll(
+                        state = rememberScrollState(),
+                    ),
+            ) {
+                Text(
+                    text = stringResource(R.string.rules_intro),
+                    style = WordMeTheme.typography.bodyMedium,
+                )
 
-            RuleExample(
-                word = "КУЛАК",
-                highlightIndex = 0,
-                state = KeyState.CORRECT,
-                description = stringResource(R.string.rules_correct_description),
-            )
+                RulesDivider()
 
-            Spacer(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(20.dp),
-            )
+                RuleExample(
+                    word = CORRECT_EXAMPLE_WORD,
+                    highlightIndex = 0,
+                    state = LetterCellState.CORRECT,
+                    description = stringResource(R.string.rules_correct_description),
+                )
 
-            RuleExample(
-                word = "СКАЛА",
-                highlightIndex = 1,
-                state = KeyState.PRESENT,
-                description = stringResource(R.string.rules_present_description),
-            )
+                Spacer(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(20.dp),
+                )
 
-            Spacer(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(20.dp),
-            )
+                RuleExample(
+                    word = PRESENT_EXAMPLE_WORD,
+                    highlightIndex = 1,
+                    state = LetterCellState.PRESENT,
+                    description = stringResource(R.string.rules_present_description),
+                )
 
-            RuleExample(
-                word = "ТЕКСТ",
-                highlightIndex = 2,
-                state = KeyState.ABSENT,
-                description = stringResource(R.string.rules_absent_description),
-            )
+                Spacer(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(20.dp),
+                )
+
+                RuleExample(
+                    word = ABSENT_EXAMPLE_WORD,
+                    highlightIndex = 2,
+                    state = LetterCellState.ABSENT,
+                    description = stringResource(R.string.rules_absent_description),
+                )
+
+                RulesDivider()
+
+                Text(
+                    text = stringResource(R.string.rules_outro),
+                    style = WordMeTheme.typography.bodyMedium,
+                )
+            }
         }
     }
+}
+
+@Composable
+private fun RulesDivider() {
+    HorizontalDivider(
+        color = WordMeTheme.colors.elementSecondary,
+        modifier = Modifier
+            .padding(
+                vertical = 20.dp,
+            ),
+    )
 }
 
 @Composable
 private fun RuleExample(
     word: String,
     highlightIndex: Int,
-    state: KeyState,
+    state: LetterCellState,
     description: String,
 ) {
-    val scope = rememberCoroutineScope()
-
     Column(
         verticalArrangement = Arrangement.spacedBy(10.dp),
         modifier = Modifier
@@ -144,24 +177,17 @@ private fun RuleExample(
             .padding(16.dp),
     ) {
         Row(
-            horizontalArrangement = Arrangement.Center,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.fillMaxWidth(),
         ) {
             word.forEachIndexed { index, char ->
-                KeyForm(
-                    scope = scope,
-                    row = 0,
-                    column = index,
-                    keyForm = KeyCell(
-                        key = Key.getKeyFromValue(
-                            value = char.toString(),
+                LetterCell(
+                    letter = char.toString(),
+                    state = if (index == highlightIndex) state else LetterCellState.DEFAULT,
+                    modifier = Modifier
+                        .weight(
+                            weight = 1f,
                         ),
-                        state = if (index == highlightIndex) state else KeyState.DEFAULT,
-                    ),
-                    wordCheckState = WordCheckState.None,
-                    isLastFilledRow = true,
-                    isNextDay = false,
-                    onFlipAnimationEnd = {},
                 )
             }
         }

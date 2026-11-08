@@ -22,11 +22,13 @@ fun NavController.navigateToGame(
 
 fun NavGraphBuilder.gameScreen(
     navigateToResult: (Boolean, Int) -> Unit,
+    navigateToRules: () -> Unit,
     navigateToStats: () -> Unit,
 ) {
     composable<GameRoute> {
         GameScreen(
             onGameEnd = navigateToResult,
+            onRulesClick = navigateToRules,
             onInfoClick = navigateToStats,
         )
     }

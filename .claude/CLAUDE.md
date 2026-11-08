@@ -34,7 +34,7 @@ The build reads `local.properties` directly (in `:server:impl` and `:time:api`),
 ```
 :app → every module (the only consumer of :*:impl)
 :x:impl → :x:api, other features' :api modules, :domain, :core
-:result, :stats, :connection (single-module screens) → :*:api, :design, :core
+:result, :rules, :stats, :connection (single-module screens) → :*:api, :design, :core
 ```
 
 Cross-feature dependencies go through api modules only: e.g. `:game:impl` uses `:server:api`, `:store:api`, `:time:api`; `:time:impl` uses `:server:api` (the countdown start date comes from the server).
@@ -53,6 +53,7 @@ Cross-feature dependencies go through api modules only: e.g. `:game:impl` uses `
 | `:time:api/impl` | Time management via Play Services Time API |
 | `:config:api/impl` | Firebase anonymous auth (`authAnonymously()` — the only call) |
 | `:result` | Victory/result screen |
+| `:rules` | "How to play" bottom sheet (game rules with letter cell examples) |
 | `:stats` | Statistics/history screen |
 | `:connection` | Loading error screen — shown on any initial loading failure (no internet, 403, etc.) |
 | `:profiling` | Baseline profile generation |
@@ -72,7 +73,7 @@ The top-level `navigation/` directory is stale build output, not a module (not i
 
 ### Navigation
 
-Each screen module exposes, in its `*Navigation.kt`: a `@Serializable` route implementing `merail.life.core.NavigationRoute`, a `NavController.navigateToX()` extension, and a `NavGraphBuilder.xScreen()` extension. The graph is assembled in `app/.../navigation/WordMeNavGraph.kt`. `Result` and `Stats` are `dialog<>` destinations closed with `popBackStack`; `Game` and `LoadingError` are `composable<>`.
+Each screen module exposes, in its `*Navigation.kt`: a `@Serializable` route implementing `merail.life.core.NavigationRoute`, a `NavController.navigateToX()` extension, and a `NavGraphBuilder.xScreen()` extension. The graph is assembled in `app/.../navigation/WordMeNavGraph.kt`. `Result`, `Rules` and `Stats` are `dialog<>` destinations closed with `popBackStack`; `Game` and `LoadingError` are `composable<>`.
 
 ### Server Module Layering
 

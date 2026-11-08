@@ -11,6 +11,8 @@ import merail.life.game.impl.gameScreen
 import merail.life.game.impl.navigateToGame
 import merail.life.result.navigateToResult
 import merail.life.result.resultScreen
+import merail.life.rules.navigateToRules
+import merail.life.rules.rulesScreen
 import merail.life.stats.navigateToStats
 import merail.life.stats.statsScreen
 
@@ -40,10 +42,15 @@ fun WordMeNavHost(
                     attemptsCount = attemptsCount,
                 )
             },
+            navigateToRules = navController::navigateToRules,
             navigateToStats = navController::navigateToStats,
         )
 
         resultScreen(
+            onDismiss = navController::popBackStack,
+        )
+
+        rulesScreen(
             onDismiss = navController::popBackStack,
         )
 
