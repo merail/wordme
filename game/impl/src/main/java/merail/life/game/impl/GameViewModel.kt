@@ -126,42 +126,47 @@ internal class GameViewModel @Inject constructor(
         isNextDay: Boolean,
     ) {
         _timeUntilNextDay.value = time
+        var isDayChanged = false
         if (isNextDay) {
             if (BuildConfig.REDUCE_TIME_UNTIL_NEXT_DAY) {
                 ITimeRepository.countdownStartRealTime = System.currentTimeMillis()
                 ITimeRepository.debugDaysSinceStartCount++
             }
 
-            storeRepository.removeKeyForms()
             val daysSinceStartCount = timeRepository.getDaysSinceStartCount().first()
-            storeRepository.saveDaysSinceStartCount(daysSinceStartCount)
-            val lastVictoryDay = storeRepository.getLastVictoryDay().first()
-            if (daysSinceStartCount - lastVictoryDay > 1) {
-                storeRepository.resetVictoriesRowCount()
-            }
-            getDayWordUseCase(daysSinceStartCount + 1).onFailure {
-                _gameErrorState.value = GameErrorState.DayWordGettingError
-                gameRepository.setKeyForms(emptyList())
-                _keyForms.value = emptyKeyFields
-                _keyButtons.value = defaultKeyButtons
-                disableControlKeys()
-                _wordCheckState.value = WordCheckState.None
-                _gameResultState.value = GameResultState.Process
-                currentIndex = Pair(0, 0)
-                _isResultBoardVisible.value = false
-            }.onSuccess {
-                dayWord = it
-                gameRepository.setKeyForms(emptyList())
-                _keyForms.value = emptyKeyFields
-                _keyButtons.value = defaultKeyButtons
-                disableControlKeys()
-                _wordCheckState.value = WordCheckState.None
-                _gameResultState.value = GameResultState.Process
-                currentIndex = Pair(0, 0)
-                _isResultBoardVisible.value = false
+            val lastDaysSinceStartCount = storeRepository.getDaysSinceStartCount().first()
+            if (daysSinceStartCount > lastDaysSinceStartCount) {
+                isDayChanged = true
+                storeRepository.removeKeyForms()
+                storeRepository.saveDaysSinceStartCount(daysSinceStartCount)
+                val lastVictoryDay = storeRepository.getLastVictoryDay().first()
+                if (daysSinceStartCount - lastVictoryDay > 1) {
+                    storeRepository.resetVictoriesRowCount()
+                }
+                getDayWordUseCase(daysSinceStartCount + 1).onFailure {
+                    _gameErrorState.value = GameErrorState.DayWordGettingError
+                    gameRepository.setKeyForms(emptyList())
+                    _keyForms.value = emptyKeyFields
+                    _keyButtons.value = defaultKeyButtons
+                    disableControlKeys()
+                    _wordCheckState.value = WordCheckState.None
+                    _gameResultState.value = GameResultState.Process
+                    currentIndex = Pair(0, 0)
+                    _isResultBoardVisible.value = false
+                }.onSuccess {
+                    dayWord = it
+                    gameRepository.setKeyForms(emptyList())
+                    _keyForms.value = emptyKeyFields
+                    _keyButtons.value = defaultKeyButtons
+                    disableControlKeys()
+                    _wordCheckState.value = WordCheckState.None
+                    _gameResultState.value = GameResultState.Process
+                    currentIndex = Pair(0, 0)
+                    _isResultBoardVisible.value = false
+                }
             }
         }
-        _isNextDay.value = isNextDay
+        _isNextDay.value = isDayChanged
     }
 
     fun disableControlKeys() {

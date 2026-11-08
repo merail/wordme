@@ -24,6 +24,7 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.Locale
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
 internal val fakeStartTime = LocalDateTime.now().with(LocalTime.of(23, 59, 40))
 
@@ -34,15 +35,15 @@ internal class TimeRepository @Inject constructor(
 ) : ITimeRepository {
 
     private val debugTimeUntilNextDay by lazy {
-        flow<Duration> {
+        flow {
             while (true) {
                 val millisPassed = System.currentTimeMillis() - countdownStartRealTime
                 val nowFake = fakeStartTime.plusNanos(millisPassed * 1_000_000)
                 val midnight = fakeStartTime.toLocalDate().plusDays(1).atStartOfDay()
 
-                emit(Duration.between(nowFake, midnight).coerceAtLeast(Duration.ZERO))
+                emit(nowFake to Duration.between(nowFake, midnight).coerceAtLeast(Duration.ZERO))
 
-                delay(1000L)
+                delay(1000L.milliseconds)
             }
         }.shareIn(
             scope = appScope,
@@ -58,9 +59,9 @@ internal class TimeRepository @Inject constructor(
                 val now = LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMillis), ZoneId.systemDefault())
                 val midnight = now.toLocalDate().plusDays(1).atStartOfDay()
 
-                emit(Duration.between(now, midnight).coerceAtLeast(Duration.ZERO))
+                emit(now to Duration.between(now, midnight).coerceAtLeast(Duration.ZERO))
 
-                delay(1000L)
+                delay(1000L.milliseconds)
             }
         }.shareIn(
             scope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
@@ -84,23 +85,35 @@ internal class TimeRepository @Inject constructor(
 
     override suspend fun getTimeUntilNextDay(
         reduceTimeFlag: Boolean,
-    ) = if (reduceTimeFlag) {
-        debugTimeUntilNextDay
-    } else {
-        releaseTimeUntilNextDay
-    }.map {
-        val hours = it.toHours()
-        val minutes = it.toMinutes() % 60
-        val seconds = it.seconds % 60
+    ) = flow {
+        val timeFlow = if (reduceTimeFlag) {
+            debugTimeUntilNextDay
+        } else {
+            releaseTimeUntilNextDay
+        }
 
-        val isNextDay = hours == 0L && minutes == 0L && seconds == 0L
+        var previousDay: LocalDate? = null
 
-        String.format(
-            locale = Locale.getDefault(),
-            format = "%02d:%02d:%02d",
-            hours,
-            minutes,
-            seconds,
-        ) to isNextDay
+        timeFlow.collect { (now, timeUntilNextDay) ->
+            val day = now.plusSeconds(1).toLocalDate()
+            val isNextDay = previousDay?.let {
+                day.isAfter(it)
+            } == true
+            previousDay = day
+
+            val hours = timeUntilNextDay.toHours()
+            val minutes = timeUntilNextDay.toMinutes() % 60
+            val seconds = timeUntilNextDay.seconds % 60
+
+            emit(
+                String.format(
+                    locale = Locale.getDefault(),
+                    format = "%02d:%02d:%02d",
+                    hours,
+                    minutes,
+                    seconds,
+                ) to isNextDay,
+            )
+        }
     }
 }

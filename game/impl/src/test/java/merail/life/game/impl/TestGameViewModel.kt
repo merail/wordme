@@ -137,6 +137,7 @@ class TestGameViewModel {
         val timeFlow = MutableSharedFlow<Pair<String, Boolean>>(extraBufferCapacity = 1)
         coEvery { timeRepository.getTimeUntilNextDay() } returns timeFlow
         coEvery { timeRepository.getDaysSinceStartCount() } returns flowOf(1)
+        coEvery { storeRepository.getDaysSinceStartCount() } returns flowOf(0)
         coEvery { serverRepository.getDayWord(2) } returns WordModel("аббат")
         coEvery { storeRepository.removeKeyForms() } just Runs
         coEvery { storeRepository.saveDaysSinceStartCount(any()) } just Runs
@@ -179,10 +180,41 @@ class TestGameViewModel {
     }
 
     @Test
+    fun `next day signal without day number change keeps current game`() = runTest(testDispatcher) {
+        val keyCells = mockGameInProcessKeyFormsState()
+        val timeFlow = MutableSharedFlow<Pair<String, Boolean>>(extraBufferCapacity = 1)
+        coEvery { timeRepository.getTimeUntilNextDay() } returns timeFlow
+        coEvery { timeRepository.getDaysSinceStartCount() } returns flowOf(1)
+        coEvery { storeRepository.getDaysSinceStartCount() } returns flowOf(1)
+
+        viewModel = GameViewModel(
+            getDayWordUseCase = getDayWordUseCase,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
+            storeRepository = storeRepository,
+            timeRepository = timeRepository,
+            gameRepository = gameRepository,
+        )
+
+        advanceUntilIdle()
+
+        timeFlow.tryEmit(Pair("23:59:59", true))
+        advanceUntilIdle()
+
+        assertEquals(WordModel("дубль"), viewModel.dayWord)
+        assertEquals(keyCells, viewModel.keyForms.value.toLogicModel())
+        assertEquals(Pair(1, 0), viewModel.currentIndex)
+        assertFalse(viewModel.isNextDay.value)
+        coVerify(exactly = 0) { storeRepository.removeKeyForms() }
+        coVerify(exactly = 0) { storeRepository.saveDaysSinceStartCount(any()) }
+        coVerify(exactly = 0) { serverRepository.getDayWord(any()) }
+    }
+
+    @Test
     fun `getDayWord fails on next day sets DayWordGettingError and resets state`() = runTest(testDispatcher) {
         val timeFlow = MutableSharedFlow<Pair<String, Boolean>>(extraBufferCapacity = 1)
         coEvery { timeRepository.getTimeUntilNextDay() } returns timeFlow
         coEvery { timeRepository.getDaysSinceStartCount() } returns flowOf(1)
+        coEvery { storeRepository.getDaysSinceStartCount() } returns flowOf(0)
         coEvery { serverRepository.getDayWord(2) } throws RuntimeException("Network error")
         coEvery { storeRepository.removeKeyForms() } just Runs
         coEvery { storeRepository.saveDaysSinceStartCount(any()) } just Runs
@@ -610,7 +642,7 @@ class TestGameViewModel {
     )
 
     private fun mockGameInProcessKeyFormsState():  List<List<KeyCellModel>> {
-        val keyCells = buildList<List<KeyCellModel>> {
+        val keyCells = buildList {
             add(allAbsentKeyCells)
             repeat(ROWS_COUNT - 1) {
                 add(emptyList())
@@ -635,7 +667,7 @@ class TestGameViewModel {
     }
 
     private fun mockVictoryKeyFormsState(): List<List<KeyCellModel>> {
-        val keyCells = buildList<List<KeyCellModel>> {
+        val keyCells = buildList {
             add(correctKeyCells)
             repeat(ROWS_COUNT - 1) {
                 add(emptyList())
