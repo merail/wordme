@@ -216,8 +216,6 @@ class TestGameViewModel {
         coEvery { timeRepository.getDaysSinceStartCount() } returns flowOf(1)
         coEvery { storeRepository.getDaysSinceStartCount() } returns flowOf(0)
         coEvery { serverRepository.getDayWord(2) } throws RuntimeException("Network error")
-        coEvery { storeRepository.removeKeyForms() } just Runs
-        coEvery { storeRepository.saveDaysSinceStartCount(any()) } just Runs
 
         viewModel = GameViewModel(
             getDayWordUseCase = getDayWordUseCase,
@@ -240,6 +238,103 @@ class TestGameViewModel {
         assertEquals(WordCheckState.None, viewModel.wordCheckState.value)
         assertEquals(Pair(0, 0), viewModel.currentIndex)
         assertFalse(viewModel.isResultBoardVisible.value)
+        coVerify(exactly = 0) { storeRepository.removeKeyForms() }
+        coVerify(exactly = 0) { storeRepository.saveDaysSinceStartCount(any()) }
+        coVerify(exactly = 0) { storeRepository.resetVictoriesRowCount() }
+    }
+
+    @Test
+    fun `getDaysSinceStartCount fails on next day sets DayWordGettingError`() = runTest(testDispatcher) {
+        val timeFlow = MutableSharedFlow<Pair<String, Boolean>>(extraBufferCapacity = 1)
+        coEvery { timeRepository.getTimeUntilNextDay() } returns timeFlow
+        coEvery { timeRepository.getDaysSinceStartCount() } returns flow { throw RuntimeException() }
+
+        viewModel = GameViewModel(
+            getDayWordUseCase = getDayWordUseCase,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
+            storeRepository = storeRepository,
+            timeRepository = timeRepository,
+            gameRepository = gameRepository,
+        )
+
+        advanceUntilIdle()
+
+        timeFlow.tryEmit(Pair("00:00:00", true))
+        advanceUntilIdle()
+
+        assertEquals(GameErrorState.DayWordGettingError, viewModel.gameErrorState.value)
+        assertEquals(WordModel("дубль"), viewModel.dayWord)
+        coVerify(exactly = 0) { serverRepository.getDayWord(any()) }
+        coVerify(exactly = 0) { storeRepository.removeKeyForms() }
+    }
+
+    @Test
+    fun `dismissError keeps DayWordGettingError`() = runTest(testDispatcher) {
+        val timeFlow = MutableSharedFlow<Pair<String, Boolean>>(extraBufferCapacity = 1)
+        coEvery { timeRepository.getTimeUntilNextDay() } returns timeFlow
+        coEvery { timeRepository.getDaysSinceStartCount() } returns flowOf(1)
+        coEvery { storeRepository.getDaysSinceStartCount() } returns flowOf(0)
+        coEvery { serverRepository.getDayWord(2) } throws RuntimeException()
+
+        viewModel = GameViewModel(
+            getDayWordUseCase = getDayWordUseCase,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
+            storeRepository = storeRepository,
+            timeRepository = timeRepository,
+            gameRepository = gameRepository,
+        )
+
+        advanceUntilIdle()
+
+        timeFlow.tryEmit(Pair("00:00:00", true))
+        advanceUntilIdle()
+
+        viewModel.dismissError()
+
+        assertEquals(GameErrorState.DayWordGettingError, viewModel.gameErrorState.value)
+    }
+
+    @Test
+    fun `day word is reloaded after failure and new day is saved`() = runTest(testDispatcher) {
+        val timeFlow = MutableSharedFlow<Pair<String, Boolean>>(extraBufferCapacity = 1)
+        coEvery { timeRepository.getTimeUntilNextDay() } returns timeFlow
+        coEvery { timeRepository.getDaysSinceStartCount() } returns flowOf(1)
+        coEvery { storeRepository.getDaysSinceStartCount() } returns flowOf(0)
+        coEvery { serverRepository.getDayWord(2) } throws RuntimeException() andThen WordModel("аббат")
+        coEvery { storeRepository.removeKeyForms() } just Runs
+        coEvery { storeRepository.saveDaysSinceStartCount(any()) } just Runs
+
+        viewModel = GameViewModel(
+            getDayWordUseCase = getDayWordUseCase,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
+            storeRepository = storeRepository,
+            timeRepository = timeRepository,
+            gameRepository = gameRepository,
+        )
+
+        advanceUntilIdle()
+
+        timeFlow.tryEmit(Pair("00:00:00", true))
+        advanceUntilIdle()
+
+        repeat(GameViewModel.DAY_WORD_RETRY_TICKS_COUNT - 1) {
+            timeFlow.tryEmit(Pair("23:59:59", false))
+            advanceUntilIdle()
+        }
+
+        assertEquals(GameErrorState.DayWordGettingError, viewModel.gameErrorState.value)
+        coVerify(exactly = 1) { serverRepository.getDayWord(2) }
+        coVerify(exactly = 0) { storeRepository.removeKeyForms() }
+
+        timeFlow.tryEmit(Pair("23:59:50", false))
+        advanceUntilIdle()
+
+        assertEquals(GameErrorState.Hidden, viewModel.gameErrorState.value)
+        assertEquals(WordModel("аббат"), viewModel.dayWord)
+        assertEquals(emptyKeyFields.toLogicModel(), viewModel.keyForms.value.toLogicModel())
+        coVerify(exactly = 2) { serverRepository.getDayWord(2) }
+        coVerify(exactly = 1) { storeRepository.removeKeyForms() }
+        coVerify(exactly = 1) { storeRepository.saveDaysSinceStartCount(1) }
     }
 
     @Test

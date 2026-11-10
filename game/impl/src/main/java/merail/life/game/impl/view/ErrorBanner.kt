@@ -8,9 +8,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
@@ -29,6 +31,7 @@ import merail.life.design.WordMeTheme
 import merail.life.design.components.CrossIconButton
 import merail.life.game.impl.R
 import merail.life.game.impl.state.GameErrorState
+import merail.life.game.impl.state.isGettingError
 import merail.life.game.impl.state.isVisible
 
 @Composable
@@ -50,6 +53,8 @@ internal fun ErrorBanner(
     ) {
         val coroutineScope = rememberCoroutineScope()
 
+        val isDismissible = errorState.isGettingError.not()
+
         val dismissState = rememberSwipeToDismissBoxState()
 
         LaunchedEffect(dismissState.currentValue) {
@@ -61,35 +66,47 @@ internal fun ErrorBanner(
         SwipeToDismissBox(
             state = dismissState,
             backgroundContent = {},
+            enableDismissFromStartToEnd = isDismissible,
+            enableDismissFromEndToStart = isDismissible,
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(108.dp)
+                    .heightIn(
+                        min = 80.dp,
+                    )
                     .clip(RoundedCornerShape(16.dp))
-                    .background(WordMeTheme.colors.elementNegative)
+                    .background(WordMeTheme.colors.elementNegativeSecondary)
                     .padding(
                         horizontal = 16.dp,
-                        vertical = 12.dp,
+                        vertical = 16.dp,
                     ),
             ) {
                 Text(
                     text = errorState.errorText(),
-                    style = WordMeTheme.typography.titleLarge,
+                    style = WordMeTheme.typography.bodyLarge,
                     color = WordMeTheme.colors.textInversePrimary,
                     modifier = Modifier
                         .weight(1f),
                 )
-                CrossIconButton(
-                    backgroundColor = WordMeTheme.colors.elementNegativeTertiary,
-                    onClick = {
-                        coroutineScope.launch {
-                            onDismiss()
-                        }
-                    },
-                )
+                when {
+                    errorState.isGettingError -> CircularProgressIndicator(
+                        strokeWidth = 2.dp,
+                        color = WordMeTheme.colors.textInversePrimary,
+                        modifier = Modifier
+                            .size(24.dp),
+                    )
+                    errorState.isVisible -> CrossIconButton(
+                        backgroundColor = WordMeTheme.colors.elementNegativeTertiary,
+                        onClick = {
+                            coroutineScope.launch {
+                                onDismiss()
+                            }
+                        },
+                    )
+                }
             }
         }
     }

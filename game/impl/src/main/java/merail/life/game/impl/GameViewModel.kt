@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import merail.life.core.extensions.suspendableRunCatching
 import merail.life.domain.Empty
 import merail.life.domain.WordModel
 import merail.life.game.api.IGameRepository
@@ -20,6 +21,7 @@ import merail.life.game.impl.state.DeleteKeyState
 import merail.life.game.impl.state.GameErrorState
 import merail.life.game.impl.state.GameResultState
 import merail.life.game.impl.state.WordCheckState
+import merail.life.game.impl.state.isGettingError
 import merail.life.game.impl.utils.KeyCellsList
 import merail.life.game.impl.utils.defaultKeyButtons
 import merail.life.game.impl.utils.emptyKeyFields
@@ -50,10 +52,14 @@ internal class GameViewModel @Inject constructor(
 
     companion object {
         internal const val TAG = "GameViewModel"
+
+        internal const val DAY_WORD_RETRY_TICKS_COUNT = 10
     }
 
     var dayWord = WordModel.Empty
         private set
+
+    private var ticksUntilDayWordRetry = 0
 
     private val _keyForms = MutableStateFlow(emptyKeyFields)
     val keyForms: StateFlow<KeyCellsList> = _keyForms
@@ -126,47 +132,54 @@ internal class GameViewModel @Inject constructor(
         isNextDay: Boolean,
     ) {
         _timeUntilNextDay.value = time
-        var isDayChanged = false
-        if (isNextDay) {
-            if (BuildConfig.REDUCE_TIME_UNTIL_NEXT_DAY) {
+        val isDayWordGettingError = _gameErrorState.value.isGettingError
+        if (isDayWordGettingError) {
+            ticksUntilDayWordRetry--
+        }
+        var isBoardReset = false
+        if (isNextDay || (isDayWordGettingError && ticksUntilDayWordRetry <= 0)) {
+            if (isNextDay && BuildConfig.REDUCE_TIME_UNTIL_NEXT_DAY) {
                 ITimeRepository.countdownStartRealTime = System.currentTimeMillis()
                 ITimeRepository.debugDaysSinceStartCount++
             }
 
-            val daysSinceStartCount = timeRepository.getDaysSinceStartCount().first()
-            val lastDaysSinceStartCount = storeRepository.getDaysSinceStartCount().first()
-            if (daysSinceStartCount > lastDaysSinceStartCount) {
-                isDayChanged = true
-                storeRepository.removeKeyForms()
-                storeRepository.saveDaysSinceStartCount(daysSinceStartCount)
-                val lastVictoryDay = storeRepository.getLastVictoryDay().first()
-                if (daysSinceStartCount - lastVictoryDay > 1) {
-                    storeRepository.resetVictoriesRowCount()
+            ticksUntilDayWordRetry = DAY_WORD_RETRY_TICKS_COUNT
+            suspendableRunCatching {
+                val daysSinceStartCount = timeRepository.getDaysSinceStartCount().first()
+                val lastDaysSinceStartCount = storeRepository.getDaysSinceStartCount().first()
+                if (daysSinceStartCount > lastDaysSinceStartCount) {
+                    val newDayWord = getDayWordUseCase(daysSinceStartCount + 1).getOrThrow()
+                    storeRepository.removeKeyForms()
+                    storeRepository.saveDaysSinceStartCount(daysSinceStartCount)
+                    val lastVictoryDay = storeRepository.getLastVictoryDay().first()
+                    if (daysSinceStartCount - lastVictoryDay > 1) {
+                        storeRepository.resetVictoriesRowCount()
+                    }
+                    dayWord = newDayWord
+                    _gameErrorState.value = GameErrorState.Hidden
+                    resetBoard()
+                    isBoardReset = true
                 }
-                getDayWordUseCase(daysSinceStartCount + 1).onFailure {
+            }.onFailure {
+                if (isDayWordGettingError.not()) {
                     _gameErrorState.value = GameErrorState.DayWordGettingError
-                    gameRepository.setKeyForms(emptyList())
-                    _keyForms.value = emptyKeyFields
-                    _keyButtons.value = defaultKeyButtons
-                    disableControlKeys()
-                    _wordCheckState.value = WordCheckState.None
-                    _gameResultState.value = GameResultState.Process
-                    currentIndex = Pair(0, 0)
-                    _isResultBoardVisible.value = false
-                }.onSuccess {
-                    dayWord = it
-                    gameRepository.setKeyForms(emptyList())
-                    _keyForms.value = emptyKeyFields
-                    _keyButtons.value = defaultKeyButtons
-                    disableControlKeys()
-                    _wordCheckState.value = WordCheckState.None
-                    _gameResultState.value = GameResultState.Process
-                    currentIndex = Pair(0, 0)
-                    _isResultBoardVisible.value = false
+                    resetBoard()
+                    isBoardReset = true
                 }
             }
         }
-        _isNextDay.value = isDayChanged
+        _isNextDay.value = isBoardReset
+    }
+
+    private fun resetBoard() {
+        gameRepository.setKeyForms(emptyList())
+        _keyForms.value = emptyKeyFields
+        _keyButtons.value = defaultKeyButtons
+        disableControlKeys()
+        _wordCheckState.value = WordCheckState.None
+        _gameResultState.value = GameResultState.Process
+        currentIndex = Pair(0, 0)
+        _isResultBoardVisible.value = false
     }
 
     fun disableControlKeys() {
@@ -204,7 +217,9 @@ internal class GameViewModel @Inject constructor(
     }
 
     fun dismissError() {
-        _gameErrorState.value = GameErrorState.Hidden
+        if (_gameErrorState.value.isGettingError.not()) {
+            _gameErrorState.value = GameErrorState.Hidden
+        }
     }
 
     private fun addKey(key: Key) {
