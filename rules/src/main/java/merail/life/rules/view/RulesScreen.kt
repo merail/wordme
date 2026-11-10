@@ -63,7 +63,11 @@ internal fun RulesScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(0.9f)
-                .padding(16.dp),
+                .padding(
+                    start = 16.dp,
+                    top = 16.dp,
+                    end = 16.dp,
+                ),
         ) {
             CrossIconButton(
                 onClick = {
@@ -95,6 +99,9 @@ internal fun RulesScreen(
                     )
                     .verticalScroll(
                         state = rememberScrollState(),
+                    )
+                    .padding(
+                        bottom = 32.dp,
                     ),
             ) {
                 Text(
