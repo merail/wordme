@@ -80,9 +80,7 @@ android {
 }
 
 baselineProfile {
-    filter {
-        include("merail.life.wordme.**")
-    }
+    mergeIntoMain = true
 }
 
 dependencies {

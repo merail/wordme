@@ -25,6 +25,8 @@ WordMe is a native Android daily word game (Russian, 5-letter words, 6 attempts 
 
 The build reads `local.properties` directly (in `:server:impl` and `:time:api`), so it fails without it — see Local Setup.
 
+`generateBaselineProfile` writes `baseline-prof.txt` and `startup-prof.txt` to `app/src/main/generated/baselineProfiles/` (`mergeIntoMain = true` in `:app`). Commit them after regenerating — release builds, CI included, take the profile only from there. The profile has no package filter on purpose: it covers library code (Ktor, Firebase, Hilt) run at startup too.
+
 ## Architecture
 
 **Clean Architecture with API/Impl module separation.** Feature modules expose interfaces in `:feature:api` and implementations in `:feature:impl`. The app module composes everything together.
