@@ -25,6 +25,7 @@ import merail.life.domain.KeyCellModel
 import merail.life.domain.KeyStateModel
 import merail.life.domain.WordModel
 import merail.life.game.api.IGameRepository
+import merail.life.game.impl.loader.GameLoader
 import merail.life.game.impl.model.Key
 import merail.life.game.impl.model.KeyState
 import merail.life.game.impl.useCases.CheckWordExistenceUseCase
@@ -54,7 +55,13 @@ class TestGameViewModel {
     private val gameRepository: IGameRepository = mockk()
     private val logger: IWordMeLogger = mockk(relaxed = true)
 
-    private val getDayWordUseCase = GetDayWordUseCase(serverRepository, logger)
+    private val gameLoader = GameLoader(
+        configRepository = mockk(),
+        getDayWordUseCase = GetDayWordUseCase(serverRepository, logger),
+        storeRepository = storeRepository,
+        timeRepository = timeRepository,
+        gameRepository = gameRepository,
+    )
     private val checkWordExistenceUseCase = CheckWordExistenceUseCase(serverRepository, logger)
 
     private val testDispatcher = StandardTestDispatcher()
@@ -65,6 +72,7 @@ class TestGameViewModel {
 
         coEvery { gameRepository.getDayWord() } returns flowOf(WordModel("дубль"))
         coEvery { gameRepository.getKeyForms() } returns flowOf(emptyList())
+        coEvery { gameRepository.setDayWord(any()) } just Runs
         coEvery { gameRepository.setKeyForms(any()) } just Runs
         coEvery { timeRepository.getTimeUntilNextDay() } returns flowOf(Pair("23:59:59", false))
         coEvery { storeRepository.getLastVictoryDay() } returns flowOf(0)
@@ -80,7 +88,7 @@ class TestGameViewModel {
         val keyCells = mockGameInProcessKeyFormsState()
 
         viewModel = GameViewModel(
-            getDayWordUseCase = getDayWordUseCase,
+            gameLoader = gameLoader,
             checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
@@ -99,7 +107,7 @@ class TestGameViewModel {
         val keyCells = mockDefeatKeyFormsState()
 
         viewModel = GameViewModel(
-            getDayWordUseCase = getDayWordUseCase,
+            gameLoader = gameLoader,
             checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
@@ -118,7 +126,7 @@ class TestGameViewModel {
         val keyCells = mockVictoryKeyFormsState()
 
         viewModel = GameViewModel(
-            getDayWordUseCase = getDayWordUseCase,
+            gameLoader = gameLoader,
             checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
@@ -143,7 +151,7 @@ class TestGameViewModel {
         coEvery { storeRepository.saveDaysSinceStartCount(any()) } just Runs
 
         viewModel = GameViewModel(
-            getDayWordUseCase = getDayWordUseCase,
+            gameLoader = gameLoader,
             checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
@@ -188,7 +196,7 @@ class TestGameViewModel {
         coEvery { storeRepository.getDaysSinceStartCount() } returns flowOf(1)
 
         viewModel = GameViewModel(
-            getDayWordUseCase = getDayWordUseCase,
+            gameLoader = gameLoader,
             checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
@@ -218,7 +226,7 @@ class TestGameViewModel {
         coEvery { serverRepository.getDayWord(2) } throws RuntimeException("Network error")
 
         viewModel = GameViewModel(
-            getDayWordUseCase = getDayWordUseCase,
+            gameLoader = gameLoader,
             checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
@@ -250,7 +258,7 @@ class TestGameViewModel {
         coEvery { timeRepository.getDaysSinceStartCount() } returns flow { throw RuntimeException() }
 
         viewModel = GameViewModel(
-            getDayWordUseCase = getDayWordUseCase,
+            gameLoader = gameLoader,
             checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
@@ -277,7 +285,7 @@ class TestGameViewModel {
         coEvery { serverRepository.getDayWord(2) } throws RuntimeException()
 
         viewModel = GameViewModel(
-            getDayWordUseCase = getDayWordUseCase,
+            gameLoader = gameLoader,
             checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
@@ -305,7 +313,7 @@ class TestGameViewModel {
         coEvery { storeRepository.saveDaysSinceStartCount(any()) } just Runs
 
         viewModel = GameViewModel(
-            getDayWordUseCase = getDayWordUseCase,
+            gameLoader = gameLoader,
             checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
@@ -340,7 +348,7 @@ class TestGameViewModel {
     @Test
     fun `disableControlKeys disables keys correctly`() = runTest(testDispatcher) {
         viewModel = GameViewModel(
-            getDayWordUseCase = getDayWordUseCase,
+            gameLoader = gameLoader,
             checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
@@ -358,7 +366,7 @@ class TestGameViewModel {
     @Test
     fun `handleKeyClick adds and removes keys correctly`() = runTest(testDispatcher) {
         viewModel = GameViewModel(
-            getDayWordUseCase = getDayWordUseCase,
+            gameLoader = gameLoader,
             checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
@@ -379,7 +387,7 @@ class TestGameViewModel {
         coEvery { serverRepository.isWordExist("ааааа") } returns false
 
         viewModel = GameViewModel(
-            getDayWordUseCase = getDayWordUseCase,
+            gameLoader = gameLoader,
             checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
@@ -406,7 +414,7 @@ class TestGameViewModel {
         coEvery { storeRepository.saveKeyForms(any()) } just Runs
 
         viewModel = GameViewModel(
-            getDayWordUseCase = getDayWordUseCase,
+            gameLoader = gameLoader,
             checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
@@ -433,7 +441,7 @@ class TestGameViewModel {
         coEvery { storeRepository.updateStatsOnDefeat() } just Runs
 
         viewModel = GameViewModel(
-            getDayWordUseCase = getDayWordUseCase,
+            gameLoader = gameLoader,
             checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
@@ -470,7 +478,7 @@ class TestGameViewModel {
         coEvery { storeRepository.updateStatsOnVictory(any()) } just Runs
 
         viewModel = GameViewModel(
-            getDayWordUseCase = getDayWordUseCase,
+            gameLoader = gameLoader,
             checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
@@ -497,7 +505,7 @@ class TestGameViewModel {
         mockDefeatKeyFormsState()
 
         viewModel = GameViewModel(
-            getDayWordUseCase = getDayWordUseCase,
+            gameLoader = gameLoader,
             checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
@@ -538,7 +546,7 @@ class TestGameViewModel {
         mockVictoryKeyFormsState()
 
         viewModel = GameViewModel(
-            getDayWordUseCase = getDayWordUseCase,
+            gameLoader = gameLoader,
             checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
@@ -582,7 +590,7 @@ class TestGameViewModel {
         coEvery { serverRepository.isWordExist("ааааа") } throws RuntimeException("Network error")
 
         viewModel = GameViewModel(
-            getDayWordUseCase = getDayWordUseCase,
+            gameLoader = gameLoader,
             checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
@@ -608,7 +616,7 @@ class TestGameViewModel {
         coEvery { serverRepository.isWordExist("ааааа") } throws RuntimeException("Network error")
 
         viewModel = GameViewModel(
-            getDayWordUseCase = getDayWordUseCase,
+            gameLoader = gameLoader,
             checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,
@@ -644,7 +652,7 @@ class TestGameViewModel {
         coEvery { storeRepository.getDaysSinceStartCount() } returns flow { emit(timeDeferred.await()) }
 
         viewModel = GameViewModel(
-            getDayWordUseCase = getDayWordUseCase,
+            gameLoader = gameLoader,
             checkWordExistenceUseCase = checkWordExistenceUseCase,
             storeRepository = storeRepository,
             timeRepository = timeRepository,

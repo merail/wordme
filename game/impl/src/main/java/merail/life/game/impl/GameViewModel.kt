@@ -10,9 +10,9 @@ import kotlinx.coroutines.launch
 import merail.life.core.extensions.suspendableRunCatching
 import merail.life.domain.Empty
 import merail.life.domain.WordModel
+import merail.life.game.api.IGameLoader
 import merail.life.game.api.IGameRepository
 import merail.life.game.impl.useCases.CheckWordExistenceUseCase
-import merail.life.game.impl.useCases.GetDayWordUseCase
 import merail.life.game.impl.model.Key
 import merail.life.game.impl.model.KeyCell
 import merail.life.game.impl.model.KeyState
@@ -43,7 +43,7 @@ internal const val KEYBOARD_COLUMNS_COUNT = 3
 
 @HiltViewModel
 internal class GameViewModel @Inject constructor(
-    private val getDayWordUseCase: GetDayWordUseCase,
+    private val gameLoader: IGameLoader,
     private val checkWordExistenceUseCase: CheckWordExistenceUseCase,
     private val storeRepository: IStoreRepository,
     private val timeRepository: ITimeRepository,
@@ -145,16 +145,8 @@ internal class GameViewModel @Inject constructor(
 
             ticksUntilDayWordRetry = DAY_WORD_RETRY_TICKS_COUNT
             suspendableRunCatching {
-                val daysSinceStartCount = timeRepository.getDaysSinceStartCount().first()
-                val lastDaysSinceStartCount = storeRepository.getDaysSinceStartCount().first()
-                if (daysSinceStartCount > lastDaysSinceStartCount) {
-                    val newDayWord = getDayWordUseCase(daysSinceStartCount + 1).getOrThrow()
-                    storeRepository.removeKeyForms()
-                    storeRepository.saveDaysSinceStartCount(daysSinceStartCount)
-                    val lastVictoryDay = storeRepository.getLastVictoryDay().first()
-                    if (daysSinceStartCount - lastVictoryDay > 1) {
-                        storeRepository.resetVictoriesRowCount()
-                    }
+                val newDayWord = gameLoader.loadNewDay()
+                if (newDayWord != null) {
                     dayWord = newDayWord
                     _gameErrorState.value = GameErrorState.Hidden
                     resetBoard()

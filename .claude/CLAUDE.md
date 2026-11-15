@@ -37,7 +37,7 @@ The build reads `local.properties` directly (in `:server:impl` and `:time:api`),
 :result, :rules, :stats, :connection (single-module screens) → :*:api, :design, :core
 ```
 
-Cross-feature dependencies go through api modules only: e.g. `:game:impl` uses `:server:api`, `:store:api`, `:time:api`; `:time:impl` uses `:server:api` (the countdown start date comes from the server).
+Cross-feature dependencies go through api modules only: e.g. `:game:impl` uses `:config:api`, `:server:api`, `:store:api`, `:time:api`; `:time:impl` uses `:server:api` (the countdown start date comes from the server).
 
 ### Key Modules
 
@@ -64,12 +64,12 @@ The top-level `navigation/` directory is stale build output, not a module (not i
 
 1. `WordMeApplication.onCreate` creates a `TrustedTimeClient` (only if `USE_TRUSTED_TIME_CLIENT` and GMS is recent enough) and always reports the result to `ITimeSource` (`null` if disabled or creation failed). `TimeSource` waits for that result up to `TRUSTED_TIME_CLIENT_TIMEOUT`; without a client (or when it has no time yet) time falls back to `System.currentTimeMillis()`.
 2. `MainActivity` holds the splash screen while `MainViewModel.mainState` is `Loading`.
-3. `MainViewModel.init` does all initial loading: Firebase anonymous auth → days since start (server countdown start date + current time) → fetch day word with `id = days + 1` → restore saved key forms if it's the same day, otherwise clear them → reset the victory streak if the last win was more than 1 day ago. Any failure → `MainState.LoadingError`.
+3. `MainViewModel.init` calls `IGameLoader.loadInitialData()` (`:game:api`, implemented by `GameLoader` in `:game:impl`): Firebase anonymous auth → days since start (server countdown start date + current time) → fetch day word with `id = days + 1` → restore saved key forms if it's the same day, otherwise clear them → reset the victory streak if the last win was more than 1 day ago. Any failure → `MainState.LoadingError`. The refresh button on the loading error screen (`LoadingErrorViewModel`) calls the same method — keep all initial-loading and day-switching logic in `GameLoader`.
 4. `WordMeNavHost` picks `LoadingErrorRoute` or `GameRoute` as start destination based on that state.
 
-`IGameRepository` is an **in-memory** holder (`MutableStateFlow`s), not persistence: `MainViewModel` preloads the day word and key forms into it, and `GameViewModel` reads them via `.first()`. Its getters use `filterNotNull()`, so they suspend until something is set. Persistence lives in `:store`.
+`IGameRepository` is an **in-memory** holder (`MutableStateFlow`s), not persistence: `GameLoader` preloads the day word and key forms into it, and `GameViewModel` reads them via `.first()`. Its getters use `filterNotNull()`, so they suspend until something is set. Persistence lives in `:store`.
 
-**Day rollover** happens inside the running game: `GameViewModel` collects `ITimeRepository.getTimeUntilNextDay()` (ticks every second) and, when `isNextDay`, re-fetches the word and resets the board. With `REDUCE_TIME_UNTIL_NEXT_DAY` (debug only) the clock starts at 23:59:40 and the day counter is shifted through the mutable companion fields `ITimeRepository.countdownStartRealTime` / `debugDaysSinceStartCount`.
+**Day rollover** happens inside the running game: `GameViewModel` collects `ITimeRepository.getTimeUntilNextDay()` (ticks every second) and, when `isNextDay`, calls `IGameLoader.loadNewDay()` (switches only if the current day is newer than the stored one) and resets the board. With `REDUCE_TIME_UNTIL_NEXT_DAY` (debug only) the clock starts at 23:59:40 and the day counter is shifted through the mutable companion fields `ITimeRepository.countdownStartRealTime` / `debugDaysSinceStartCount`.
 
 ### Navigation
 
