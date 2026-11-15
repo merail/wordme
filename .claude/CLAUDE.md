@@ -81,6 +81,8 @@ Each screen module exposes, in its `*Navigation.kt`: a `@Serializable` route imp
 
 `ServerHttpClient` has `expectSuccess = true` — non-2xx responses (403, 404, etc.) automatically throw `ResponseException` instead of returning the body. Also sends `X-WordMe-Token` header from `BuildConfig.ACCESS_TOKEN`, and in debug builds `X-WordMe-Debug-Token` from `BuildConfig.DEBUG_ACCESS_TOKEN` when it's set. The server returns `/dayWord` only for days already started in UTC+14 (403 otherwise) unless the debug token is valid.
 
+`ACCESS_TOKEN` ships inside the APK, so it is not a secret — it only filters out accidental requests. This is accepted on purpose (issue #8): the server holds nothing but words, and future day words are protected by the server-side UTC+14 check, not by the token. Don't add client attestation (App Check / Play Integrity) unless the server starts storing something more valuable.
+
 ### Store Module
 
 Key forms are stored via Protobuf (`store/impl/src/main/proto/*.proto`, java/kotlin lite). `store/impl/build.gradle.kts` has custom wiring that makes each `ksp<Variant>Kotlin` task depend on `generate<Variant>Proto` — keep it when editing that build file, otherwise KSP/Hilt fails on the generated classes.
