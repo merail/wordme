@@ -11,10 +11,10 @@ import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import merail.life.server.api.IServerRepository
-import merail.life.time.api.ITimeRepository
 import merail.life.time.api.ITimeSource
 import merail.life.time.impl.repository.TimeRepository
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.time.*
@@ -45,8 +45,6 @@ class TestTimeRepository {
         every { timeSource.getCurrentUnixEpochMillis() } returns flowOf(millis)
 
         coEvery { serverRepository.getGameCountdownStartDate() } returns "29.06.2025"
-
-        ITimeRepository.debugDaysSinceStartCount = 0
 
         val result = repository.getDaysSinceStartCount().first()
 
@@ -107,13 +105,22 @@ class TestTimeRepository {
 
     @Test
     fun `getTimeUntilNextDay uses debug logic`() = runTest {
-        ITimeRepository.countdownStartRealTime = System.currentTimeMillis() - 18_000
+        val now = LocalDate.of(2025, 7, 1).atStartOfDay()
+        val millis = now.atZone(zone).toInstant().toEpochMilli()
+        every { timeSource.getCurrentUnixEpochMillis() } returns flowOf(millis)
+
+        coEvery { serverRepository.getGameCountdownStartDate() } returns "29.06.2025"
+
+        repository.debugCountdownStartMillis = System.currentTimeMillis() - 18_000
 
         val result = repository.getTimeUntilNextDay(
             reduceTimeFlag = true,
-        ).take(2).toList()
+        ).take(3).toList()
 
         assertEquals(false, result[0].second)
         assertEquals("00:00:00" to true, result[1])
+        assertEquals(false, result[2].second)
+        assertTrue(result[2].first in listOf("00:00:18", "00:00:19"))
+        assertEquals(3, repository.getDaysSinceStartCount().first())
     }
 }

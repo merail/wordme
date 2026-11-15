@@ -11,8 +11,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import merail.life.server.api.IServerRepository
 import merail.life.time.api.ITimeRepository
-import merail.life.time.api.ITimeRepository.Companion.countdownStartRealTime
-import merail.life.time.api.ITimeRepository.Companion.debugDaysSinceStartCount
 import merail.life.time.api.ITimeSource
 import java.time.Duration
 import java.time.Instant
@@ -34,12 +32,22 @@ internal class TimeRepository @Inject constructor(
     private val timeSource: ITimeSource,
 ) : ITimeRepository {
 
+    internal var debugCountdownStartMillis = System.currentTimeMillis()
+
+    @Volatile
+    private var debugDaysSinceStartCount = 0
+
     private val debugTimeUntilNextDay by lazy {
         flow {
             while (true) {
-                val millisPassed = System.currentTimeMillis() - countdownStartRealTime
+                val millisPassed = System.currentTimeMillis() - debugCountdownStartMillis
                 val nowFake = fakeStartTime.plusNanos(millisPassed * 1_000_000)
                 val midnight = fakeStartTime.toLocalDate().plusDays(1).atStartOfDay()
+
+                if (nowFake.plusSeconds(1).isBefore(midnight).not()) {
+                    debugCountdownStartMillis = System.currentTimeMillis()
+                    debugDaysSinceStartCount++
+                }
 
                 emit(nowFake to Duration.between(nowFake, midnight).coerceAtLeast(Duration.ZERO))
 

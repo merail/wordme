@@ -69,7 +69,7 @@ The top-level `navigation/` directory is stale build output, not a module (not i
 
 `IGameRepository` is an **in-memory** holder (`MutableStateFlow`s), not persistence: `GameLoader` preloads the day word and key forms into it, and `GameViewModel` reads them via `.first()`. Its getters use `filterNotNull()`, so they suspend until something is set. Persistence lives in `:store`.
 
-**Day rollover** happens inside the running game: `GameViewModel` collects `ITimeRepository.getTimeUntilNextDay()` (ticks every second) and, when `isNextDay`, calls `IGameLoader.loadNewDay()` (switches only if the current day is newer than the stored one) and resets the board. With `REDUCE_TIME_UNTIL_NEXT_DAY` (debug only) the clock starts at 23:59:40 and the day counter is shifted through the mutable companion fields `ITimeRepository.countdownStartRealTime` / `debugDaysSinceStartCount`.
+**Day rollover** happens inside the running game: `GameViewModel` collects `ITimeRepository.getTimeUntilNextDay()` (ticks every second) and, when `isNextDay`, calls `IGameLoader.loadNewDay()` (switches only if the current day is newer than the stored one) and resets the board. With `REDUCE_TIME_UNTIL_NEXT_DAY` (debug only) the clock starts at 23:59:40, and on each fake midnight `TimeRepository` itself restarts it and shifts the day counter by one, before emitting the tick, so `loadNewDay()` already sees the new day. This state is private to `TimeRepository` and not part of `ITimeRepository`.
 
 ### Navigation
 

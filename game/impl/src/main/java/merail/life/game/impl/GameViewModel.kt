@@ -33,7 +33,6 @@ import merail.life.game.impl.utils.toLogicModel
 import merail.life.game.impl.utils.toStringWord
 import merail.life.game.impl.utils.toUiModel
 import merail.life.store.api.IStoreRepository
-import merail.life.time.api.BuildConfig
 import merail.life.time.api.ITimeRepository
 import javax.inject.Inject
 
@@ -138,11 +137,6 @@ internal class GameViewModel @Inject constructor(
         }
         var isBoardReset = false
         if (isNextDay || (isDayWordGettingError && ticksUntilDayWordRetry <= 0)) {
-            if (isNextDay && BuildConfig.REDUCE_TIME_UNTIL_NEXT_DAY) {
-                ITimeRepository.countdownStartRealTime = System.currentTimeMillis()
-                ITimeRepository.debugDaysSinceStartCount++
-            }
-
             ticksUntilDayWordRetry = DAY_WORD_RETRY_TICKS_COUNT
             suspendableRunCatching {
                 val newDayWord = gameLoader.loadNewDay()
