@@ -8,7 +8,7 @@ class WordMeLogger @Inject constructor() : IWordMeLogger {
         Log.d(tag, msg)
     }
 
-    override fun w(tag: String, msg: String, tr: Throwable?) {
-        Log.w(tag, msg, tr)
+    override fun w(tag: String, msg: String, th: Throwable?) {
+        Log.w(tag, msg, th)
     }
 }

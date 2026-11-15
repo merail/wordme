@@ -21,6 +21,7 @@ internal class ServerHttpClient @Inject constructor() {
 
     companion object {
         private const val ACCESS_TOKEN = "X-WordMe-Token"
+        private const val DEBUG_ACCESS_TOKEN = "X-WordMe-Debug-Token"
     }
 
     val httpClient = HttpClient(OkHttp) {
@@ -54,6 +55,12 @@ internal class ServerHttpClient @Inject constructor() {
 
         defaultRequest {
             header(ACCESS_TOKEN, BuildConfig.ACCESS_TOKEN)
+            if (BuildConfig.DEBUG_ACCESS_TOKEN.isNotEmpty()) {
+                header(
+                    key = DEBUG_ACCESS_TOKEN,
+                    value = BuildConfig.DEBUG_ACCESS_TOKEN,
+                )
+            }
 
             url {
                 protocol = URLProtocol.HTTPS

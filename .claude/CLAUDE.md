@@ -62,7 +62,7 @@ The top-level `navigation/` directory is stale build output, not a module (not i
 
 ### Startup & Data Flow
 
-1. `WordMeApplication.onCreate` sets a `TrustedTimeClient` into `ITimeSource` (only if `USE_TRUSTED_TIME_CLIENT` and GMS is recent enough); otherwise time falls back to `System.currentTimeMillis()`.
+1. `WordMeApplication.onCreate` creates a `TrustedTimeClient` (only if `USE_TRUSTED_TIME_CLIENT` and GMS is recent enough) and always reports the result to `ITimeSource` (`null` if disabled or creation failed). `TimeSource` waits for that result up to `TRUSTED_TIME_CLIENT_TIMEOUT`; without a client (or when it has no time yet) time falls back to `System.currentTimeMillis()`.
 2. `MainActivity` holds the splash screen while `MainViewModel.mainState` is `Loading`.
 3. `MainViewModel.init` does all initial loading: Firebase anonymous auth → days since start (server countdown start date + current time) → fetch day word with `id = days + 1` → restore saved key forms if it's the same day, otherwise clear them → reset the victory streak if the last win was more than 1 day ago. Any failure → `MainState.LoadingError`.
 4. `WordMeNavHost` picks `LoadingErrorRoute` or `GameRoute` as start destination based on that state.
@@ -79,7 +79,7 @@ Each screen module exposes, in its `*Navigation.kt`: a `@Serializable` route imp
 
 `:server:impl` has a three-layer structure: `ServerHttpClient` (Ktor client config with retries/timeouts) → `ServerApi` (raw HTTP calls) → `ServerRepository` (implements `IServerRepository`, wraps responses into domain models). All classes are `internal`, only `IServerRepository` from `:server:api` is exposed.
 
-`ServerHttpClient` has `expectSuccess = true` — non-2xx responses (403, 404, etc.) automatically throw `ResponseException` instead of returning the body. Also sends `X-WordMe-Token` header from `BuildConfig.ACCESS_TOKEN`.
+`ServerHttpClient` has `expectSuccess = true` — non-2xx responses (403, 404, etc.) automatically throw `ResponseException` instead of returning the body. Also sends `X-WordMe-Token` header from `BuildConfig.ACCESS_TOKEN`, and in debug builds `X-WordMe-Debug-Token` from `BuildConfig.DEBUG_ACCESS_TOKEN` when it's set. The server returns `/dayWord` only for days already started in UTC+14 (403 otherwise) unless the debug token is valid.
 
 ### Store Module
 
@@ -112,7 +112,8 @@ Key forms are stored via Protobuf (`store/impl/src/main/proto/*.proto`, java/kot
 The project requires `local.properties` with:
 - `domainUrl` — backend server host (e.g. `wordme.duckdns.org`), used in `BuildConfig.DOMAIN_URL` in `:server:impl`
 - `accessToken` — token for `X-WordMe-Token` header, used in `BuildConfig.ACCESS_TOKEN` in `:server:impl`
-- `reduceTimeUntilNextDay` — debug flag for testing daily reset logic (always `false` in release)
+- `debugAccessToken` — optional, debug builds only: sent as `X-WordMe-Debug-Token` so the server returns future day words (it rejects day ids not yet started in UTC+14 otherwise, which breaks `reduceTimeUntilNextDay`). Used in `BuildConfig.DEBUG_ACCESS_TOKEN` in `:server:impl`; empty in release and not set in CI
+- `reduceTimeUntilNextDay` — debug flag for testing daily reset logic (always `false` in release). Hardcoded `false` in CI workflows: CI has no debug token, so the day rollover would get 403
 - `useTrustedTimeClient` — set `true` to enable Play Services TrustedTimeClient (anti-cheat); set `false` on emulators where TrustedTimeClient returns stale cached time. Used for both debug and release builds via `BuildConfig.USE_TRUSTED_TIME_CLIENT` in `:time:api`; in CI set via `USE_TRUSTED_TIME_CLIENT` GitHub secret.
 - Release signing properties (`releaseKeystorePassword`, `releaseKeystoreAlias`, `releaseKeyPassword`) for local release builds; the keystore is expected at `app/keystore.keystore`. In CI signing comes from `RELEASE_KEYSTORE_*` env vars instead.
 - A `google-services.json` in the `:app` module for Firebase
