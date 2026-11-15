@@ -1,6 +1,8 @@
 package merail.life.server.impl.repository
 
 import io.ktor.client.call.body
+import io.ktor.client.plugins.retry
+import io.ktor.client.plugins.timeout
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import javax.inject.Inject
@@ -19,6 +21,12 @@ internal class ServerApi @Inject constructor(
         enteredWord: String,
     ): Boolean = serverHttpClient.httpClient.get("isWordExist") {
         parameter("enteredWord", enteredWord)
+        timeout {
+            requestTimeoutMillis = 5_000
+        }
+        retry {
+            noRetry()
+        }
     }.body()
 
     suspend fun getGameCountdownStartDate(): String = serverHttpClient.httpClient.get(

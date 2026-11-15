@@ -5,6 +5,8 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.just
 import io.mockk.mockk
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import merail.life.config.api.IConfigRepository
@@ -23,6 +25,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import java.util.concurrent.TimeoutException
 
 class TestGameLoader {
 
@@ -147,6 +150,19 @@ class TestGameLoader {
         coVerify(exactly = 0) { storeRepository.removeKeyForms() }
         coVerify(exactly = 0) { storeRepository.saveDaysSinceStartCount(any()) }
         coVerify(exactly = 0) { storeRepository.resetVictoriesRowCount() }
+        coVerify(exactly = 0) { gameRepository.setDayWord(any()) }
+    }
+
+    @Test
+    fun `loadInitialData fails with TimeoutException when loading takes too long`() = runTest {
+        coEvery { timeRepository.getDaysSinceStartCount() } returns flow { awaitCancellation() }
+
+        val result = runCatching {
+            gameLoader.loadInitialData()
+        }
+
+        assertTrue(result.exceptionOrNull() is TimeoutException)
+        coVerify(exactly = 0) { serverRepository.getDayWord(any()) }
         coVerify(exactly = 0) { gameRepository.setDayWord(any()) }
     }
 

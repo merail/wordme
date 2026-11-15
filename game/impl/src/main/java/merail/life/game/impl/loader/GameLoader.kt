@@ -1,6 +1,7 @@
 package merail.life.game.impl.loader
 
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 import merail.life.config.api.IConfigRepository
 import merail.life.domain.WordModel
 import merail.life.game.api.IGameLoader
@@ -8,7 +9,9 @@ import merail.life.game.api.IGameRepository
 import merail.life.game.impl.useCases.GetDayWordUseCase
 import merail.life.store.api.IStoreRepository
 import merail.life.time.api.ITimeRepository
+import java.util.concurrent.TimeoutException
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.seconds
 
 internal class GameLoader @Inject constructor(
     private val configRepository: IConfigRepository,
@@ -18,7 +21,19 @@ internal class GameLoader @Inject constructor(
     private val gameRepository: IGameRepository,
 ) : IGameLoader {
 
+    companion object {
+        private val INITIAL_LOADING_TIMEOUT = 15.seconds
+    }
+
     override suspend fun loadInitialData() {
+        withTimeoutOrNull(
+            timeout = INITIAL_LOADING_TIMEOUT,
+        ) {
+            loadInitialDataWithoutTimeout()
+        } ?: throw TimeoutException("Initial loading took longer than $INITIAL_LOADING_TIMEOUT")
+    }
+
+    private suspend fun loadInitialDataWithoutTimeout() {
         configRepository.authAnonymously()
 
         val daysSinceStartCount = timeRepository.getDaysSinceStartCount().first()
