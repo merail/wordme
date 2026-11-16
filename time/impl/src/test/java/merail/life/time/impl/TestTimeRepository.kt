@@ -14,7 +14,6 @@ import merail.life.server.api.IServerRepository
 import merail.life.time.api.ITimeSource
 import merail.life.time.impl.repository.TimeRepository
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.time.*
@@ -103,6 +102,7 @@ class TestTimeRepository {
         assertEquals(false, isNextDay)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `getTimeUntilNextDay uses debug logic`() = runTest {
         val now = LocalDate.of(2025, 7, 1).atStartOfDay()
@@ -111,16 +111,28 @@ class TestTimeRepository {
 
         coEvery { serverRepository.getGameCountdownStartDate() } returns "29.06.2025"
 
-        repository.debugCountdownStartMillis = System.currentTimeMillis() - 18_000
+        val debugRepository = TimeRepository(
+            appScope = backgroundScope,
+            serverRepository = serverRepository,
+            timeSource = timeSource,
+        )
+        debugRepository.currentTimeMillis = {
+            testScheduler.currentTime
+        }
+        debugRepository.debugCountdownStartMillis = -18_000
 
-        val result = repository.getTimeUntilNextDay(
+        val result = debugRepository.getTimeUntilNextDay(
             reduceTimeFlag = true,
         ).take(3).toList()
 
-        assertEquals(false, result[0].second)
-        assertEquals("00:00:00" to true, result[1])
-        assertEquals(false, result[2].second)
-        assertTrue(result[2].first in listOf("00:00:18", "00:00:19"))
-        assertEquals(3, repository.getDaysSinceStartCount().first())
+        assertEquals(
+            listOf(
+                "00:00:02" to false,
+                "00:00:01" to true,
+                "00:00:19" to false,
+            ),
+            result,
+        )
+        assertEquals(3, debugRepository.getDaysSinceStartCount().first())
     }
 }

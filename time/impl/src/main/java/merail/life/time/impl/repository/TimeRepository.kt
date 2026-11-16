@@ -32,7 +32,9 @@ internal class TimeRepository @Inject constructor(
     private val timeSource: ITimeSource,
 ) : ITimeRepository {
 
-    internal var debugCountdownStartMillis = System.currentTimeMillis()
+    internal var currentTimeMillis: () -> Long = System::currentTimeMillis
+
+    internal var debugCountdownStartMillis = currentTimeMillis()
 
     @Volatile
     private var debugDaysSinceStartCount = 0
@@ -40,12 +42,12 @@ internal class TimeRepository @Inject constructor(
     private val debugTimeUntilNextDay by lazy {
         flow {
             while (true) {
-                val millisPassed = System.currentTimeMillis() - debugCountdownStartMillis
+                val millisPassed = currentTimeMillis() - debugCountdownStartMillis
                 val nowFake = fakeStartTime.plusNanos(millisPassed * 1_000_000)
                 val midnight = fakeStartTime.toLocalDate().plusDays(1).atStartOfDay()
 
                 if (nowFake.plusSeconds(1).isBefore(midnight).not()) {
-                    debugCountdownStartMillis = System.currentTimeMillis()
+                    debugCountdownStartMillis = currentTimeMillis()
                     debugDaysSinceStartCount++
                 }
 
