@@ -39,22 +39,18 @@ internal class GameLoader @Inject constructor(
         val daysSinceStartCount = timeRepository.getDaysSinceStartCount().first()
         val lastDaysSinceStartCount = storeRepository.getDaysSinceStartCount().first()
 
-        if (daysSinceStartCount == lastDaysSinceStartCount) {
+        if (daysSinceStartCount > lastDaysSinceStartCount) {
+            startDay(daysSinceStartCount)
+        } else {
             gameRepository.setDayWord(
                 dayWord = getDayWord(
-                    daysSinceStartCount = daysSinceStartCount,
+                    daysSinceStartCount = lastDaysSinceStartCount,
                 ),
             )
             gameRepository.setKeyForms(
                 keyForms = storeRepository.loadKeyForms().first(),
             )
-            resetVictoriesRowCountIfNeeded(
-                daysSinceStartCount = daysSinceStartCount,
-            )
-        } else {
-            startDay(
-                daysSinceStartCount = daysSinceStartCount,
-            )
+            resetVictoriesRowCountIfNeeded(lastDaysSinceStartCount)
         }
     }
 

@@ -66,12 +66,12 @@ The top-level `navigation/` directory is stale build output, not a module (not i
 
 1. `WordMeApplication.onCreate` creates a `TrustedTimeClient` (only if `USE_TRUSTED_TIME_CLIENT` and GMS is recent enough) and always reports the result to `ITimeSource` (`null` if disabled or creation failed). `TimeSource` waits for that result up to `TRUSTED_TIME_CLIENT_TIMEOUT`; without a client (or when it has no time yet) time falls back to `System.currentTimeMillis()`.
 2. `MainActivity` holds the splash screen while `MainViewModel.mainState` is `Loading`.
-3. `MainViewModel.init` calls `IGameLoader.loadInitialData()` (`:game:api`, implemented by `GameLoader` in `:game:impl`): Firebase anonymous auth → days since start (server countdown start date + current time) → fetch day word with `id = days + 1` → restore saved key forms if it's the same day, otherwise clear them → reset the victory streak if the last win was more than 1 day ago. The whole call is capped by `INITIAL_LOADING_TIMEOUT` (15 s) and fails with `TimeoutException` — not `withTimeout`, whose `TimeoutCancellationException` `suspendableRunCatching` would rethrow, leaving the splash stuck. Any failure → `MainState.LoadingError`. The refresh button on the loading error screen (`LoadingErrorViewModel`) calls the same method — keep all initial-loading and day-switching logic in `GameLoader`.
+3. `MainViewModel.init` calls `IGameLoader.loadInitialData()` (`:game:api`, implemented by `GameLoader` in `:game:impl`): Firebase anonymous auth → days since start (server countdown start date + current time) → fetch day word with `id = days + 1` → if the current day is newer than the stored one, start it and clear saved key forms, otherwise keep the stored day and restore them (a clock set back must not wipe progress) → reset the victory streak if the last win was more than 1 day ago. The whole call is capped by `INITIAL_LOADING_TIMEOUT` (15 s) and fails with `TimeoutException` — not `withTimeout`, whose `TimeoutCancellationException` `suspendableRunCatching` would rethrow, leaving the splash stuck. Any failure → `MainState.LoadingError`. The refresh button on the loading error screen (`LoadingErrorViewModel`) calls the same method — keep all initial-loading and day-switching logic in `GameLoader`.
 4. `WordMeNavHost` picks `LoadingErrorRoute` or `GameRoute` as start destination based on that state.
 
 `IGameRepository` is an **in-memory** holder (`MutableStateFlow`s), not persistence: `GameLoader` preloads the day word and key forms into it, and `GameViewModel` reads them via `.first()`. Its getters use `filterNotNull()`, so they suspend until something is set. Persistence lives in `:store`.
 
-**Day rollover** happens inside the running game: `GameViewModel` collects `ITimeRepository.getTimeUntilNextDay()` (ticks every second) and, when `isNextDay`, calls `IGameLoader.loadNewDay()` (switches only if the current day is newer than the stored one) and resets the board. With `REDUCE_TIME_UNTIL_NEXT_DAY` (debug only) the clock starts at 23:59:40, and on each fake midnight `TimeRepository` itself restarts it and shifts the day counter by one, before emitting the tick, so `loadNewDay()` already sees the new day. This state is private to `TimeRepository` and not part of `ITimeRepository`.
+**Day rollover** happens inside the running game: `GameViewModel` collects `ITimeRepository.getTimeUntilNextDay()` (ticks every second) and, when `isNextDay` and on the first tick (midnight may pass while the initial data loads), calls `IGameLoader.loadNewDay()` (switches only if the current day is newer than the stored one) and resets the board. Day switching and applying word check results are serialized by `boardMutex`, and `resetBoard()` cancels an in-flight word check, so a check for the old day never lands on the new board or in its store. `TimeRepository` fetches the countdown start date from the server once and caches it, so `getDaysSinceStartCount()` is local after the initial load. With `REDUCE_TIME_UNTIL_NEXT_DAY` (debug only) the clock starts at 23:59:40, and on each fake midnight `TimeRepository` itself restarts it and shifts the day counter by one, before emitting the tick, so `loadNewDay()` already sees the new day. This state is private to `TimeRepository` and not part of `ITimeRepository`.
 
 ### Navigation
 
@@ -131,11 +131,12 @@ GitHub Actions with two workflows:
 ## Code Style
 
 - Kotlin official code style (`kotlin.code.style=official`)
-- Every argument/parameter goes on its own line with a trailing comma — even for a single argument:
+- Parameters in declarations and named arguments in calls go each on its own line with a trailing comma — even when there is only one:
   ```kotlin
   .padding(
       top = 12.dp,
   )            // not .padding(top = 12.dp)
   ```
+- Positional arguments stay inline: `.size(48.dp)`, `.padding(24.dp)`, `RoundedCornerShape(12.dp)`, `onWrongWord(rowIndex)`, `setKeyForms(emptyList())`, `Pair(0, 0)`. Don't add argument names just to split such a call over several lines.
 - Typesafe project accessors enabled (`projects.game.api` instead of `project(":game:api")`)
 - Gradle version catalog at `gradle/libs.versions.toml` for all dependency management

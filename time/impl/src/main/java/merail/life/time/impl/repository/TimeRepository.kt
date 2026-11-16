@@ -39,6 +39,9 @@ internal class TimeRepository @Inject constructor(
     @Volatile
     private var debugDaysSinceStartCount = 0
 
+    @Volatile
+    private var gameCountdownStartDate: LocalDate? = null
+
     private val debugTimeUntilNextDay by lazy {
         flow {
             while (true) {
@@ -80,12 +83,6 @@ internal class TimeRepository @Inject constructor(
         )
     }
 
-    private val dotFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.getDefault())
-
-    private fun String.toLocalDate() = LocalDate.parse(this, dotFormatter)
-
-    private suspend fun getGameCountdownStartDate() = serverRepository.getGameCountdownStartDate().toLocalDate()
-
     override fun getDaysSinceStartCount() = timeSource.getCurrentUnixEpochMillis().map {
         LocalDateTime.ofInstant(Instant.ofEpochMilli(it), ZoneId.systemDefault())
     }.map {
@@ -126,4 +123,13 @@ internal class TimeRepository @Inject constructor(
             )
         }
     }
+
+    private suspend fun getGameCountdownStartDate() = gameCountdownStartDate
+        ?: serverRepository.getGameCountdownStartDate().toLocalDate().also {
+            gameCountdownStartDate = it
+        }
+
+    private val dotFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.getDefault())
+
+    private fun String.toLocalDate() = LocalDate.parse(this, dotFormatter)
 }

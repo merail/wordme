@@ -51,6 +51,21 @@ class TestTimeRepository {
     }
 
     @Test
+    fun `getDaysSinceStartCount fetches countdown start date once`() = runTest {
+        val now = LocalDate.of(2025, 7, 1).atStartOfDay()
+        val millis = now.atZone(zone).toInstant().toEpochMilli()
+        every { timeSource.getCurrentUnixEpochMillis() } returns flowOf(millis)
+
+        coEvery { serverRepository.getGameCountdownStartDate() } returns "29.06.2025"
+
+        repository.getDaysSinceStartCount().first()
+        val result = repository.getDaysSinceStartCount().first()
+
+        assertEquals(2, result)
+        coVerify(exactly = 1) { serverRepository.getGameCountdownStartDate() }
+    }
+
+    @Test
     fun `getTimeUntilNextDay uses release logic`() = runTest {
         val now = LocalDate.of(2025, 7, 1).atTime(23, 59, 58)
         val millis = now.atZone(zone).toInstant().toEpochMilli()

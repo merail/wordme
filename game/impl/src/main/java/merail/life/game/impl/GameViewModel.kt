@@ -3,11 +3,15 @@ package merail.life.game.impl
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import merail.life.core.extensions.suspendableRunCatching
+import merail.life.core.log.IWordMeLogger
 import merail.life.domain.Empty
 import merail.life.domain.WordModel
 import merail.life.game.api.IGameLoader
@@ -47,6 +51,7 @@ internal class GameViewModel @Inject constructor(
     private val storeRepository: IStoreRepository,
     private val timeRepository: ITimeRepository,
     private val gameRepository: IGameRepository,
+    private val logger: IWordMeLogger,
 ) : ViewModel() {
 
     companion object {
@@ -59,6 +64,12 @@ internal class GameViewModel @Inject constructor(
         private set
 
     private var ticksUntilDayWordRetry = 0
+
+    private var isFirstTick = true
+
+    private val boardMutex = Mutex()
+
+    private var wordCheckJob: Job? = null
 
     private val _keyForms = MutableStateFlow(emptyKeyFields)
     val keyForms: StateFlow<KeyCellsList> = _keyForms
@@ -136,28 +147,33 @@ internal class GameViewModel @Inject constructor(
             ticksUntilDayWordRetry--
         }
         var isBoardReset = false
-        if (isNextDay || (isDayWordGettingError && ticksUntilDayWordRetry <= 0)) {
+        if (isFirstTick || isNextDay || (isDayWordGettingError && ticksUntilDayWordRetry <= 0)) {
             ticksUntilDayWordRetry = DAY_WORD_RETRY_TICKS_COUNT
-            suspendableRunCatching {
-                val newDayWord = gameLoader.loadNewDay()
-                if (newDayWord != null) {
-                    dayWord = newDayWord
-                    _gameErrorState.value = GameErrorState.Hidden
-                    resetBoard()
-                    isBoardReset = true
-                }
-            }.onFailure {
-                if (isDayWordGettingError.not()) {
-                    _gameErrorState.value = GameErrorState.DayWordGettingError
-                    resetBoard()
-                    isBoardReset = true
+            boardMutex.withLock {
+                suspendableRunCatching {
+                    val newDayWord = gameLoader.loadNewDay()
+                    if (newDayWord != null) {
+                        dayWord = newDayWord
+                        _gameErrorState.value = GameErrorState.Hidden
+                        resetBoard()
+                        isBoardReset = true
+                    }
+                }.onFailure {
+                    logger.w(TAG, "Day switching. Failure", it)
+                    if (isDayWordGettingError.not()) {
+                        _gameErrorState.value = GameErrorState.DayWordGettingError
+                        resetBoard()
+                        isBoardReset = true
+                    }
                 }
             }
         }
+        isFirstTick = false
         _isNextDay.value = isBoardReset
     }
 
     private fun resetBoard() {
+        wordCheckJob?.cancel()
         gameRepository.setKeyForms(emptyList())
         _keyForms.value = emptyKeyFields
         _keyButtons.value = defaultKeyButtons
@@ -264,23 +280,27 @@ internal class GameViewModel @Inject constructor(
 
             val enteredWord = _keyForms.value[rowIndex].toStringWord()
 
-            if (enteredWord == dayWord.value) {
-                onVictory(rowIndex)
-            } else {
-                viewModelScope.launch {
-                    val isWordExist = checkWordExistenceUseCase(enteredWord).onFailure {
-                        _gameErrorState.value = GameErrorState.WordExistingCheckError
-                        _checkWordKeyState.value = CheckWordKeyState.Enabled
-                        return@launch
-                    }.getOrThrow()
-
-                    if (isWordExist) {
-                        onCorrectWord(
-                            enteredWord = enteredWord,
-                            rowIndex = rowIndex,
-                        )
-                    } else {
-                        onWrongWord(rowIndex)
+            wordCheckJob = viewModelScope.launch {
+                if (enteredWord == dayWord.value) {
+                    boardMutex.withLock {
+                        onVictory(rowIndex)
+                    }
+                } else {
+                    val isWordExistResult = checkWordExistenceUseCase(enteredWord)
+                    boardMutex.withLock {
+                        isWordExistResult.onSuccess { isWordExist ->
+                            if (isWordExist) {
+                                onCorrectWord(
+                                    enteredWord = enteredWord,
+                                    rowIndex = rowIndex,
+                                )
+                            } else {
+                                onWrongWord(rowIndex)
+                            }
+                        }.onFailure {
+                            _gameErrorState.value = GameErrorState.WordExistingCheckError
+                            _checkWordKeyState.value = CheckWordKeyState.Enabled
+                        }
                     }
                 }
             }

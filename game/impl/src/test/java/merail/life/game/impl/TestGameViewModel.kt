@@ -75,6 +75,8 @@ class TestGameViewModel {
         coEvery { gameRepository.setDayWord(any()) } just Runs
         coEvery { gameRepository.setKeyForms(any()) } just Runs
         coEvery { timeRepository.getTimeUntilNextDay() } returns flowOf(Pair("23:59:59", false))
+        coEvery { timeRepository.getDaysSinceStartCount() } returns flowOf(1)
+        coEvery { storeRepository.getDaysSinceStartCount() } returns flowOf(1)
         coEvery { storeRepository.getLastVictoryDay() } returns flowOf(0)
     }
 
@@ -93,6 +95,7 @@ class TestGameViewModel {
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
+            logger = logger,
         )
 
         advanceUntilIdle()
@@ -112,6 +115,7 @@ class TestGameViewModel {
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
+            logger = logger,
         )
 
         advanceUntilIdle()
@@ -131,6 +135,7 @@ class TestGameViewModel {
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
+            logger = logger,
         )
 
         advanceUntilIdle()
@@ -144,7 +149,7 @@ class TestGameViewModel {
     fun `startNextDayTimer progresses to next day and updates state`() = runTest(testDispatcher) {
         val timeFlow = MutableSharedFlow<Pair<String, Boolean>>(extraBufferCapacity = 1)
         coEvery { timeRepository.getTimeUntilNextDay() } returns timeFlow
-        coEvery { timeRepository.getDaysSinceStartCount() } returns flowOf(1)
+        coEvery { timeRepository.getDaysSinceStartCount() } returnsMany listOf(flowOf(0), flowOf(1))
         coEvery { storeRepository.getDaysSinceStartCount() } returns flowOf(0)
         coEvery { serverRepository.getDayWord(2) } returns WordModel("аббат")
         coEvery { storeRepository.removeKeyForms() } just Runs
@@ -156,6 +161,7 @@ class TestGameViewModel {
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
+            logger = logger,
         )
 
         advanceUntilIdle()
@@ -201,6 +207,7 @@ class TestGameViewModel {
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
+            logger = logger,
         )
 
         advanceUntilIdle()
@@ -231,6 +238,7 @@ class TestGameViewModel {
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
+            logger = logger,
         )
 
         advanceUntilIdle()
@@ -263,6 +271,7 @@ class TestGameViewModel {
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
+            logger = logger,
         )
 
         advanceUntilIdle()
@@ -290,6 +299,7 @@ class TestGameViewModel {
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
+            logger = logger,
         )
 
         advanceUntilIdle()
@@ -318,6 +328,7 @@ class TestGameViewModel {
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
+            logger = logger,
         )
 
         advanceUntilIdle()
@@ -346,6 +357,134 @@ class TestGameViewModel {
     }
 
     @Test
+    fun `first tick switches the day when midnight passed during loading`() = runTest(testDispatcher) {
+        mockGameInProcessKeyFormsState()
+        val timeFlow = MutableSharedFlow<Pair<String, Boolean>>(extraBufferCapacity = 1)
+        coEvery { timeRepository.getTimeUntilNextDay() } returns timeFlow
+        coEvery { storeRepository.getDaysSinceStartCount() } returns flowOf(0)
+        coEvery { serverRepository.getDayWord(2) } returns WordModel("аббат")
+        coEvery { storeRepository.removeKeyForms() } just Runs
+        coEvery { storeRepository.saveDaysSinceStartCount(any()) } just Runs
+
+        viewModel = GameViewModel(
+            gameLoader = gameLoader,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
+            storeRepository = storeRepository,
+            timeRepository = timeRepository,
+            gameRepository = gameRepository,
+            logger = logger,
+        )
+
+        advanceUntilIdle()
+
+        timeFlow.tryEmit(Pair("23:59:55", false))
+        advanceUntilIdle()
+
+        assertEquals(WordModel("аббат"), viewModel.dayWord)
+        assertEquals(emptyKeyFields.toLogicModel(), viewModel.keyForms.value.toLogicModel())
+        assertEquals(Pair(0, 0), viewModel.currentIndex)
+        assertTrue(viewModel.isNextDay.value)
+        coVerify { storeRepository.saveDaysSinceStartCount(1) }
+    }
+
+    @Test
+    fun `word check result after day switch is dropped`() = runTest(testDispatcher) {
+        val timeFlow = MutableSharedFlow<Pair<String, Boolean>>(extraBufferCapacity = 1)
+        val isWordExist = CompletableDeferred<Boolean>()
+        coEvery { timeRepository.getTimeUntilNextDay() } returns timeFlow
+        coEvery { timeRepository.getDaysSinceStartCount() } returnsMany listOf(flowOf(0), flowOf(1))
+        coEvery { storeRepository.getDaysSinceStartCount() } returns flowOf(0)
+        coEvery { serverRepository.getDayWord(2) } returns WordModel("аббат")
+        coEvery { serverRepository.isWordExist("ааааа") } coAnswers { isWordExist.await() }
+        coEvery { storeRepository.removeKeyForms() } just Runs
+        coEvery { storeRepository.saveDaysSinceStartCount(any()) } just Runs
+        coEvery { storeRepository.saveKeyForms(any()) } just Runs
+
+        viewModel = GameViewModel(
+            gameLoader = gameLoader,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
+            storeRepository = storeRepository,
+            timeRepository = timeRepository,
+            gameRepository = gameRepository,
+            logger = logger,
+        )
+
+        advanceUntilIdle()
+
+        timeFlow.tryEmit(Pair("00:00:01", false))
+        advanceUntilIdle()
+
+        repeat(5) {
+            viewModel.handleKeyClick(Key.А)
+        }
+        viewModel.handleKeyClick(Key.OK)
+        advanceUntilIdle()
+
+        timeFlow.tryEmit(Pair("00:00:00", true))
+        advanceUntilIdle()
+
+        isWordExist.complete(true)
+        advanceUntilIdle()
+
+        assertEquals(WordModel("аббат"), viewModel.dayWord)
+        assertEquals(emptyKeyFields.toLogicModel(), viewModel.keyForms.value.toLogicModel())
+        assertEquals(WordCheckState.None, viewModel.wordCheckState.value)
+        assertEquals(Pair(0, 0), viewModel.currentIndex)
+        coVerify(exactly = 0) { storeRepository.saveKeyForms(any()) }
+    }
+
+    @Test
+    fun `word check result during day switch is dropped`() = runTest(testDispatcher) {
+        val timeFlow = MutableSharedFlow<Pair<String, Boolean>>(extraBufferCapacity = 1)
+        val isWordExist = CompletableDeferred<Boolean>()
+        val newDayWord = CompletableDeferred<WordModel>()
+        coEvery { timeRepository.getTimeUntilNextDay() } returns timeFlow
+        coEvery { timeRepository.getDaysSinceStartCount() } returnsMany listOf(flowOf(0), flowOf(1))
+        coEvery { storeRepository.getDaysSinceStartCount() } returns flowOf(0)
+        coEvery { serverRepository.getDayWord(2) } coAnswers { newDayWord.await() }
+        coEvery { serverRepository.isWordExist("ааааа") } coAnswers { isWordExist.await() }
+        coEvery { storeRepository.removeKeyForms() } just Runs
+        coEvery { storeRepository.saveDaysSinceStartCount(any()) } just Runs
+        coEvery { storeRepository.saveKeyForms(any()) } just Runs
+
+        viewModel = GameViewModel(
+            gameLoader = gameLoader,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
+            storeRepository = storeRepository,
+            timeRepository = timeRepository,
+            gameRepository = gameRepository,
+            logger = logger,
+        )
+
+        advanceUntilIdle()
+
+        timeFlow.tryEmit(Pair("00:00:01", false))
+        advanceUntilIdle()
+
+        repeat(5) {
+            viewModel.handleKeyClick(Key.А)
+        }
+        viewModel.handleKeyClick(Key.OK)
+        advanceUntilIdle()
+
+        timeFlow.tryEmit(Pair("00:00:00", true))
+        advanceUntilIdle()
+
+        isWordExist.complete(true)
+        advanceUntilIdle()
+
+        coVerify(exactly = 0) { storeRepository.saveKeyForms(any()) }
+
+        newDayWord.complete(WordModel("аббат"))
+        advanceUntilIdle()
+
+        assertEquals(WordModel("аббат"), viewModel.dayWord)
+        assertEquals(emptyKeyFields.toLogicModel(), viewModel.keyForms.value.toLogicModel())
+        assertEquals(WordCheckState.None, viewModel.wordCheckState.value)
+        coVerify(exactly = 0) { storeRepository.saveKeyForms(any()) }
+    }
+
+    @Test
     fun `disableControlKeys disables keys correctly`() = runTest(testDispatcher) {
         viewModel = GameViewModel(
             gameLoader = gameLoader,
@@ -353,6 +492,7 @@ class TestGameViewModel {
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
+            logger = logger,
         )
 
         advanceUntilIdle()
@@ -371,6 +511,7 @@ class TestGameViewModel {
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
+            logger = logger,
         )
 
         advanceUntilIdle()
@@ -392,6 +533,7 @@ class TestGameViewModel {
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
+            logger = logger,
         )
 
         advanceUntilIdle()
@@ -419,6 +561,7 @@ class TestGameViewModel {
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
+            logger = logger,
         )
 
         advanceUntilIdle()
@@ -446,6 +589,7 @@ class TestGameViewModel {
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
+            logger = logger,
         )
 
         advanceUntilIdle()
@@ -483,6 +627,7 @@ class TestGameViewModel {
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
+            logger = logger,
         )
 
         advanceUntilIdle()
@@ -510,6 +655,7 @@ class TestGameViewModel {
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
+            logger = logger,
         )
 
         advanceUntilIdle()
@@ -551,6 +697,7 @@ class TestGameViewModel {
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
+            logger = logger,
         )
 
         advanceUntilIdle()
@@ -595,6 +742,7 @@ class TestGameViewModel {
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
+            logger = logger,
         )
 
         advanceUntilIdle()
@@ -621,6 +769,7 @@ class TestGameViewModel {
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
+            logger = logger,
         )
 
         advanceUntilIdle()
@@ -657,6 +806,7 @@ class TestGameViewModel {
             storeRepository = storeRepository,
             timeRepository = timeRepository,
             gameRepository = gameRepository,
+            logger = logger,
         )
         advanceUntilIdle()
 

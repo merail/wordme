@@ -104,6 +104,18 @@ class TestGameLoader {
     }
 
     @Test
+    fun `loadInitialData when stored day is ahead keeps the stored day`() = runTest {
+        coEvery { storeRepository.getDaysSinceStartCount() } returns flowOf(2)
+
+        gameLoader.loadInitialData()
+
+        coVerify { serverRepository.getDayWord(3) }
+        coVerify { gameRepository.setKeyForms(savedKeyForms) }
+        coVerify(exactly = 0) { storeRepository.removeKeyForms() }
+        coVerify(exactly = 0) { storeRepository.saveDaysSinceStartCount(any()) }
+    }
+
+    @Test
     fun `loadInitialData when more than 1 day since last victory resets victories row count`() = runTest {
         coEvery { timeRepository.getDaysSinceStartCount() } returns flowOf(3)
         coEvery { storeRepository.getDaysSinceStartCount() } returns flowOf(3)
