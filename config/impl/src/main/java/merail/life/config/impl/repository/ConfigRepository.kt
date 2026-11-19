@@ -3,6 +3,7 @@ package merail.life.config.impl.repository
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import merail.life.config.api.IConfigRepository
 import javax.inject.Inject
 
@@ -11,7 +12,7 @@ internal class ConfigRepository @Inject constructor(
 ) : IConfigRepository {
 
     override suspend fun authAnonymously() {
-        with(Dispatchers.IO) {
+        withContext(Dispatchers.IO) {
             auth.signInAnonymously().await()
         }
     }

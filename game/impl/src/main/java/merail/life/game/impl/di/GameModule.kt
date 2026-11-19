@@ -4,7 +4,9 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import merail.life.game.api.IGameLoader
 import merail.life.game.api.IGameRepository
+import merail.life.game.impl.loader.GameLoader
 import merail.life.game.impl.repository.GameRepository
 import javax.inject.Singleton
 
@@ -17,4 +19,10 @@ internal interface GameModule {
     fun bindGameRepository(
         gameRepository: GameRepository,
     ): IGameRepository
+
+    @Singleton
+    @Binds
+    fun bindGameLoader(
+        gameLoader: GameLoader,
+    ): IGameLoader
 }

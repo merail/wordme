@@ -21,6 +21,7 @@ internal class ServerHttpClient @Inject constructor() {
 
     companion object {
         private const val ACCESS_TOKEN = "X-WordMe-Token"
+        private const val DEBUG_ACCESS_TOKEN = "X-WordMe-Debug-Token"
     }
 
     val httpClient = HttpClient(OkHttp) {
@@ -41,19 +42,30 @@ internal class ServerHttpClient @Inject constructor() {
         }
 
         install(HttpTimeout) {
-            connectTimeoutMillis = 15_000
-            requestTimeoutMillis = 15_000
-            socketTimeoutMillis = 15_000
+            connectTimeoutMillis = 5_000
+            requestTimeoutMillis = 10_000
+            socketTimeoutMillis = 5_000
         }
 
         install(HttpRequestRetry) {
-            retryOnServerErrors(maxRetries = 3)
-            retryOnException(maxRetries = 3, retryOnTimeout = true)
+            retryOnServerErrors(
+                maxRetries = 2,
+            )
+            retryOnException(
+                maxRetries = 2,
+                retryOnTimeout = true,
+            )
             exponentialDelay()
         }
 
         defaultRequest {
             header(ACCESS_TOKEN, BuildConfig.ACCESS_TOKEN)
+            if (BuildConfig.DEBUG_ACCESS_TOKEN.isNotEmpty()) {
+                header(
+                    key = DEBUG_ACCESS_TOKEN,
+                    value = BuildConfig.DEBUG_ACCESS_TOKEN,
+                )
+            }
 
             url {
                 protocol = URLProtocol.HTTPS

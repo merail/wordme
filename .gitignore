@@ -66,6 +66,8 @@ captures/
 .idea/other.xml
 .idea/deviceManager.xml
 .idea/runConfigurations/Generate_Baseline_Profile_for_app.xml
+.idea/markdown.xml
+.idea/AndroidProjectSystem.xml
 
 # Kotlin compiler
 .kotlin
@@ -94,7 +96,7 @@ lint/tmp/
 # MacOS
 .DS_Store
 
-# App Specific cases
+# App specific cases
 app/release/output.json
 
 # Backup files

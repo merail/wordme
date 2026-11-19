@@ -69,7 +69,7 @@ internal class StoreRepository @Inject constructor(
 
             val previousVictoriesRowValue = preferences[VICTORIES_ROW_COUNT_KEY]
             val currentValue = (previousVictoriesRowValue ?: 0) + 1
-            val maxVictoriesRowValue = getVictoriesRowMaxCount().first()
+            val maxVictoriesRowValue = preferences[VICTORIES_ROW_MAX_COUNT_KEY] ?: 0
             if (currentValue > maxVictoriesRowValue) {
                 preferences[VICTORIES_ROW_MAX_COUNT_KEY] = currentValue
             }
@@ -137,9 +137,5 @@ internal class StoreRepository @Inject constructor(
                 .clearKeyCells()
                 .build()
         }
-    }
-
-    private fun getVictoriesRowMaxCount() = statsDataStore.data.map { preferences ->
-        preferences[VICTORIES_ROW_MAX_COUNT_KEY] ?: 0
     }
 }

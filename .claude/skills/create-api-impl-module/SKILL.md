@@ -1,3 +1,9 @@
+---
+name: create-api-impl-module
+description: "Scaffold a new feature as :<name>:api + :<name>:impl modules (interface, Hilt module, repository) and register it in settings.gradle.kts and :app. Use when creating a new api/impl module."
+argument-hint: "<moduleName>"
+---
+
 # Create API/Impl Module
 
 Creates a new feature module following the project's API/Impl separation pattern.
@@ -24,28 +30,22 @@ Example: `/create-api-impl-module analytics`
            └── repository/<ModuleName>Repository.kt
    ```
 
-2. **`api/build.gradle.kts`** — use `library.plugin`, set namespace to `merail.life.<moduleName>.api`, add `implementation(projects.domain)`:
+2. **`api/build.gradle.kts`** — use `library.plugin`, add `implementation(projects.domain)`:
    ```kotlin
    plugins {
        alias(libs.plugins.library.plugin)
-   }
-   android {
-       namespace = "merail.life.<moduleName>.api"
    }
    dependencies {
        implementation(projects.domain)
    }
    ```
 
-3. **`impl/build.gradle.kts`** — use `library.plugin` + `ksp` + `hilt.gradle`, set namespace to `merail.life.<moduleName>.impl`, depend on `projects.<moduleName>.api` and `projects.domain`:
+3. **`impl/build.gradle.kts`** — use `library.plugin` + `ksp` + `hilt.gradle`, depend on `projects.<moduleName>.api` and `projects.domain`:
    ```kotlin
    plugins {
        alias(libs.plugins.library.plugin)
        alias(libs.plugins.ksp)
        alias(libs.plugins.hilt.gradle)
-   }
-   android {
-       namespace = "merail.life.<moduleName>.impl"
    }
    dependencies {
        testImplementation(libs.junit)
@@ -85,3 +85,4 @@ Example: `/create-api-impl-module analytics`
 - Impl module is `internal` — only the DI module is `@InstallIn(SingletonComponent::class)`
 - Only `:app` depends on `:impl` modules; other feature modules depend on `:api` only
 - Typesafe project accessors: `projects.<moduleName>.api`
+- Don't set `namespace` in build files — `LibraryConventionPlugin` derives it from the module path (`:<moduleName>:api` → `merail.life.<moduleName>.api`)

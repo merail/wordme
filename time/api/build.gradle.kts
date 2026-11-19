@@ -19,6 +19,11 @@ android {
                 name = "REDUCE_TIME_UNTIL_NEXT_DAY",
                 value = properties.getProperty("reduceTimeUntilNextDay"),
             )
+            buildConfigField(
+                type = "Boolean",
+                name = "USE_TRUSTED_TIME_CLIENT",
+                value = properties.getProperty("useTrustedTimeClient"),
+            )
         }
     }
 
@@ -28,6 +33,11 @@ android {
                 type = "Boolean",
                 name = "REDUCE_TIME_UNTIL_NEXT_DAY",
                 value = "false",
+            )
+            buildConfigField(
+                type = "Boolean",
+                name = "USE_TRUSTED_TIME_CLIENT",
+                value = properties.getProperty("useTrustedTimeClient"),
             )
         }
     }

@@ -29,6 +29,24 @@ android {
             value = "\"${properties.getProperty("accessToken")}\"",
         )
     }
+
+    buildTypes {
+        debug {
+            buildConfigField(
+                type = "String",
+                name = "DEBUG_ACCESS_TOKEN",
+                value = "\"${properties.getProperty("debugAccessToken").orEmpty()}\"",
+            )
+        }
+
+        release {
+            buildConfigField(
+                type = "String",
+                name = "DEBUG_ACCESS_TOKEN",
+                value = "\"\"",
+            )
+        }
+    }
 }
 
 dependencies {

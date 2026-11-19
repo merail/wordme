@@ -3,15 +3,20 @@ package merail.life.game.impl
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import merail.life.core.extensions.suspendableRunCatching
+import merail.life.core.log.IWordMeLogger
 import merail.life.domain.Empty
 import merail.life.domain.WordModel
+import merail.life.game.api.IGameLoader
 import merail.life.game.api.IGameRepository
 import merail.life.game.impl.useCases.CheckWordExistenceUseCase
-import merail.life.game.impl.useCases.GetDayWordUseCase
 import merail.life.game.impl.model.Key
 import merail.life.game.impl.model.KeyCell
 import merail.life.game.impl.model.KeyState
@@ -20,6 +25,7 @@ import merail.life.game.impl.state.DeleteKeyState
 import merail.life.game.impl.state.GameErrorState
 import merail.life.game.impl.state.GameResultState
 import merail.life.game.impl.state.WordCheckState
+import merail.life.game.impl.state.isGettingError
 import merail.life.game.impl.utils.KeyCellsList
 import merail.life.game.impl.utils.defaultKeyButtons
 import merail.life.game.impl.utils.emptyKeyFields
@@ -31,7 +37,6 @@ import merail.life.game.impl.utils.toLogicModel
 import merail.life.game.impl.utils.toStringWord
 import merail.life.game.impl.utils.toUiModel
 import merail.life.store.api.IStoreRepository
-import merail.life.time.api.BuildConfig
 import merail.life.time.api.ITimeRepository
 import javax.inject.Inject
 
@@ -41,19 +46,30 @@ internal const val KEYBOARD_COLUMNS_COUNT = 3
 
 @HiltViewModel
 internal class GameViewModel @Inject constructor(
-    private val getDayWordUseCase: GetDayWordUseCase,
+    private val gameLoader: IGameLoader,
     private val checkWordExistenceUseCase: CheckWordExistenceUseCase,
     private val storeRepository: IStoreRepository,
     private val timeRepository: ITimeRepository,
     private val gameRepository: IGameRepository,
+    private val logger: IWordMeLogger,
 ) : ViewModel() {
 
     companion object {
         internal const val TAG = "GameViewModel"
+
+        internal const val DAY_WORD_RETRY_TICKS_COUNT = 10
     }
 
     var dayWord = WordModel.Empty
         private set
+
+    private var ticksUntilDayWordRetry = 0
+
+    private var isFirstTick = true
+
+    private val boardMutex = Mutex()
+
+    private var wordCheckJob: Job? = null
 
     private val _keyForms = MutableStateFlow(emptyKeyFields)
     val keyForms: StateFlow<KeyCellsList> = _keyForms
@@ -126,35 +142,46 @@ internal class GameViewModel @Inject constructor(
         isNextDay: Boolean,
     ) {
         _timeUntilNextDay.value = time
-        if (isNextDay) {
-            if (BuildConfig.REDUCE_TIME_UNTIL_NEXT_DAY) {
-                ITimeRepository.countdownStartRealTime = System.currentTimeMillis()
-                ITimeRepository.debugDaysSinceStartCount++
-            }
-
-            storeRepository.removeKeyForms()
-            val daysSinceStartCount = timeRepository.getDaysSinceStartCount().first()
-            storeRepository.saveDaysSinceStartCount(daysSinceStartCount)
-            getDayWordUseCase(daysSinceStartCount + 1).onFailure {
-                _gameErrorState.value = GameErrorState.DayWordGettingError
-                _keyForms.value = emptyKeyFields
-                _keyButtons.value = defaultKeyButtons
-                disableControlKeys()
-                _wordCheckState.value = WordCheckState.None
-                currentIndex = Pair(0, 0)
-                _isResultBoardVisible.value = false
-            }.onSuccess {
-                dayWord = it
-                _keyForms.value = emptyKeyFields
-                _keyButtons.value = defaultKeyButtons
-                disableControlKeys()
-                _wordCheckState.value = WordCheckState.None
-                _gameResultState.value = GameResultState.Process
-                currentIndex = Pair(0, 0)
-                _isResultBoardVisible.value = false
+        val isDayWordGettingError = _gameErrorState.value.isGettingError
+        if (isDayWordGettingError) {
+            ticksUntilDayWordRetry--
+        }
+        var isBoardReset = false
+        if (isFirstTick || isNextDay || (isDayWordGettingError && ticksUntilDayWordRetry <= 0)) {
+            ticksUntilDayWordRetry = DAY_WORD_RETRY_TICKS_COUNT
+            boardMutex.withLock {
+                suspendableRunCatching {
+                    val newDayWord = gameLoader.loadNewDay()
+                    if (newDayWord != null) {
+                        dayWord = newDayWord
+                        _gameErrorState.value = GameErrorState.Hidden
+                        resetBoard()
+                        isBoardReset = true
+                    }
+                }.onFailure {
+                    logger.w(TAG, "Day switching. Failure", it)
+                    if (isDayWordGettingError.not()) {
+                        _gameErrorState.value = GameErrorState.DayWordGettingError
+                        resetBoard()
+                        isBoardReset = true
+                    }
+                }
             }
         }
-        _isNextDay.value = isNextDay
+        isFirstTick = false
+        _isNextDay.value = isBoardReset
+    }
+
+    private fun resetBoard() {
+        wordCheckJob?.cancel()
+        gameRepository.setKeyForms(emptyList())
+        _keyForms.value = emptyKeyFields
+        _keyButtons.value = defaultKeyButtons
+        disableControlKeys()
+        _wordCheckState.value = WordCheckState.None
+        _gameResultState.value = GameResultState.Process
+        currentIndex = Pair(0, 0)
+        _isResultBoardVisible.value = false
     }
 
     fun disableControlKeys() {
@@ -192,7 +219,9 @@ internal class GameViewModel @Inject constructor(
     }
 
     fun dismissError() {
-        _gameErrorState.value = GameErrorState.Hidden
+        if (_gameErrorState.value.isGettingError.not()) {
+            _gameErrorState.value = GameErrorState.Hidden
+        }
     }
 
     private fun addKey(key: Key) {
@@ -251,23 +280,27 @@ internal class GameViewModel @Inject constructor(
 
             val enteredWord = _keyForms.value[rowIndex].toStringWord()
 
-            if (enteredWord == dayWord.value) {
-                onVictory(rowIndex)
-            } else {
-                viewModelScope.launch {
-                    val isWordExist = checkWordExistenceUseCase(enteredWord).onFailure {
-                        _gameErrorState.value = GameErrorState.WordExistingCheckError
-                        _checkWordKeyState.value = CheckWordKeyState.Enabled
-                        return@launch
-                    }.getOrThrow()
-
-                    if (isWordExist) {
-                        onCorrectWord(
-                            enteredWord = enteredWord,
-                            rowIndex = rowIndex,
-                        )
-                    } else {
-                        onWrongWord(rowIndex)
+            wordCheckJob = viewModelScope.launch {
+                if (enteredWord == dayWord.value) {
+                    boardMutex.withLock {
+                        onVictory(rowIndex)
+                    }
+                } else {
+                    val isWordExistResult = checkWordExistenceUseCase(enteredWord)
+                    boardMutex.withLock {
+                        isWordExistResult.onSuccess { isWordExist ->
+                            if (isWordExist) {
+                                onCorrectWord(
+                                    enteredWord = enteredWord,
+                                    rowIndex = rowIndex,
+                                )
+                            } else {
+                                onWrongWord(rowIndex)
+                            }
+                        }.onFailure {
+                            _gameErrorState.value = GameErrorState.WordExistingCheckError
+                            _checkWordKeyState.value = CheckWordKeyState.Enabled
+                        }
                     }
                 }
             }
@@ -318,8 +351,7 @@ internal class GameViewModel @Inject constructor(
         _wordCheckState.value = WordCheckState.CorrectWord(rowIndex)
         disableControlKeys()
         _gameResultState.value = GameResultState.Victory
-        saveLastVictoryDay()
-        saveStats(true)
+        saveVictoryData()
     }
 
     private fun onCorrectWord(
@@ -346,7 +378,7 @@ internal class GameViewModel @Inject constructor(
 
     private fun onDefeat() {
         _gameResultState.value = GameResultState.Defeat
-        saveStats(false)
+        saveDefeatData()
     }
 
     private fun setKeyFormsOnCorrectWord(
@@ -414,19 +446,17 @@ internal class GameViewModel @Inject constructor(
         storeRepository.saveKeyForms(_keyForms.value.toLogicModel())
     }
 
-    private fun saveLastVictoryDay() = viewModelScope.launch {
-        val daysSinceStartCount = timeRepository.getDaysSinceStartCount().first()
-        storeRepository.saveLastVictoryDay(daysSinceStartCount)
+    private fun saveVictoryData() {
+        val attemptsCount = currentIndex.first
+        viewModelScope.launch {
+            val daysSinceStartCount = storeRepository.getDaysSinceStartCount().first()
+            storeRepository.saveLastVictoryDay(daysSinceStartCount)
+            storeRepository.updateStatsOnVictory(attemptsCount = attemptsCount)
+        }
     }
 
-    private fun saveStats(isVictory: Boolean) = viewModelScope.launch {
-        if (isVictory) {
-            storeRepository.updateStatsOnVictory(
-                attemptsCount = currentIndex.first,
-            )
-        } else {
-            storeRepository.updateStatsOnDefeat()
-        }
+    private fun saveDefeatData() = viewModelScope.launch {
+        storeRepository.updateStatsOnDefeat()
     }
 
     private fun updateKeyFormCell(row: Int, col: Int, transform: (KeyCell) -> KeyCell) {

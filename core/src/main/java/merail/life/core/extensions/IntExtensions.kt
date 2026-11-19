@@ -9,7 +9,7 @@ infix fun Int.percentOf(total: Int): String {
         (toDouble() / total) * 100
     }
     return String.format(
-        locale = Locale("ru"),
+        locale = Locale.forLanguageTag("ru"),
         format = "%.0f%%",
         percentage,
     )

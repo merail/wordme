@@ -25,7 +25,10 @@ fun NavController.navigateToResult(
             isVictory = isVictory,
             attemptsCount = attemptsCount,
         ),
-        builder = navOptions,
+        builder = {
+            launchSingleTop = true
+            navOptions()
+        },
     )
 }
 

@@ -1,3 +1,9 @@
+---
+name: write-unit-tests
+description: "Generate unit tests for a class following project conventions (JUnit 4, MockK, kotlinx-coroutines-test). Use when asked to write or add tests for a file."
+argument-hint: "<filePath>"
+---
+
 # Write Unit Tests
 
 Generates unit tests for a given class following the project's testing conventions.
@@ -12,9 +18,9 @@ Example: `/write-unit-tests server/impl/src/main/java/merail/life/server/impl/re
 
 1. Read the target file to understand its public API, constructor dependencies, and behavior
 
-2. Determine test file location:
-   - Source: `<module>/src/main/java/merail/life/<package>/<Class>.kt`
-   - Test: `<module>/src/test/java/merail/life/<package>/<Class>Test.kt`
+2. Determine test file location — tests go into the module's root package, not a mirrored subpackage:
+   - Source: `game/impl/src/main/java/merail/life/game/impl/repository/GameRepository.kt`
+   - Test: `game/impl/src/test/java/merail/life/game/impl/TestGameRepository.kt`
 
 3. Read existing tests in the same module for style reference
 
@@ -22,7 +28,7 @@ Example: `/write-unit-tests server/impl/src/main/java/merail/life/server/impl/re
 
    **For Repository/plain classes:**
    ```kotlin
-   class <Class>Test {
+   class Test<Class> {
        // MockK mocks for all constructor dependencies
        private lateinit var dependency: DependencyType
        private lateinit var sut: ClassUnderTest
@@ -46,7 +52,7 @@ Example: `/write-unit-tests server/impl/src/main/java/merail/life/server/impl/re
    **For ViewModels:**
    ```kotlin
    @OptIn(ExperimentalCoroutinesApi::class)
-   class <ViewModel>Test {
+   class Test<ViewModel> {
        private lateinit var viewModel: TheViewModel
        // MockK mocks for all constructor dependencies
        private val testDispatcher = StandardTestDispatcher()

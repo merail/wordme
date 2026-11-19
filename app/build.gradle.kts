@@ -47,6 +47,11 @@ android {
     }
 
     buildTypes {
+        debug {
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+        }
+
         release {
             isMinifyEnabled = true
             isShrinkResources = true
@@ -75,9 +80,7 @@ android {
 }
 
 baselineProfile {
-    filter {
-        include("merail.life.wordme.**")
-    }
+    mergeIntoMain = true
 }
 
 dependencies {
@@ -129,6 +132,7 @@ dependencies {
     implementation(projects.store.api)
     implementation(projects.store.impl)
     implementation(projects.result)
+    implementation(projects.rules)
     implementation(projects.stats)
     implementation(projects.time.api)
     implementation(projects.time.impl)
