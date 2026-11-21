@@ -83,6 +83,36 @@ baselineProfile {
     mergeIntoMain = true
 }
 
+androidComponents {
+    onVariants { variant ->
+        if (variant.name == "nonMinifiedRelease" || variant.name == "benchmarkRelease") {
+            variant.applicationId.set("merail.life.wordme.profile")
+        }
+    }
+}
+
+val publishedApplicationId = "merail.life.wordme"
+
+tasks.configureEach {
+    val taskName = name
+    val wouldTouchPublishedApp = taskName in setOf(
+        "installRelease",
+        "uninstallRelease",
+        "uninstallAll",
+        "connectedReleaseAndroidTest",
+    )
+    if (wouldTouchPublishedApp) {
+        doFirst {
+            throw GradleException(
+                "Task '$taskName' is disabled for safety: it would install or uninstall the " +
+                    "published WordMe app ('$publishedApplicationId') and could delete it together " +
+                    "with its local data. Use the debug variant ('.debug') for local installs and " +
+                    "instrumented tests instead.",
+            )
+        }
+    }
+}
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

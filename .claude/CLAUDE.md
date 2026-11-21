@@ -27,6 +27,18 @@ The build reads `local.properties` directly (in `:server:impl` and `:time:api`),
 
 `generateBaselineProfile` writes `baseline-prof.txt` and `startup-prof.txt` to `app/src/main/generated/baselineProfiles/` (`mergeIntoMain = true` in `:app`). Commit them after regenerating — release builds, CI included, take the profile only from there. The profile has no package filter on purpose: it covers library code (Ktor, Firebase, Hilt) run at startup too.
 
+### Device safety (do not bypass)
+
+The published app id is `merail.life.wordme`, and the store build is installed on the dev phone. To
+guarantee no dev run can ever delete it, `:app` pins every non-release variant away from the
+published id: `debug` → `merail.life.wordme.debug`, and the baseline-profile variants
+`nonMinifiedRelease`/`benchmarkRelease` → `merail.life.wordme.profile` (registered in
+`app/google-services.json`). On top of that, the tasks `installRelease`, `uninstallRelease`,
+`uninstallAll`, and `connectedReleaseAndroidTest` are hard-blocked in `app/build.gradle.kts` — they
+throw before doing anything. Do not remove that guard or point those variants back at
+`merail.life.wordme`; running `generateBaselineProfile` or a release-variant install/uninstall on a
+connected device would otherwise wipe the store WordMe and its DataStore.
+
 ## Architecture
 
 **Clean Architecture with API/Impl module separation.** Feature modules expose interfaces in `:feature:api` and implementations in `:feature:impl`. The app module composes everything together.
