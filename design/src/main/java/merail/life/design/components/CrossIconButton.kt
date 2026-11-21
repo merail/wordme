@@ -11,6 +11,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import merail.life.design.R
 import merail.life.design.WordMeTheme
@@ -24,7 +25,7 @@ fun CrossIconButton(
     Icon(
         imageVector = ImageVector.vectorResource(R.drawable.ic_cross),
         tint = Color.Unspecified,
-        contentDescription = "cross icon button",
+        contentDescription = stringResource(R.string.cross_button_content_description),
         modifier = modifier
             .background(backgroundColor, CircleShape)
             .clickable(

@@ -4,4 +4,9 @@
     <string name="error_default_message">Ошибка</string>
     <string name="error_word_existing_check_message">Ошибка при проверке слова</string>
     <string name="error_day_word_getting_message">Новое слово не загрузилось. Пробуем ещё раз…</string>
+    <string name="rules_button_content_description">Как играть</string>
+    <string name="stats_button_content_description">Статистика</string>
+    <string name="delete_key_content_description">Удалить букву</string>
+    <string name="check_word_key_content_description">Проверить слово</string>
+    <string name="result_board_info_content_description">Открыть результат</string>
 </resources>

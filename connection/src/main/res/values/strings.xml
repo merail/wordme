@@ -3,4 +3,5 @@
     <string name="loading_error_title">Что-то пошло не\u00A0так</string>
     <string name="loading_error_subtitle">Попробуй обновить экран</string>
     <string name="loading_error_reconnect_button">Обновить</string>
+    <string name="loading_error_image_content_description">Ошибка загрузки</string>
 </resources>

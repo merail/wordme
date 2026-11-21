@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -159,7 +160,7 @@ internal fun RowScope.KeyButton(
                         WordMeTheme.colors.elementInversePrimary
                     }
                 ),
-                contentDescription = null,
+                contentDescription = stringResource(R.string.delete_key_content_description),
             )
             Key.OK -> if (checkWordKeyState is CheckWordKeyState.Loading) {
                 CircularProgressIndicator(
@@ -178,7 +179,7 @@ internal fun RowScope.KeyButton(
                             WordMeTheme.colors.elementInversePrimary
                         },
                     ),
-                    contentDescription = "check word icon",
+                    contentDescription = stringResource(R.string.check_word_key_content_description),
                 )
             }
             else -> Text(

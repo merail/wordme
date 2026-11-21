@@ -14,9 +14,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
-import merail.life.design.R
+import merail.life.design.R as designR
+import merail.life.game.impl.R
 
 @Composable
 internal fun Toolbar(
@@ -36,8 +38,8 @@ internal fun Toolbar(
             .defaultMinSize(toolbarMinHeight),
     ) {
         Icon(
-            imageVector = ImageVector.vectorResource(R.drawable.ic_rules),
-            contentDescription = null,
+            imageVector = ImageVector.vectorResource(designR.drawable.ic_rules),
+            contentDescription = stringResource(R.string.rules_button_content_description),
             modifier = Modifier
                 .clickable(
                     interactionSource = remember {
@@ -51,8 +53,8 @@ internal fun Toolbar(
                 },
         )
         Icon(
-            imageVector = ImageVector.vectorResource(R.drawable.ic_info),
-            contentDescription = null,
+            imageVector = ImageVector.vectorResource(designR.drawable.ic_info),
+            contentDescription = stringResource(R.string.stats_button_content_description),
             modifier = Modifier
                 .clickable(
                     interactionSource = remember {

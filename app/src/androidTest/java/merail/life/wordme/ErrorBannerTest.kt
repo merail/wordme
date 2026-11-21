@@ -92,7 +92,7 @@ class ErrorBannerTest {
         composeTestRule.waitForIdle()
 
         composeTestRule
-            .onNodeWithContentDescription("cross icon button")
+            .onNodeWithContentDescription("Закрыть")
             .assertDoesNotExist()
     }
 
@@ -138,13 +138,13 @@ class ErrorBannerTest {
 
         composeTestRule.waitUntil(timeoutMillis = 5_000) {
             composeTestRule
-                .onAllNodesWithContentDescription("cross icon button")
+                .onAllNodesWithContentDescription("Закрыть")
                 .fetchSemanticsNodes()
                 .isNotEmpty()
         }
 
         composeTestRule
-            .onNodeWithContentDescription("cross icon button")
+            .onNodeWithContentDescription("Закрыть")
             .assertIsDisplayed()
     }
 
@@ -170,7 +170,7 @@ class ErrorBannerTest {
         }
 
         composeTestRule
-            .onNodeWithContentDescription("cross icon button")
+            .onNodeWithContentDescription("Закрыть")
             .performClick()
 
         composeTestRule.waitForIdle()
@@ -188,7 +188,7 @@ class ErrorBannerTest {
         composeTestRule.onNode(hasText("О") and hasClickAction()).performClick()
         composeTestRule.waitForIdle()
         composeTestRule
-            .onNodeWithContentDescription("check word icon")
+            .onNodeWithContentDescription("Проверить слово")
             .performClick()
     }
 }
