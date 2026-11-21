@@ -74,12 +74,13 @@ internal class GameLoader @Inject constructor(
             daysSinceStartCount = daysSinceStartCount,
         )
 
+        resetVictoriesRowCountIfNeeded(
+            daysSinceStartCount = daysSinceStartCount,
+        )
+
         storeRepository.removeKeyForms()
         storeRepository.saveDaysSinceStartCount(
             count = daysSinceStartCount,
-        )
-        resetVictoriesRowCountIfNeeded(
-            daysSinceStartCount = daysSinceStartCount,
         )
 
         gameRepository.setDayWord(
