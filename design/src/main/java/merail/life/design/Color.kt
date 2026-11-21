@@ -32,7 +32,7 @@ data class Colors(
     val elementTertiary: Color = ColorConstants.steelGrey,
     val elementNegative: Color = ColorConstants.red,
     val elementNegativeSecondary: Color = ColorConstants.darkRed,
-    val elementNegativeTertiary: Color = ColorConstants.darkRed.copy(alpha = 0.6f),
+    val elementNegativeTertiary: Color = ColorConstants.black.copy(alpha = 0.3f),
 
     val textPrimary: Color = ColorConstants.black,
     val textSecondary: Color = ColorConstants.darkGrayishRed,

@@ -94,6 +94,20 @@ class TestStoreRepository {
     }
 
     @Test
+    fun `victoriesRowMaxCount preserves maximum streak after defeat and new streak`() = runTest {
+        storeRepository.updateStatsOnVictory(3)  // streak: 1, max: 1
+        storeRepository.updateStatsOnVictory(4)  // streak: 2, max: 2
+        storeRepository.updateStatsOnVictory(5)  // streak: 3, max: 3
+        storeRepository.updateStatsOnDefeat()    // streak: 0, max: 3
+        storeRepository.updateStatsOnVictory(2)  // streak: 1, max: 3
+        storeRepository.updateStatsOnVictory(1)  // streak: 2, max: 3
+
+        val stats = storeRepository.getStats().first()
+        assertEquals(3, stats.victoriesRowMaxCount)
+        assertEquals(2, stats.victoriesRowCount)
+    }
+
+    @Test
     fun `save and load key forms`() = runTest {
         val keyCell = KeyCellModel("А", KeyStateModel.CORRECT)
         val input = listOf(listOf(keyCell))

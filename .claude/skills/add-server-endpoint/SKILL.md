@@ -1,3 +1,9 @@
+---
+name: add-server-endpoint
+description: "Add a new backend endpoint across :server:api and :server:impl (IServerRepository → ServerApi → ServerRepository) with unit tests. Use when adding a new server/HTTP call."
+argument-hint: "<route> <params> <returnType>"
+---
+
 # Add Server Endpoint
 
 Adds a new endpoint to the server module following the existing three-layer pattern.
@@ -21,7 +27,7 @@ Example: `/add-server-endpoint getStats userId:Int StatsModel`
 
 4. Add the implementation in `ServerRepository` — wrap in `withContext(Dispatchers.IO)`, convert raw response to domain model
 
-5. Add unit tests to `server/impl/src/test/java/merail/life/server/impl/ServerRepositoryTest.kt` following the existing pattern:
+5. Add unit tests to `server/impl/src/test/java/merail/life/server/impl/TestServerRepository.kt` following the existing pattern:
    - Test successful response
    - Test exception propagation
 

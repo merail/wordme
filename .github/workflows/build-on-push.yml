@@ -25,13 +25,14 @@ jobs:
 
       - name: Create local.properties
         run: |
-          echo "reduceTimeUntilNextDay=${{ secrets.REDUCE_TIME_UNTIL_NEXT_DAY_FLAG }}" >> local.properties
+          echo "reduceTimeUntilNextDay=false" >> local.properties
+          echo "useTrustedTimeClient=${{ secrets.USE_TRUSTED_TIME_CLIENT }}" >> local.properties
           echo "domainUrl=${{ secrets.DOMAIN_URL }}" >> local.properties
           echo "accessToken=${{ secrets.ACCESS_TOKEN }}" >> local.properties
 
       - name: Create google-services.json
         run: |
-          echo '${{ secrets.DEV_GOOGLE_SERVICES_JSON }}' > app/google-services.json
+          echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > app/google-services.json
 
       - name: Run Unit Tests
         run: ./gradlew test --stacktrace

@@ -47,6 +47,11 @@ android {
     }
 
     buildTypes {
+        debug {
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+        }
+
         release {
             isMinifyEnabled = true
             isShrinkResources = true
@@ -75,8 +80,36 @@ android {
 }
 
 baselineProfile {
-    filter {
-        include("merail.life.wordme.**")
+    mergeIntoMain = true
+}
+
+androidComponents {
+    onVariants { variant ->
+        if (variant.name == "nonMinifiedRelease" || variant.name == "benchmarkRelease") {
+            variant.applicationId.set("merail.life.wordme.profile")
+        }
+    }
+}
+
+val publishedApplicationId = "merail.life.wordme"
+
+tasks.configureEach {
+    val taskName = name
+    val wouldTouchPublishedApp = taskName in setOf(
+        "installRelease",
+        "uninstallRelease",
+        "uninstallAll",
+        "connectedReleaseAndroidTest",
+    )
+    if (wouldTouchPublishedApp) {
+        doFirst {
+            throw GradleException(
+                "Task '$taskName' is disabled for safety: it would install or uninstall the " +
+                    "published WordMe app ('$publishedApplicationId') and could delete it together " +
+                    "with its local data. Use the debug variant ('.debug') for local installs and " +
+                    "instrumented tests instead.",
+            )
+        }
     }
 }
 
@@ -129,6 +162,7 @@ dependencies {
     implementation(projects.store.api)
     implementation(projects.store.impl)
     implementation(projects.result)
+    implementation(projects.rules)
     implementation(projects.stats)
     implementation(projects.time.api)
     implementation(projects.time.impl)

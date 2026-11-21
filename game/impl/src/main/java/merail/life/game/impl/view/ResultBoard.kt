@@ -37,7 +37,7 @@ internal fun ResultBoard(
             )
             .fillMaxWidth()
             .background(
-                color = WordMeTheme.colors.elementDisabled,
+                color = WordMeTheme.colors.elementTertiary,
                 shape = RoundedCornerShape(24.dp),
             )
             .clickable(
@@ -48,7 +48,7 @@ internal fun ResultBoard(
         Icon(
             imageVector = ImageVector.vectorResource(designR.drawable.ic_info),
             tint = Color.Unspecified,
-            contentDescription = null,
+            contentDescription = stringResource(R.string.result_board_info_content_description),
             modifier = Modifier
                 .align(Alignment.End)
                 .clickable(

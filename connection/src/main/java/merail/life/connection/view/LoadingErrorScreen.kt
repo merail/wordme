@@ -55,7 +55,7 @@ internal fun LoadingErrorScreen(
                 imageVector = ImageVector.vectorResource(
                     id = R.drawable.ic_loading_error,
                 ),
-                contentDescription = null,
+                contentDescription = stringResource(R.string.loading_error_image_content_description),
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally),
             )

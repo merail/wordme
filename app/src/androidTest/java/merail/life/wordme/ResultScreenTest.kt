@@ -7,13 +7,16 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
+import dagger.hilt.android.testing.UninstallModules
 import merail.life.result.navigateToResult
+import merail.life.store.impl.di.StoreModule
 import merail.life.wordme.navigation.WordMeNavHost
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
 @HiltAndroidTest
+@UninstallModules(StoreModule::class)
 class ResultScreenTest {
 
     @get:Rule(order = 0)
@@ -97,7 +100,7 @@ class ResultScreenTest {
             .assertIsDisplayed()
 
         composeTestRule
-            .onNodeWithText("Сегодня слово не\u00A0удалось разгадать, но\u00A0не\u00A0переживайте. Завтра появится шанс попробовать снова!")
+            .onNodeWithText("Не расстраивайся! Завтра появится новое слово\u00A0— попробуешь ещё")
             .assertIsDisplayed()
 
         composeTestRule

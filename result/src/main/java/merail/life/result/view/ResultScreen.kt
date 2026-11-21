@@ -120,7 +120,7 @@ internal fun ResultScreen(
                 style = WordMeTheme.typography.bodyLarge,
                 modifier = Modifier
                     .padding(
-                        horizontal = 8.dp,
+                        horizontal = 24.dp,
                     ),
             )
 
@@ -137,7 +137,7 @@ internal fun ResultScreen(
                     )
                     .fillMaxWidth()
                     .background(
-                        color = WordMeTheme.colors.elementSecondary,
+                        color = WordMeTheme.colors.elementTertiary,
                         shape = RoundedCornerShape(24.dp),
                     )
                     .padding(16.dp),
@@ -167,7 +167,7 @@ internal fun ResultScreen(
                     )
                     .fillMaxWidth()
                     .background(
-                        color = WordMeTheme.colors.elementSecondary,
+                        color = WordMeTheme.colors.elementTertiary,
                         shape = RoundedCornerShape(24.dp),
                     )
                     .padding(16.dp),

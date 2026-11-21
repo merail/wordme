@@ -7,15 +7,19 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
+import dagger.hilt.android.testing.UninstallModules
 import merail.life.game.impl.navigateToGame
 import merail.life.result.navigateToResult
+import merail.life.rules.navigateToRules
 import merail.life.stats.navigateToStats
+import merail.life.store.impl.di.StoreModule
 import merail.life.wordme.navigation.WordMeNavHost
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
 @HiltAndroidTest
+@UninstallModules(StoreModule::class)
 class WordMeNavGraphTest {
 
     @get:Rule(order = 0)
@@ -137,6 +141,29 @@ class WordMeNavGraphTest {
 
         composeTestRule
             .onNodeWithText("Данные об\u00A0игре")
+            .assertIsDisplayed()
+    }
+
+    @Test
+    fun navigateToRulesScreen_displaysRulesDialog() {
+        composeTestRule.setContent {
+            navController = rememberNavController()
+            WordMeNavHost(
+                navController = navController,
+                isLoadingError = false,
+            )
+        }
+
+        composeTestRule.waitForIdle()
+
+        composeTestRule.runOnUiThread {
+            navController.navigateToRules()
+        }
+
+        composeTestRule.waitForIdle()
+
+        composeTestRule
+            .onNodeWithText("Как играть")
             .assertIsDisplayed()
     }
 

@@ -51,6 +51,7 @@ internal val Context.bottomPadding: Dp
 @Composable
 internal fun GameScreen(
     onGameEnd: (isVictory: Boolean, attemptsCount: Int) -> Unit,
+    onRulesClick: () -> Unit,
     onInfoClick: () -> Unit,
     viewModel: GameViewModel = hiltViewModel<GameViewModel>(),
 ) {
@@ -87,6 +88,7 @@ internal fun GameScreen(
             verticalArrangement = Arrangement.Bottom,
         ) {
             Toolbar(
+                onRulesClick = onRulesClick,
                 onInfoClick = onInfoClick,
             )
 

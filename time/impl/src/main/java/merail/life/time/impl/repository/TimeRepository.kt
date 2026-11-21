@@ -1,8 +1,6 @@
 package merail.life.time.impl.repository
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.first
@@ -11,8 +9,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import merail.life.server.api.IServerRepository
 import merail.life.time.api.ITimeRepository
-import merail.life.time.api.ITimeRepository.Companion.countdownStartRealTime
-import merail.life.time.api.ITimeRepository.Companion.debugDaysSinceStartCount
 import merail.life.time.api.ITimeSource
 import java.time.Duration
 import java.time.Instant
@@ -24,6 +20,7 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.Locale
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
 internal val fakeStartTime = LocalDateTime.now().with(LocalTime.of(23, 59, 40))
 
@@ -33,16 +30,31 @@ internal class TimeRepository @Inject constructor(
     private val timeSource: ITimeSource,
 ) : ITimeRepository {
 
+    internal var currentTimeMillis: () -> Long = System::currentTimeMillis
+
+    internal var debugCountdownStartMillis = currentTimeMillis()
+
+    @Volatile
+    private var debugDaysSinceStartCount = 0
+
+    @Volatile
+    private var gameCountdownStartDate: LocalDate? = null
+
     private val debugTimeUntilNextDay by lazy {
-        flow<Duration> {
+        flow {
             while (true) {
-                val millisPassed = System.currentTimeMillis() - countdownStartRealTime
+                val millisPassed = currentTimeMillis() - debugCountdownStartMillis
                 val nowFake = fakeStartTime.plusNanos(millisPassed * 1_000_000)
                 val midnight = fakeStartTime.toLocalDate().plusDays(1).atStartOfDay()
 
-                emit(Duration.between(nowFake, midnight).coerceAtLeast(Duration.ZERO))
+                if (nowFake.plusSeconds(1).isBefore(midnight).not()) {
+                    debugCountdownStartMillis = currentTimeMillis()
+                    debugDaysSinceStartCount++
+                }
 
-                delay(1000L)
+                emit(nowFake to Duration.between(nowFake, midnight).coerceAtLeast(Duration.ZERO))
+
+                delay(1000L.milliseconds)
             }
         }.shareIn(
             scope = appScope,
@@ -58,22 +70,16 @@ internal class TimeRepository @Inject constructor(
                 val now = LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMillis), ZoneId.systemDefault())
                 val midnight = now.toLocalDate().plusDays(1).atStartOfDay()
 
-                emit(Duration.between(now, midnight).coerceAtLeast(Duration.ZERO))
+                emit(now to Duration.between(now, midnight).coerceAtLeast(Duration.ZERO))
 
-                delay(1000L)
+                delay(1000L.milliseconds)
             }
         }.shareIn(
-            scope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
+            scope = appScope,
             started = SharingStarted.Eagerly,
             replay = 1,
         )
     }
-
-    private val dotFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.getDefault())
-
-    private fun String.toLocalDate() = LocalDate.parse(this, dotFormatter)
-
-    private suspend fun getGameCountdownStartDate() = serverRepository.getGameCountdownStartDate().toLocalDate()
 
     override fun getDaysSinceStartCount() = timeSource.getCurrentUnixEpochMillis().map {
         LocalDateTime.ofInstant(Instant.ofEpochMilli(it), ZoneId.systemDefault())
@@ -84,23 +90,44 @@ internal class TimeRepository @Inject constructor(
 
     override suspend fun getTimeUntilNextDay(
         reduceTimeFlag: Boolean,
-    ) = if (reduceTimeFlag) {
-        debugTimeUntilNextDay
-    } else {
-        releaseTimeUntilNextDay
-    }.map {
-        val hours = it.toHours()
-        val minutes = it.toMinutes() % 60
-        val seconds = it.seconds % 60
+    ) = flow {
+        val timeFlow = if (reduceTimeFlag) {
+            debugTimeUntilNextDay
+        } else {
+            releaseTimeUntilNextDay
+        }
 
-        val isNextDay = hours == 0L && minutes == 0L && seconds == 0L
+        var previousDay: LocalDate? = null
 
-        String.format(
-            locale = Locale.getDefault(),
-            format = "%02d:%02d:%02d",
-            hours,
-            minutes,
-            seconds,
-        ) to isNextDay
+        timeFlow.collect { (now, timeUntilNextDay) ->
+            val day = now.plusSeconds(1).toLocalDate()
+            val isNextDay = previousDay?.let {
+                day.isAfter(it)
+            } == true
+            previousDay = day
+
+            val hours = timeUntilNextDay.toHours()
+            val minutes = timeUntilNextDay.toMinutes() % 60
+            val seconds = timeUntilNextDay.seconds % 60
+
+            emit(
+                String.format(
+                    locale = Locale.getDefault(),
+                    format = "%02d:%02d:%02d",
+                    hours,
+                    minutes,
+                    seconds,
+                ) to isNextDay,
+            )
+        }
     }
+
+    private suspend fun getGameCountdownStartDate() = gameCountdownStartDate
+        ?: serverRepository.getGameCountdownStartDate().toLocalDate().also {
+            gameCountdownStartDate = it
+        }
+
+    private val dotFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.getDefault())
+
+    private fun String.toLocalDate() = LocalDate.parse(this, dotFormatter)
 }

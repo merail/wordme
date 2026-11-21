@@ -168,7 +168,7 @@ private fun RowScope.InfoBlock(
         modifier = Modifier
             .padding(padding)
             .background(
-                color = WordMeTheme.colors.elementSecondary,
+                color = WordMeTheme.colors.elementTertiary,
                 shape = RoundedCornerShape(12.dp),
             )
             .weight(1f),

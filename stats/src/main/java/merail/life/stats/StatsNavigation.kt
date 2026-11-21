@@ -17,7 +17,10 @@ fun NavController.navigateToStats(
 ) {
     navigate(
         route = StatsRoute,
-        builder = navOptions,
+        builder = {
+            launchSingleTop = true
+            navOptions()
+        },
     )
 }
 

@@ -21,6 +21,7 @@ import dagger.hilt.components.SingletonComponent
 import merail.life.domain.WordModel
 import merail.life.server.api.IServerRepository
 import merail.life.server.impl.di.ServerModule
+import merail.life.store.impl.di.StoreModule
 import merail.life.wordme.navigation.WordMeNavHost
 import org.junit.Before
 import org.junit.Rule
@@ -29,7 +30,7 @@ import java.io.IOException
 import javax.inject.Singleton
 
 @HiltAndroidTest
-@UninstallModules(ServerModule::class)
+@UninstallModules(ServerModule::class, StoreModule::class)
 class ErrorBannerTest {
 
     @Module
@@ -92,7 +93,7 @@ class ErrorBannerTest {
         composeTestRule.waitForIdle()
 
         composeTestRule
-            .onNodeWithContentDescription("cross icon button")
+            .onNodeWithContentDescription("Закрыть")
             .assertDoesNotExist()
     }
 
@@ -138,13 +139,13 @@ class ErrorBannerTest {
 
         composeTestRule.waitUntil(timeoutMillis = 5_000) {
             composeTestRule
-                .onAllNodesWithContentDescription("cross icon button")
+                .onAllNodesWithContentDescription("Закрыть")
                 .fetchSemanticsNodes()
                 .isNotEmpty()
         }
 
         composeTestRule
-            .onNodeWithContentDescription("cross icon button")
+            .onNodeWithContentDescription("Закрыть")
             .assertIsDisplayed()
     }
 
@@ -170,7 +171,7 @@ class ErrorBannerTest {
         }
 
         composeTestRule
-            .onNodeWithContentDescription("cross icon button")
+            .onNodeWithContentDescription("Закрыть")
             .performClick()
 
         composeTestRule.waitForIdle()
@@ -188,7 +189,7 @@ class ErrorBannerTest {
         composeTestRule.onNode(hasText("О") and hasClickAction()).performClick()
         composeTestRule.waitForIdle()
         composeTestRule
-            .onNodeWithContentDescription("check word icon")
+            .onNodeWithContentDescription("Проверить слово")
             .performClick()
     }
 }
