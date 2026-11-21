@@ -295,19 +295,17 @@ internal class GameViewModel @Inject constructor(
                 } else {
                     val isWordExistResult = checkWordExistenceUseCase(enteredWord)
                     boardMutex.withLock {
-                        isWordExistResult.onSuccess { isWordExist ->
-                            if (isWordExist) {
-                                onCorrectWord(
-                                    enteredWord = enteredWord,
-                                    rowIndex = rowIndex,
-                                )
-                            } else {
-                                onWrongWord(rowIndex)
+                        when (isWordExistResult.getOrNull()) {
+                            true -> onCorrectWord(
+                                enteredWord = enteredWord,
+                                rowIndex = rowIndex,
+                            )
+                            false -> onWrongWord(rowIndex)
+                            null -> {
+                                _gameErrorState.value = GameErrorState.WordExistingCheckError
+                                _checkWordKeyState.value = CheckWordKeyState.Enabled
+                                _deleteKeyState.value = DeleteKeyState.Enabled
                             }
-                        }.onFailure {
-                            _gameErrorState.value = GameErrorState.WordExistingCheckError
-                            _checkWordKeyState.value = CheckWordKeyState.Enabled
-                            _deleteKeyState.value = DeleteKeyState.Enabled
                         }
                     }
                 }
@@ -352,7 +350,7 @@ internal class GameViewModel @Inject constructor(
         _keyButtons.value = newKeyButtons
     }
 
-    private fun onVictory(
+    private suspend fun onVictory(
         rowIndex: Int,
     ) {
         setKeyFormsOnCorrectWord(rowIndex)
@@ -362,7 +360,7 @@ internal class GameViewModel @Inject constructor(
         saveVictoryData()
     }
 
-    private fun onCorrectWord(
+    private suspend fun onCorrectWord(
         enteredWord: String,
         rowIndex: Int,
     ) {
@@ -385,12 +383,12 @@ internal class GameViewModel @Inject constructor(
         _deleteKeyState.value = DeleteKeyState.Enabled
     }
 
-    private fun onDefeat() {
+    private suspend fun onDefeat() {
         _gameResultState.value = GameResultState.Defeat
         saveDefeatData()
     }
 
-    private fun setKeyFormsOnCorrectWord(
+    private suspend fun setKeyFormsOnCorrectWord(
         rowIndex: Int,
     ) {
         updateKeyFormRow(rowIndex) { _, cell ->
@@ -407,7 +405,7 @@ internal class GameViewModel @Inject constructor(
         saveKeyForms()
     }
 
-    private fun setKeyFormsStateOnExistingWord(
+    private suspend fun setKeyFormsStateOnExistingWord(
         enteredWord: String,
         rowIndex: Int,
     ) {
@@ -451,21 +449,27 @@ internal class GameViewModel @Inject constructor(
         saveKeyForms()
     }
 
-    private fun saveKeyForms() = viewModelScope.launch {
+    private suspend fun saveKeyForms() = suspendableRunCatching {
         storeRepository.saveKeyForms(_keyForms.value.toLogicModel())
+    }.onFailure {
+        logger.w(TAG, "saveKeyForms failure", it)
     }
 
-    private fun saveVictoryData() {
+    private suspend fun saveVictoryData() {
         val attemptsCount = currentIndex.first
-        viewModelScope.launch {
+        suspendableRunCatching {
             val daysSinceStartCount = storeRepository.getDaysSinceStartCount().first()
             storeRepository.saveLastVictoryDay(daysSinceStartCount)
             storeRepository.updateStatsOnVictory(attemptsCount = attemptsCount)
+        }.onFailure {
+            logger.w(TAG, "saveVictoryData failure", it)
         }
     }
 
-    private fun saveDefeatData() = viewModelScope.launch {
+    private suspend fun saveDefeatData() = suspendableRunCatching {
         storeRepository.updateStatsOnDefeat()
+    }.onFailure {
+        logger.w(TAG, "saveDefeatData failure", it)
     }
 
     private fun updateKeyFormCell(row: Int, col: Int, transform: (KeyCell) -> KeyCell) {
