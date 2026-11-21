@@ -1,8 +1,6 @@
 package merail.life.time.impl.repository
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.first
@@ -77,7 +75,7 @@ internal class TimeRepository @Inject constructor(
                 delay(1000L.milliseconds)
             }
         }.shareIn(
-            scope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
+            scope = appScope,
             started = SharingStarted.Eagerly,
             replay = 1,
         )
