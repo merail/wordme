@@ -189,10 +189,16 @@ internal class GameViewModel @Inject constructor(
         _checkWordKeyState.value = CheckWordKeyState.Disabled
     }
 
-    fun handleKeyClick(key: Key) = when (key) {
-        Key.DEL -> removeKey()
-        Key.OK -> checkWord()
-        else -> addKey(key)
+    fun handleKeyClick(key: Key) {
+        if (_checkWordKeyState.value == CheckWordKeyState.Loading) {
+            return
+        }
+
+        when (key) {
+            Key.DEL -> removeKey()
+            Key.OK -> checkWord()
+            else -> addKey(key)
+        }
     }
 
     fun onFlipAnimationEnd(
@@ -277,6 +283,7 @@ internal class GameViewModel @Inject constructor(
         val columnIndex = currentIndex.second
         if (columnIndex == COLUMNS_COUNT && _wordCheckState.value is WordCheckState.None) {
             _checkWordKeyState.value = CheckWordKeyState.Loading
+            _deleteKeyState.value = DeleteKeyState.Disabled
 
             val enteredWord = _keyForms.value[rowIndex].toStringWord()
 
@@ -300,6 +307,7 @@ internal class GameViewModel @Inject constructor(
                         }.onFailure {
                             _gameErrorState.value = GameErrorState.WordExistingCheckError
                             _checkWordKeyState.value = CheckWordKeyState.Enabled
+                            _deleteKeyState.value = DeleteKeyState.Enabled
                         }
                     }
                 }
@@ -374,6 +382,7 @@ internal class GameViewModel @Inject constructor(
     ) {
         _wordCheckState.value = WordCheckState.NonExistentWord(rowIndex)
         _checkWordKeyState.value = CheckWordKeyState.Disabled
+        _deleteKeyState.value = DeleteKeyState.Enabled
     }
 
     private fun onDefeat() {

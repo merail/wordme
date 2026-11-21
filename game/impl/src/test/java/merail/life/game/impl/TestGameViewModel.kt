@@ -760,6 +760,77 @@ class TestGameViewModel {
     }
 
     @Test
+    fun `handleKeyClick ignores all keys while word check is in progress`() = runTest(testDispatcher) {
+        val isWordExist = CompletableDeferred<Boolean>()
+        coEvery { serverRepository.isWordExist("ааааа") } coAnswers { isWordExist.await() }
+
+        viewModel = GameViewModel(
+            gameLoader = gameLoader,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
+            storeRepository = storeRepository,
+            timeRepository = timeRepository,
+            gameRepository = gameRepository,
+            logger = logger,
+        )
+
+        advanceUntilIdle()
+
+        repeat(5) {
+            viewModel.handleKeyClick(Key.А)
+        }
+
+        viewModel.handleKeyClick(Key.OK)
+        advanceUntilIdle()
+
+        val keyFormsBefore = viewModel.keyForms.value
+        val currentIndexBefore = viewModel.currentIndex
+
+        viewModel.handleKeyClick(Key.OK)
+        viewModel.handleKeyClick(Key.Б)
+        viewModel.handleKeyClick(Key.DEL)
+        advanceUntilIdle()
+
+        assertEquals(keyFormsBefore, viewModel.keyForms.value)
+        assertEquals(currentIndexBefore, viewModel.currentIndex)
+        assertEquals(CheckWordKeyState.Loading, viewModel.checkWordKeyState.value)
+        assertEquals(DeleteKeyState.Disabled, viewModel.deleteKeyState.value)
+        coVerify(exactly = 1) { serverRepository.isWordExist("ааааа") }
+
+        isWordExist.complete(false)
+        advanceUntilIdle()
+
+        assertEquals(WordCheckState.NonExistentWord(0), viewModel.wordCheckState.value)
+        assertEquals(DeleteKeyState.Enabled, viewModel.deleteKeyState.value)
+    }
+
+    @Test
+    fun `delete key is enabled again when word check fails`() = runTest(testDispatcher) {
+        coEvery { serverRepository.isWordExist("ааааа") } throws RuntimeException("Network error")
+
+        viewModel = GameViewModel(
+            gameLoader = gameLoader,
+            checkWordExistenceUseCase = checkWordExistenceUseCase,
+            storeRepository = storeRepository,
+            timeRepository = timeRepository,
+            gameRepository = gameRepository,
+            logger = logger,
+        )
+
+        advanceUntilIdle()
+
+        repeat(5) {
+            viewModel.handleKeyClick(Key.А)
+        }
+
+        viewModel.handleKeyClick(Key.OK)
+        advanceUntilIdle()
+
+        assertEquals(GameErrorState.WordExistingCheckError, viewModel.gameErrorState.value)
+        assertEquals(CheckWordKeyState.Enabled, viewModel.checkWordKeyState.value)
+        assertEquals(DeleteKeyState.Enabled, viewModel.deleteKeyState.value)
+    }
+
+    @Test
     fun `dismissError sets isErrorVisible to false`() = runTest(testDispatcher) {
         coEvery { serverRepository.isWordExist("ааааа") } throws RuntimeException("Network error")
 
