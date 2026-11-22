@@ -3,6 +3,7 @@ package merail.life.game.impl
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import kotlinx.coroutines.awaitCancellation
@@ -54,6 +55,7 @@ class TestGameLoader {
         coEvery { serverRepository.getDayWord(any()) } returns WordModel("дубль")
 
         coEvery { timeRepository.getDaysSinceStartCount() } returns flowOf(1)
+        every { timeRepository.getDebugDaysOffset() } returns 0
 
         coEvery { storeRepository.getDaysSinceStartCount() } returns flowOf(0)
         coEvery { storeRepository.saveDaysSinceStartCount(any()) } just Runs
@@ -180,15 +182,16 @@ class TestGameLoader {
 
     @Test
     fun `loadNewDay on a newer day saves it and returns its word`() = runTest {
-        coEvery { timeRepository.getDaysSinceStartCount() } returns flowOf(2)
-        coEvery { storeRepository.getDaysSinceStartCount() } returns flowOf(1)
+        coEvery { timeRepository.getDaysSinceStartCount() } returns flowOf(1)
+        every { timeRepository.getDebugDaysOffset() } returns 1
+        coEvery { storeRepository.getDaysSinceStartCount() } returns flowOf(0)
         coEvery { serverRepository.getDayWord(3) } returns WordModel("аббат")
 
         val newDayWord = gameLoader.loadNewDay()
 
         assertEquals(WordModel("аббат"), newDayWord)
         coVerify { storeRepository.removeKeyForms() }
-        coVerify { storeRepository.saveDaysSinceStartCount(2) }
+        coVerify { storeRepository.saveDaysSinceStartCount(1) }
         coVerify { gameRepository.setDayWord(WordModel("аббат")) }
         coVerify { gameRepository.setKeyForms(emptyList()) }
         coVerify(exactly = 0) { configRepository.authAnonymously() }

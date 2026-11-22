@@ -56,9 +56,10 @@ internal class GameLoader @Inject constructor(
 
     override suspend fun loadNewDay(): WordModel? {
         val daysSinceStartCount = timeRepository.getDaysSinceStartCount().first()
+        val debugDaysOffset = timeRepository.getDebugDaysOffset()
         val lastDaysSinceStartCount = storeRepository.getDaysSinceStartCount().first()
 
-        return if (daysSinceStartCount > lastDaysSinceStartCount) {
+        return if (daysSinceStartCount + debugDaysOffset > lastDaysSinceStartCount) {
             startDay(
                 daysSinceStartCount = daysSinceStartCount,
             )
@@ -70,8 +71,10 @@ internal class GameLoader @Inject constructor(
     private suspend fun startDay(
         daysSinceStartCount: Int,
     ): WordModel {
+        val debugDaysOffset = timeRepository.getDebugDaysOffset()
+
         val dayWord = getDayWord(
-            daysSinceStartCount = daysSinceStartCount,
+            daysSinceStartCount = daysSinceStartCount + debugDaysOffset,
         )
 
         resetVictoriesRowCountIfNeeded(

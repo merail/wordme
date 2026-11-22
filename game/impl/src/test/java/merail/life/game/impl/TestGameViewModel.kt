@@ -3,6 +3,7 @@ package merail.life.game.impl
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import junit.framework.TestCase.assertEquals
@@ -76,6 +77,7 @@ class TestGameViewModel {
         coEvery { gameRepository.setKeyForms(any()) } just Runs
         coEvery { timeRepository.getTimeUntilNextDay() } returns flowOf(Pair("23:59:59", false))
         coEvery { timeRepository.getDaysSinceStartCount() } returns flowOf(1)
+        every { timeRepository.getDebugDaysOffset() } returns 0
         coEvery { storeRepository.getDaysSinceStartCount() } returns flowOf(1)
         coEvery { storeRepository.getLastVictoryDay() } returns flowOf(0)
     }
