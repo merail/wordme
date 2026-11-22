@@ -148,6 +148,19 @@ class TestTimeRepository {
             ),
             result,
         )
-        assertEquals(3, debugRepository.getDaysSinceStartCount().first())
+        assertEquals(2, debugRepository.getDaysSinceStartCount().first())
+        assertEquals(1, debugRepository.getDebugDaysOffset())
+    }
+
+    @Test
+    fun `getDebugDaysOffset returns zero without debug advance`() = runTest {
+        val now = LocalDate.of(2025, 7, 1).atStartOfDay()
+        val millis = now.atZone(zone).toInstant().toEpochMilli()
+        every { timeSource.getCurrentUnixEpochMillis() } returns flowOf(millis)
+
+        coEvery { serverRepository.getGameCountdownStartDate() } returns "29.06.2025"
+
+        assertEquals(0, repository.getDebugDaysOffset())
+        assertEquals(2, repository.getDaysSinceStartCount().first())
     }
 }
