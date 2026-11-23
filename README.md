@@ -61,7 +61,7 @@ Native Android API providing a smooth, consistent launch experience across devic
 
 - **Android App**
   - Clean, modular architecture
-  - Offline-first approach using DataStore
+  - Local game state persisted with DataStore
   - Declarative UI with Compose
 
 - **Backend**
