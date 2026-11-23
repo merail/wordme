@@ -37,10 +37,14 @@ internal class GameLoader @Inject constructor(
         configRepository.authAnonymously()
 
         val daysSinceStartCount = timeRepository.getDaysSinceStartCount().first()
+        val debugDaysOffset = timeRepository.getDebugDaysOffset()
         val lastDaysSinceStartCount = storeRepository.getDaysSinceStartCount().first()
 
-        if (daysSinceStartCount > lastDaysSinceStartCount) {
-            startDay(daysSinceStartCount)
+        if (daysSinceStartCount + debugDaysOffset > lastDaysSinceStartCount) {
+            startDay(
+                daysSinceStartCount = daysSinceStartCount,
+                debugDaysOffset = debugDaysOffset,
+            )
         } else {
             gameRepository.setDayWord(
                 dayWord = getDayWord(
@@ -56,11 +60,13 @@ internal class GameLoader @Inject constructor(
 
     override suspend fun loadNewDay(): WordModel? {
         val daysSinceStartCount = timeRepository.getDaysSinceStartCount().first()
+        val debugDaysOffset = timeRepository.getDebugDaysOffset()
         val lastDaysSinceStartCount = storeRepository.getDaysSinceStartCount().first()
 
-        return if (daysSinceStartCount > lastDaysSinceStartCount) {
+        return if (daysSinceStartCount + debugDaysOffset > lastDaysSinceStartCount) {
             startDay(
                 daysSinceStartCount = daysSinceStartCount,
+                debugDaysOffset = debugDaysOffset,
             )
         } else {
             null
@@ -69,9 +75,10 @@ internal class GameLoader @Inject constructor(
 
     private suspend fun startDay(
         daysSinceStartCount: Int,
+        debugDaysOffset: Int,
     ): WordModel {
         val dayWord = getDayWord(
-            daysSinceStartCount = daysSinceStartCount,
+            daysSinceStartCount = daysSinceStartCount + debugDaysOffset,
         )
 
         resetVictoriesRowCountIfNeeded(

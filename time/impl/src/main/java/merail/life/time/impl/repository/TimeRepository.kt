@@ -84,9 +84,11 @@ internal class TimeRepository @Inject constructor(
     override fun getDaysSinceStartCount() = timeSource.getCurrentUnixEpochMillis().map {
         LocalDateTime.ofInstant(Instant.ofEpochMilli(it), ZoneId.systemDefault())
     }.map {
-        val startDay = getGameCountdownStartDate().minusDays(debugDaysSinceStartCount.toLong())
+        val startDay = getGameCountdownStartDate()
         ChronoUnit.DAYS.between(startDay, it.plusSeconds(1)).coerceAtLeast(0).toInt()
     }
+
+    override fun getDebugDaysOffset() = debugDaysSinceStartCount
 
     override suspend fun getTimeUntilNextDay(
         reduceTimeFlag: Boolean,

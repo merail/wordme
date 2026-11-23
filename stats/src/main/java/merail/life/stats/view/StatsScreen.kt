@@ -69,7 +69,12 @@ internal fun StatsScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(0.9f)
-                .padding(16.dp),
+                .padding(
+                    start = 16.dp,
+                    top = 16.dp,
+                    end = 16.dp,
+                    bottom = 32.dp,
+                ),
         ) {
             CrossIconButton(
                 onClick = {
