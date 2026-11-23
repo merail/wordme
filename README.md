@@ -4,7 +4,7 @@ Guess the 5-letter word in 6 tries — just like Wordle, but in Russian! WordMe 
 
 The WordMe app invites you to put your wits to the test every day. The game shows which letters you've guessed correctly and where you went wrong, keeping your mind sharp with WordMe!
 
-<img src="screenshots/screenshot_1.png" width="144" /> <img src="screenshots/screenshot_2.png" width="144" /> <img src="screenshots/screenshot_3.png" width="144" />
+<img src="screenshots/screenshot_1.png" width="240" /> <img src="screenshots/screenshot_2.png" width="240" /> <img src="screenshots/screenshot_3.png" width="240" />
 
 ## Tech Stack
 
