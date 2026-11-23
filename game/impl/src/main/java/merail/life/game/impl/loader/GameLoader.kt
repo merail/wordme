@@ -37,10 +37,14 @@ internal class GameLoader @Inject constructor(
         configRepository.authAnonymously()
 
         val daysSinceStartCount = timeRepository.getDaysSinceStartCount().first()
+        val debugDaysOffset = timeRepository.getDebugDaysOffset()
         val lastDaysSinceStartCount = storeRepository.getDaysSinceStartCount().first()
 
-        if (daysSinceStartCount > lastDaysSinceStartCount) {
-            startDay(daysSinceStartCount)
+        if (daysSinceStartCount + debugDaysOffset > lastDaysSinceStartCount) {
+            startDay(
+                daysSinceStartCount = daysSinceStartCount,
+                debugDaysOffset = debugDaysOffset,
+            )
         } else {
             gameRepository.setDayWord(
                 dayWord = getDayWord(
@@ -62,6 +66,7 @@ internal class GameLoader @Inject constructor(
         return if (daysSinceStartCount + debugDaysOffset > lastDaysSinceStartCount) {
             startDay(
                 daysSinceStartCount = daysSinceStartCount,
+                debugDaysOffset = debugDaysOffset,
             )
         } else {
             null
@@ -70,9 +75,8 @@ internal class GameLoader @Inject constructor(
 
     private suspend fun startDay(
         daysSinceStartCount: Int,
+        debugDaysOffset: Int,
     ): WordModel {
-        val debugDaysOffset = timeRepository.getDebugDaysOffset()
-
         val dayWord = getDayWord(
             daysSinceStartCount = daysSinceStartCount + debugDaysOffset,
         )
